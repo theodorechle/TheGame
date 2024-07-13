@@ -2,9 +2,12 @@ import pygame
 
 class Item:
     ITEM_SIZE = 20
-    PATH = 'resources/images/items'
+    PATH = 'src/resources/images/items'
     def __init__(self, name) -> None:
         self.name = name
+        self.image = None
+    
+    def load_image(self) -> None:
         try:
             image = pygame.image.load(f'{self.PATH}/{self.name}.png')
         except FileNotFoundError:
