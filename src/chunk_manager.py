@@ -70,6 +70,5 @@ class ChunkManager:
         block = chunk.chunk[y][x % Chunk.LENGTH]
         block_image = blocks.BLOCKS[block].image
         window_size = self.window.get_size()
-        print((blocks.Block.BLOCK_SIZE*(x + x_add), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)))
         self.window.blit(block_image, (window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x - Chunk.LENGTH // 2 + x_add), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)))
 

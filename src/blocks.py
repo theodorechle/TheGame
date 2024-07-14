@@ -1,18 +1,14 @@
-import pygame
+from load_image import load_image
 
 class Block:
-    BLOCK_SIZE = 10
+    BLOCK_SIZE = 40
     PATH = 'src/resources/images/blocks'
     def __init__(self, name) -> None:
         self.name = name
         self.image = None
     
     def load_image(self) -> None:
-        try:
-            image = pygame.image.load(f'{self.PATH}/{self.name}.png')
-        except FileNotFoundError:
-            image = pygame.image.load(f'{self.PATH}/unknown.png')
-        self.image: pygame.Surface = pygame.transform.scale(image.convert_alpha(),(self.BLOCK_SIZE,self.BLOCK_SIZE))
+        self.image = load_image(f'{self.PATH}/{self.name}.png', (self.BLOCK_SIZE, self.BLOCK_SIZE))
 
 BLOCKS: list[Block] = [
     Block('air'),

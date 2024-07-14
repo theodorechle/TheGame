@@ -6,17 +6,19 @@ from player import Player
 class Game:
     def __init__(self) -> None:
         self.FPS = 2
-        self.WIDTH = 500
-        self.HEIGHT = 500
+        self.WIDTH = 1500
+        self.HEIGHT = 1000
         self.window = None
         self.run()
 
     def game_loop(self) -> None:
         clock = pygame.time.Clock()
-        player = Player(0, 0, 0, 0, self.window)
+        player = Player('base_character', 0, 16, 0, 0, self.window)
+        player.load_image()
         while True:
             self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
             player.chunk_manager.display_chunks(player.x, player.y)
+            player.display()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game_exit()

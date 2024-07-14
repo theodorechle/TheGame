@@ -1,4 +1,4 @@
-import pygame
+from load_image import load_image
 
 class Item:
     ITEM_SIZE = 20
@@ -8,11 +8,7 @@ class Item:
         self.image = None
     
     def load_image(self) -> None:
-        try:
-            image = pygame.image.load(f'{self.PATH}/{self.name}.png')
-        except FileNotFoundError:
-            image = pygame.image.load(f'{self.PATH}/unknown.png')
-        self.image = pygame.transform.scale(image.convert_alpha(),(self.ITEM_SIZE,self.ITEM_SIZE))
+        self.image = load_image(f'{self.PATH}/{self.name}.png', (self.ITEM_SIZE, self.ITEM_SIZE))
 
 ITEMS = [
     Item('coal'),
