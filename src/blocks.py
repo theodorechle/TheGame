@@ -1,7 +1,7 @@
 import pygame
 
 class Block:
-    BLOCK_SIZE = 50
+    BLOCK_SIZE = 10
     PATH = 'src/resources/images/blocks'
     def __init__(self, name) -> None:
         self.name = name

@@ -5,7 +5,7 @@ from player import Player
 
 class Game:
     def __init__(self) -> None:
-        self.FPS = 15
+        self.FPS = 2
         self.WIDTH = 500
         self.HEIGHT = 500
         self.window = None
@@ -13,14 +13,17 @@ class Game:
 
     def game_loop(self) -> None:
         clock = pygame.time.Clock()
-        player = Player(0, 11, 0, 0, self.window)
+        player = Player(0, 0, 0, 0, self.window)
         while True:
+            self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
+            player.chunk_manager.display_chunks(player.x, player.y)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.game_exit()
                     return
                 elif event.type == pygame.KEYDOWN:
                     ...
+            player.x -= 2
             pygame.display.update()
             clock.tick(self.FPS)
 
