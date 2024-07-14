@@ -15,6 +15,7 @@ class Game:
         clock = pygame.time.Clock()
         player = Player('base_character', 0, 16, 0, 0, self.window)
         player.load_image()
+        pygame.key.set_repeat(100, 100)
         while True:
             self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
             player.chunk_manager.display_chunks(player.x, player.y)
@@ -24,8 +25,11 @@ class Game:
                     self.game_exit()
                     return
                 elif event.type == pygame.KEYDOWN:
-                    ...
-            player.x -= 2
+                    if event.key == pygame.K_LEFT:
+                        player.speed_x = -1
+                    elif event.key == pygame.K_RIGHT:
+                        player.speed_x = 1
+            player.update()
             pygame.display.update()
             clock.tick(self.FPS)
 

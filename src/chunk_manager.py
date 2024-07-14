@@ -31,6 +31,19 @@ class ChunkManager:
         self.chunks: list[Chunk] = [Chunk(chunk_x_position)]
         self.change_nb_chunks(nb_chunks_by_side)
     
+    def get_block(self, x: int, y: int) -> int:
+        """Return the value at given coordinates, or -1 if out of map"""
+        if y < 0 or y >= Chunk.HEIGHT: return
+        if self.chunk_x_position != 0:
+            x %= abs(self.chunk_x_position) * Chunk.LENGTH
+        nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
+        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return # out of loaded chunks
+        chunk = self.chunks[nb_chunk]
+        return chunk.chunk[y][x % Chunk.LENGTH]
+
+    def replace_block(self, x: int, y: int, block: int) -> bool:
+        ...
+
     def change_nb_chunks(self, new_nb_chunks: int) -> None:
         new_chunks = [None for _ in range(new_nb_chunks * 2 + 1)]
         difference = new_nb_chunks - self.nb_chunks_by_side
@@ -58,17 +71,21 @@ class ChunkManager:
         nb_blocks_length = ceil(window_size[0] / blocks.Block.BLOCK_SIZE)
         nb_blocks_height = ceil(window_size[1] / blocks.Block.BLOCK_SIZE)
         for i in range(x - nb_blocks_length // 2, x + nb_blocks_length // 2):
+            i += Chunk.LENGTH // 2
             for j in range(y - nb_blocks_height // 2,  y + nb_blocks_height // 2):
                 self.display_block(i, j, -x, -y)
     
     def display_block(self, x: int, y: int, x_add: int, y_add: int) -> None:
         if y < 0 or y >= Chunk.HEIGHT: return
-        x += Chunk.LENGTH // 2
         nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
         if nb_chunk < 0 or nb_chunk >= len(self.chunks): return # out of loaded chunks
         chunk = self.chunks[nb_chunk]
         block = chunk.chunk[y][x % Chunk.LENGTH]
         block_image = blocks.BLOCKS[block].image
         window_size = self.window.get_size()
-        self.window.blit(block_image, (window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x - Chunk.LENGTH // 2 + x_add), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)))
+        self.window.blit(
+            block_image,
+            (window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x - Chunk.LENGTH // 2 + x_add - 0.5),
+             window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add))
+        )
 

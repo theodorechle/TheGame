@@ -1,12 +1,12 @@
 from load_image import load_image
 import chunk_manager
 from pygame import Surface
-from blocks import Block
+from blocks import Block, BLOCKS
 
 class Player:
     PLAYER_SIZE = (Block.BLOCK_SIZE, Block.BLOCK_SIZE * 2)
     PATH = 'src/resources/images/persos'
-    def __init__(self, name: str, x: int, y: int, speed_x: float, speed_y: float, window: Surface) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: Surface) -> None:
         self.name = name
         self.x = x
         self.y = y
@@ -24,4 +24,14 @@ class Player:
     
     def display(self) -> None:
         window_size = self.window.get_size()
-        self.window.blit(self.image, (window_size[0] // 2 - self.PLAYER_SIZE[0] // 2, window_size[1] // 2 - self.PLAYER_SIZE[1]))
+        self.window.blit(
+            self.image,
+            (window_size[0] // 2 - self.PLAYER_SIZE[0] // 2,
+             window_size[1] // 2 - self.PLAYER_SIZE[1])
+        )
+
+    def update(self) -> None:
+        for x in range(abs(self.speed_x)):
+            if BLOCKS[self.chunk_manager.get_block(self.x + x, self.y)].name == 'air':
+                self.x += (1 if self.speed_x >= 0 else -1)
+        self.speed_x = (1 if self.speed_x >= 0 else -1) * (abs(self.speed_x) // 2)
