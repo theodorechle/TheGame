@@ -5,7 +5,7 @@ from player import Player
 
 class Game:
     def __init__(self) -> None:
-        self.FPS = 2
+        self.FPS = 5
         self.WIDTH = 1500
         self.HEIGHT = 1000
         self.window = None
@@ -46,6 +46,7 @@ class Game:
         exit = False
         while not exit:
             self.game_loop()
+            exit = True
         pygame.quit()
 
 

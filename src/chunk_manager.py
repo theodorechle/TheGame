@@ -33,11 +33,12 @@ class ChunkManager:
     
     def get_block(self, x: int, y: int) -> int:
         """Return the value at given coordinates, or -1 if out of map"""
-        if y < 0 or y >= Chunk.HEIGHT: return
+        if y < 0 or y >= Chunk.HEIGHT: return -1
+        x += Chunk.LENGTH // 2
         if self.chunk_x_position != 0:
             x %= abs(self.chunk_x_position) * Chunk.LENGTH
         nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
-        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return # out of loaded chunks
+        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return -1 # out of loaded chunks
         chunk = self.chunks[nb_chunk]
         return chunk.chunk[y][x % Chunk.LENGTH]
 

@@ -16,7 +16,8 @@ class Player:
         self.render_distance = 3
         self.chunk_manager = chunk_manager.ChunkManager(3, 0, window)
         self.chunk_manager.chunks[3].chunk[15][8] = 4
-        self.chunk_manager.chunks[0].chunk[15][0] = 1
+        self.chunk_manager.chunks[0].chunk[16][0] = 1
+        self.chunk_manager.chunks[0].chunk[15][1] = 1
         self.image = None
     
     def load_image(self) -> None:
@@ -31,7 +32,10 @@ class Player:
         )
 
     def update(self) -> None:
-        for x in range(abs(self.speed_x)):
-            if BLOCKS[self.chunk_manager.get_block(self.x + x, self.y)].name == 'air':
-                self.x += (1 if self.speed_x >= 0 else -1)
-        self.speed_x = (1 if self.speed_x >= 0 else -1) * (abs(self.speed_x) // 2)
+        sign = (1 if self.speed_x >= 0 else -1)
+        for _ in range(abs(self.speed_x)):
+            block = self.chunk_manager.get_block(self.x + sign, self.y)
+            if block == -1 or BLOCKS[block].name != 'air':
+                break
+            self.x += sign
+        self.speed_x = sign * (abs(self.speed_x) // 2)
