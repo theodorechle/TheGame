@@ -19,14 +19,17 @@ class Player:
         self.chunk_manager.chunks[0].chunk[16][0] = 1
         self.chunk_manager.chunks[0].chunk[15][1] = 1
         self.image = None
+        self.image_reversed = None
+        self.direction = False # False if right, True if left
     
     def load_image(self) -> None:
         self.image = load_image(f'{self.PATH}/{self.name}.png', self.PLAYER_SIZE)
+        self.image_reversed = load_image(f'{self.PATH}/{self.name}_reversed.png', self.PLAYER_SIZE)
     
     def display(self) -> None:
         window_size = self.window.get_size()
         self.window.blit(
-            self.image,
+            self.image_reversed if self.direction else self.image,
             (window_size[0] // 2 - self.PLAYER_SIZE[0] // 2,
              window_size[1] // 2 - self.PLAYER_SIZE[1])
         )
@@ -38,4 +41,5 @@ class Player:
             if block == -1 or BLOCKS[block].name != 'air':
                 break
             self.x += sign
+        self.direction = (sign == -1)
         self.speed_x = sign * (abs(self.speed_x) // 2)
