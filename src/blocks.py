@@ -10,20 +10,36 @@ class Block:
     def load_image(self) -> None:
         self.image = load_image(f'{self.PATH}/{self.name}.png', (self.BLOCK_SIZE, self.BLOCK_SIZE))
 
+AIR = Block('air')
+EARTH = Block('earth')
+GRASS = Block('grass')
+WOOD = Block('wood')
+LEAVES = Block('leaves')
+SAND = Block('sand')
+STONE = Block('stone')
+COAL = Block('coal')
+IRON = Block('iron')
+PLANK = Block('plank')
+LAVA = Block('lava')
+NIGHT = Block('night')
+TORCH = Block('torch')
+FURNACE = Block('furnace')
+WORKBENCH = Block('workbench')
+
 BLOCKS: list[Block] = [
-    Block('air'),
-    Block('coal'),
-    Block('earth'),
-    Block('furnace'),
-    Block('grass'),
-    Block('iron'),
-    Block('lava'),
-    Block('leaves'),
-    Block('night'),
-    Block('plank'),
-    Block('sand'),
-    Block('stone'),
-    Block('torch'),
-    Block('wood'),
-    Block('workbench')
+    AIR,
+    EARTH,
+    GRASS,
+    WOOD,
+    LEAVES,
+    SAND,
+    STONE,
+    COAL,
+    IRON,
+    PLANK,
+    LAVA,
+    NIGHT,
+    TORCH,
+    FURNACE,
+    WORKBENCH
 ]

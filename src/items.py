@@ -10,13 +10,22 @@ class Item:
     def load_image(self) -> None:
         self.image = load_image(f'{self.PATH}/{self.name}.png', (self.ITEM_SIZE, self.ITEM_SIZE))
 
-ITEMS = [
-    Item('coal'),
-    Item('iron_ingot'),
-    Item('iron_pickaxe'),
-    Item('iron'),
-    Item('lava_bucket'),
-    Item('stick'),
-    Item('stone_pickaxe'),
-    Item('torch')
+COAL = Item('coal')
+IRON = Item('iron')
+IRON_INGOT = Item('iron_ingot')
+STICK = Item('stick')
+STONE_PICKAXE = Item('stone_pickaxe')
+IRON_PICKAXE = Item('iron_pickaxe')
+LAVA_BUCKET = Item('lava_bucket')
+TORCH = Item('torch')
+
+ITEMS: list[Item] = [
+    COAL,
+    IRON,
+    IRON_INGOT,
+    STICK,
+    STONE_PICKAXE,
+    IRON_PICKAXE,
+    LAVA_BUCKET,
+    TORCH
 ]

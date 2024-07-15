@@ -16,25 +16,30 @@ class Game:
         player = Player('base_character', 0, 16, 0, 0, self.window)
         player.load_image()
         pygame.key.set_repeat(100, 100)
-        while True:
+        loop = True
+        while loop:
             self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
             player.chunk_manager.display_chunks(player.x, player.y)
             player.display()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.game_exit()
-                    return
+                    loop = False
+                    break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         player.speed_x = -1
                     elif event.key == pygame.K_RIGHT:
                         player.speed_x = 1
+            pressed_mouse_buttons = pygame.mouse.get_pressed()
+            if pressed_mouse_buttons[0]:
+                player.place_block(pygame.mouse.get_pos())
+            if pressed_mouse_buttons[2]:
+                player.remove_block(pygame.mouse.get_pos())
+
             player.update()
             pygame.display.update()
             clock.tick(self.FPS)
-
-    def game_exit(self):
-        ...
+        player.save()
 
     def run(self) -> None:
         pygame.init()
@@ -51,4 +56,3 @@ class Game:
 
 
 game = Game()
-game.run()

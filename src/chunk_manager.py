@@ -1,6 +1,7 @@
 import blocks
 import pygame
 from math import ceil
+import blocks
 
 class Chunk:
     LENGTH = 16
@@ -11,17 +12,11 @@ class Chunk:
         self.load()
     
     def load(self):
-        self.chunk: list[list[int]] = [[11 for x in range(self.LENGTH)] for y in range(self.HEIGHT//2, self.HEIGHT)] \
-                + [[0 for x in range(self.LENGTH)] for y in range(self.HEIGHT//2)] # temp, for tests
+        self.chunk: list[list[blocks.Block]] = [[blocks.STONE for x in range(self.LENGTH)] for y in range(self.HEIGHT//2, self.HEIGHT)] \
+                + [[blocks.AIR for x in range(self.LENGTH)] for y in range(self.HEIGHT//2)] # temp, for tests
     
     def unload(self):
         ...
-    
-    def replace_block(self, x: int, y: int, block: int):
-        if 0 <= x < self.LENGTH \
-                and 0 <= y < self.HEIGHT:
-            self.chunk[y][x] = block
-    
 
 class ChunkManager:
     def __init__(self, nb_chunks_by_side, chunk_x_position, window: pygame.Surface) -> None:
@@ -31,19 +26,27 @@ class ChunkManager:
         self.chunks: list[Chunk] = [Chunk(chunk_x_position)]
         self.change_nb_chunks(nb_chunks_by_side)
     
-    def get_block(self, x: int, y: int) -> int:
-        """Return the value at given coordinates, or -1 if out of map"""
-        if y < 0 or y >= Chunk.HEIGHT: return -1
+    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk, int, int]:
+        if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
         x += Chunk.LENGTH // 2
         if self.chunk_x_position != 0:
             x %= abs(self.chunk_x_position) * Chunk.LENGTH
         nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
-        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return -1 # out of loaded chunks
+        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return None, -1, -1 # out of loaded chunks
         chunk = self.chunks[nb_chunk]
-        return chunk.chunk[y][x % Chunk.LENGTH]
+        return chunk, x % Chunk.LENGTH, y
+
+    def get_block(self, x: int, y: int) -> blocks.Block:
+        """Return the value at given coordinates, or -1 if out of map"""
+        chunk, x, y = self.get_chunk_and_coordinates(x, y)
+        if chunk is None: return -1
+        return chunk.chunk[y][x]
 
     def replace_block(self, x: int, y: int, block: int) -> bool:
-        ...
+        chunk, x, y = self.get_chunk_and_coordinates(x, y)
+        if chunk is None: return False
+        chunk.chunk[y][x] = block
+        return True
 
     def change_nb_chunks(self, new_nb_chunks: int) -> None:
         new_chunks = [None for _ in range(new_nb_chunks * 2 + 1)]
@@ -66,23 +69,23 @@ class ChunkManager:
         self.nb_chunks_by_side = new_nb_chunks
     
     def display_chunks(self, x: int, y: int) -> None:
-        if self.chunk_x_position != 0:
-            x %= abs(self.chunk_x_position) * Chunk.LENGTH
         window_size = self.window.get_size()
         nb_blocks_length = ceil(window_size[0] / blocks.Block.BLOCK_SIZE)
         nb_blocks_height = ceil(window_size[1] / blocks.Block.BLOCK_SIZE)
         for i in range(x - nb_blocks_length // 2, x + nb_blocks_length // 2):
-            i += Chunk.LENGTH // 2
             for j in range(y - nb_blocks_height // 2,  y + nb_blocks_height // 2):
                 self.display_block(i, j, -x, -y)
     
     def display_block(self, x: int, y: int, x_add: int, y_add: int) -> None:
         if y < 0 or y >= Chunk.HEIGHT: return
+        x += Chunk.LENGTH // 2
+        if self.chunk_x_position != 0:
+            x %= abs(self.chunk_x_position) * Chunk.LENGTH
         nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
         if nb_chunk < 0 or nb_chunk >= len(self.chunks): return # out of loaded chunks
         chunk = self.chunks[nb_chunk]
         block = chunk.chunk[y][x % Chunk.LENGTH]
-        block_image = blocks.BLOCKS[block].image
+        block_image = block.image
         window_size = self.window.get_size()
         self.window.blit(
             block_image,
