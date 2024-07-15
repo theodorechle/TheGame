@@ -36,19 +36,34 @@ class Player:
         window_size = self.window.get_size()
         self.window.blit(
             self.image_reversed if self.direction else self.image,
-            (window_size[0] // 2 - self.image_size[0] // 2,
+            (window_size[0] // 2 - blocks.Block.BLOCK_SIZE // 2,
              window_size[1] // 2 - self.image_size[1])
         )
 
     def update(self) -> None:
+        is_valid_pos = True
+        for x in range(self.PLAYER_SIZE[0]):
+            block = self.chunk_manager.get_block(self.x + x, self.y - 1)
+            if block == -1 or block != blocks.AIR:
+                is_valid_pos = False
+                break
+        if is_valid_pos:
+            self.y -= 1
         if not self.speed_x: return
         sign = (1 if self.speed_x >= 0 else -1)
-        for _ in range(abs(self.speed_x)):
-            block = self.chunk_manager.get_block(self.x + sign, self.y)
-            if block == -1 or block != blocks.AIR:
-                break
-            self.x += sign
-        self.direction = (sign == -1)
+        new_direction = (sign == -1)
+        if new_direction != self.direction:
+            self.direction = new_direction
+        else:
+            for _ in range(abs(self.speed_x)):
+                is_valid_pos = True
+                for y in range(self.PLAYER_SIZE[1]):
+                    block = self.chunk_manager.get_block(self.x + self.PLAYER_SIZE[0] * sign, self.y + y)
+                    if block == -1 or block != blocks.AIR:
+                        is_valid_pos = False
+                        break
+                if is_valid_pos:
+                    self.x += sign
         self.speed_x = sign * (abs(self.speed_x) // 2)
 
     def save(self) -> None:
@@ -57,17 +72,37 @@ class Player:
     def place_block(self, pos: tuple[int, int]) -> None:
         x = (pos[0] - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
         y = -(pos[1] - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
-        if ((x == -self.PLAYER_SIZE[0] or x == self.PLAYER_SIZE[0]) and y == 0) \
-                or ((y == -1 or y == self.PLAYER_SIZE[1]) and x == 0):
-            block = self.chunk_manager.get_block(self.x + x, self.y + y)
-            if block == blocks.AIR:
-                self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.GRASS)
+        if 0 <= y < self.PLAYER_SIZE[1]: # left or right
+            if self.direction:
+                if x != -1:
+                    return
+            else:
+                if x != self.PLAYER_SIZE[0]:
+                    return
+        elif y == -1 or y == self.PLAYER_SIZE[1]: # down or up
+            if not (0 <= x < self.PLAYER_SIZE[0]):
+                return
+        else:
+            return
+        block = self.chunk_manager.get_block(self.x + x, self.y + y)
+        if block == blocks.AIR:
+            self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.GRASS)
 
     def remove_block(self, pos: tuple[int, int]) -> None:
         x = (pos[0] - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
         y = -(pos[1] - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
-        if ((x == -self.PLAYER_SIZE[0] or x == self.PLAYER_SIZE[0]) and y == 0) \
-                or ((y == -1 or y == self.PLAYER_SIZE[1]) and x == 0):
-            block = self.chunk_manager.get_block(self.x + x, self.y + y)
-            if block != blocks.AIR:
-                self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
+        if 0 <= y < self.PLAYER_SIZE[1]: # left or right
+            if self.direction:
+                if x != -1:
+                    return
+            else:
+                if x != self.PLAYER_SIZE[0]:
+                    return
+        elif y == -1 or y == self.PLAYER_SIZE[1]: # down or up
+            if not (0 <= x < self.PLAYER_SIZE[0]):
+                return
+        else:
+            return
+        block = self.chunk_manager.get_block(self.x + x, self.y + y)
+        if block != blocks.AIR:
+            self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
