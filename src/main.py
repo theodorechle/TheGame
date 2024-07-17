@@ -5,7 +5,7 @@ from player import Player
 
 class Game:
     def __init__(self) -> None:
-        self.FPS = 5
+        self.FPS = 20
         self.WIDTH = 1500
         self.HEIGHT = 1000
         self.window = None
