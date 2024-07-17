@@ -58,7 +58,7 @@ class Player:
             for _ in range(abs(self.speed_x)):
                 is_valid_pos = True
                 for y in range(self.PLAYER_SIZE[1]):
-                    block = self.chunk_manager.get_block(self.x + self.PLAYER_SIZE[0] * sign, self.y + y)
+                    block = self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y)
                     if block == -1 or block != blocks.AIR:
                         is_valid_pos = False
                         break
