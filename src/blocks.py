@@ -8,8 +8,9 @@ class Block:
         self.image = None
     
     def load_image(self) -> None:
-        self.image = load_image(f'{self.PATH}/{self.name}.png', (self.BLOCK_SIZE, self.BLOCK_SIZE))
+        self.image = load_image([f'{self.PATH}/{self.name}.png'], (self.BLOCK_SIZE, self.BLOCK_SIZE))
 
+NOTHING = None
 AIR = Block('air')
 EARTH = Block('earth')
 GRASS = Block('grass')

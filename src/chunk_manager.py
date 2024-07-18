@@ -42,7 +42,7 @@ class ChunkManager:
         if chunk is None: return -1
         return chunk.chunk[y][x]
 
-    def replace_block(self, x: int, y: int, block: int) -> bool:
+    def replace_block(self, x: int, y: int, block: blocks.Block) -> bool:
         chunk, x, y = self.get_chunk_and_coordinates(x, y)
         if chunk is None: return False
         chunk.chunk[y][x] = block

@@ -2,14 +2,78 @@ from load_image import load_image
 import chunk_manager
 from pygame import Surface
 import blocks
+import items
+from recipes import convert_block_to_items, convert_item_to_block
 
 class Inventory:
     def __init__(self, nb_cells: int) -> None:
         self.nb_cells = nb_cells
-        self.cells: list[tuple[int, int]] = [(-1, 0) for _ in range(self.nb_cells)] # list of tuples with
+        self.cells: list[list[int, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
+    
+    def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
+        """
+        Tries to add the quantity of the given element in the inventory at pos.
+        Returns the quantity effectively added.
+        """
+        if 0 > pos or pos >= len(self.cells): return 0
+        if self.cells[pos][0] == items.NOTHING: self.cells[pos][0] = element
+        elif self.cells[pos][0] != element: return 0
+        added_quantity = min(quantity, element.stack_size - self.cells[pos][1])
+        self.cells[pos][1] += added_quantity
+        return added_quantity
+    
+    def add_element(self, element: items.Item, quantity: int) -> int:
+        """
+        Tries to add the quantity of the given element in the inventory at the first free space.
+        Returns the quantity effectively added.
+        """
+        added_quantity: int = 0
+        for index in range(len(self.cells)):
+            added_quantity = self.add_element_at_pos(element, quantity - added_quantity, index)
+            if quantity == added_quantity:
+                break
+        return added_quantity
+    
+    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[items.Item, int]:
+        """
+        Tries to remove the quantity of the element in the inventory at pos.
+        Returns the quantity effectively removed.
+        """
+        if 0 > pos or pos >= len(self.cells): return 0
+        removed_quantity = min(quantity, self.cells[pos][1])
+        cell = [self.cells[pos][0], removed_quantity]
+        self.cells[pos][1] -= removed_quantity
+        if self.cells[pos][1] == 0:
+            self.cells[pos] = [items.NOTHING, 0]
+        return cell
+
+    def remove_element(self, element: items.Item) -> int:
+        """
+        Remove all instances of element in the inventory.
+        Returns the quantity effectively removed
+        """
+        removed_quantity: int = 0
+        for index in range(len(self.cells)):
+            if self.cells[index][0] == element:
+                removed_quantity += self.cells[index][1]
+                self.cells[index] = [items.NOTHING, 0]
+        return removed_quantity
+
+    def empty_cell(self, pos: int) -> tuple[items.Item, int]:
+        """
+        Empty the inventory's cell at pos.
+        Returns a tuple containing the item in the cell and the quantity of it.
+        """
+        if 0 > pos or pos >= len(self.cells): return [items.NOTHING, 0]
+        cell = self.cells[pos]
+        self.cells[pos] = [items.NOTHING, 0]
+        return cell
+
+    def sort(self) -> None:
+        ...
 
 class Player:
-    PLAYER_SIZE = (1, 2) # number of blocks width and height
+    PLAYER_SIZE = (10, 10) # number of blocks width and height
     image_size = (PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE, PLAYER_SIZE[1] * blocks.Block.BLOCK_SIZE)
     PATH = 'src/resources/images/persos'
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: Surface) -> None:
@@ -27,10 +91,12 @@ class Player:
         self.image = None
         self.image_reversed = None
         self.direction = False # False if right, True if left
+        self.inventory_size = 10
+        self.inventory = Inventory(self.inventory_size)
     
     def load_image(self) -> None:
-        self.image = load_image(f'{self.PATH}/{self.name}.png', self.image_size)
-        self.image_reversed = load_image(f'{self.PATH}/{self.name}_reversed.png', self.image_size)
+        self.image = load_image([f'{self.PATH}/{self.name}.png'], self.image_size)
+        self.image_reversed = load_image([f'{self.PATH}/{self.name}_reversed.png'], self.image_size)
     
     def display(self) -> None:
         window_size = self.window.get_size()
@@ -86,7 +152,11 @@ class Player:
             return
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block == blocks.AIR:
-            self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.GRASS)
+            item, quantity = self.inventory.remove_element_at_pos(1, 0)
+            if quantity == 0: return
+            block = convert_item_to_block(item)
+            if block != None:
+                self.chunk_manager.replace_block(self.x + x, self.y + y, block)
 
     def remove_block(self, pos: tuple[int, int]) -> None:
         x = (pos[0] - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
@@ -106,3 +176,5 @@ class Player:
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block != blocks.AIR:
             self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
+            for item, quantity in convert_block_to_items(block, 1).items():
+                self.inventory.add_element(item, quantity)
