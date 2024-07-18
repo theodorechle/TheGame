@@ -130,7 +130,8 @@ class Player:
                         break
                 if is_valid_pos:
                     if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) != blocks.AIR:
-                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1])  == blocks.AIR:
+                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1]) == blocks.AIR \
+                                and self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2) * sign, self.y + self.PLAYER_SIZE[1]) == blocks.AIR:
                             self.y += 1
                         else:
                             continue
@@ -146,27 +147,38 @@ class Player:
         return x, y
     
     def _is_interactable(self, x: int, y: int) -> bool:
-        rx, ry = self._get_relative_pos(x, y)
-        if 0 <= ry < self.PLAYER_SIZE[1]: # left or right
-            if self.direction:
-                return rx == -self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2)
-            else:
-                return rx == self.PLAYER_SIZE[0] // 2 + 1
-        elif ry == -1 or ry == self.PLAYER_SIZE[1]: # down or up
-            if -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2 <= rx <= self.PLAYER_SIZE[0] // 2:
-                return True
-            elif -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2 - 1 == rx:
-                if ry == -1:
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + 1, self.y + ry) == blocks.AIR
+        can_interact = True
+        in_loop = True
+        while in_loop and can_interact:
+            can_interact = False
+            in_loop = False # modify to allow any range
+            rx, ry = self._get_relative_pos(x, y)
+            if -self.interaction_range + 1 <= ry < self.PLAYER_SIZE[1] + self.interaction_range - 1: # left or right
+                if self.direction:
+                    can_interact = rx == -self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2) - self.interaction_range + 1
+                    continue
                 else:
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + 1, self.y + ry) == blocks.AIR
-            elif rx == self.PLAYER_SIZE[0] // 2 + 1:
-                if ry == -1:
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - 1, self.y + ry) == blocks.AIR
-                else:
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - 1, self.y + ry) == blocks.AIR
-        else:
-            return False
+                    can_interact = rx == self.PLAYER_SIZE[0] // 2 + self.interaction_range
+                    continue
+            elif ry == -self.interaction_range or ry == self.PLAYER_SIZE[1] + self.interaction_range - 1: # down or up
+                if -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2 - self.interaction_range + 1 <= rx < self.PLAYER_SIZE[0] // 2 + self.interaction_range:
+                    can_interact = True
+                    continue
+                elif -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2 - self.interaction_range == rx:
+                    if ry == -self.interaction_range:
+                        can_interact = self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) == blocks.AIR
+                        continue
+                    else:
+                        can_interact = self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) == blocks.AIR
+                        continue
+                elif rx == self.PLAYER_SIZE[0] // 2 + self.interaction_range:
+                    if ry == -self.interaction_range:
+                        can_interact = self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
+                        continue
+                    else:
+                        can_interact = self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
+                        continue
+        return can_interact
 
     def place_block(self, pos: tuple[int, int]) -> None:
         if not self._is_interactable(*pos): return
