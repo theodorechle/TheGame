@@ -84,6 +84,7 @@ class Player:
         self.speed_y = speed_y
         self.window = window
         self.render_distance = 3
+        self.interaction_range = 1
         self.chunk_manager = chunk_manager.ChunkManager(3, 0, window)
         self.chunk_manager.chunks[3].chunk[15][8] = blocks.GRASS
         self.chunk_manager.chunks[0].chunk[16][0] = blocks.COAL
@@ -124,12 +125,12 @@ class Player:
             for _ in range(abs(self.speed_x)):
                 is_valid_pos = True
                 for y in range(1, self.PLAYER_SIZE[1]):
-                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y) not in (blocks.NOTHING, blocks.AIR):
+                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y) != blocks.AIR:
                         is_valid_pos = False
                         break
                 if is_valid_pos:
-                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) not in (blocks.NOTHING, blocks.AIR):
-                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1]) in (blocks.NOTHING, blocks.AIR):
+                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) != blocks.AIR:
+                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1])  == blocks.AIR:
                             self.y += 1
                         else:
                             continue
@@ -139,21 +140,37 @@ class Player:
     def save(self) -> None:
         ...
     
-    def place_block(self, pos: tuple[int, int]) -> None:
-        x = (pos[0] - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
-        y = -(pos[1] - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
-        if 0 <= y < self.PLAYER_SIZE[1]: # left or right
+    def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
+        x = (x - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
+        y = -(y - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
+        return x, y
+    
+    def _is_interactable(self, x: int, y: int) -> bool:
+        rx, ry = self._get_relative_pos(x, y)
+        if 0 <= ry < self.PLAYER_SIZE[1]: # left or right
             if self.direction:
-                if x != -self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2):
-                    return
+                return rx == -self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2)
             else:
-                if x != self.PLAYER_SIZE[0] // 2 + 1:
-                    return
-        elif y == -1 or y == self.PLAYER_SIZE[1]: # down or up
-            if not (-self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2) < x <= self.PLAYER_SIZE[0] // 2):
-                return
+                return rx == self.PLAYER_SIZE[0] // 2 + 1
+        elif ry == -1 or ry == self.PLAYER_SIZE[1]: # down or up
+            if -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2 <= rx <= self.PLAYER_SIZE[0] // 2:
+                return True
+            elif -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2 - 1 == rx:
+                if ry == -1:
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + 1, self.y + ry) == blocks.AIR
+                else:
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + 1, self.y + ry) == blocks.AIR
+            elif rx == self.PLAYER_SIZE[0] // 2 + 1:
+                if ry == -1:
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - 1, self.y + ry) == blocks.AIR
+                else:
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - 1) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - 1, self.y + ry) == blocks.AIR
         else:
-            return
+            return False
+
+    def place_block(self, pos: tuple[int, int]) -> None:
+        if not self._is_interactable(*pos): return
+        x, y = self._get_relative_pos(*pos)
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block == blocks.AIR:
             item, quantity = self.inventory.remove_element_at_pos(1, 0)
@@ -163,20 +180,8 @@ class Player:
                 self.chunk_manager.replace_block(self.x + x, self.y + y, block)
 
     def remove_block(self, pos: tuple[int, int]) -> None:
-        x = (pos[0] - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
-        y = -(pos[1] - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
-        if 0 <= y < self.PLAYER_SIZE[1]: # left or right
-            if self.direction:
-                if x != -self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2):
-                    return
-            else:
-                if x != self.PLAYER_SIZE[0] // 2 + 1:
-                    return
-        elif y == -1 or y == self.PLAYER_SIZE[1]: # down or up
-            if not (-self.PLAYER_SIZE[0] // 2 - (not self.PLAYER_SIZE[0] % 2) < x <= self.PLAYER_SIZE[0] // 2):
-                return
-        else:
-            return
+        if not self._is_interactable(*pos): return
+        x, y = self._get_relative_pos(*pos)
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block != blocks.AIR:
             self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)

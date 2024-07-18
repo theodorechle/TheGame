@@ -11,6 +11,9 @@ class Item:
     
     def load_image(self) -> None:
         self.image = load_image([f'{self.PATH}/{self.name}.png', f'{Block.PATH}/{self.name}.png'], (self.ITEM_SIZE, self.ITEM_SIZE))
+    
+    def __repr__(self) -> str:
+        return self.name
 
 NOTHING = None
 IRON_INGOT = Item('iron_ingot')

@@ -9,6 +9,9 @@ class Block:
     
     def load_image(self) -> None:
         self.image = load_image([f'{self.PATH}/{self.name}.png'], (self.BLOCK_SIZE, self.BLOCK_SIZE))
+    
+    def __repr__(self) -> str:
+        return self.name
 
 NOTHING = None
 AIR = Block('air')
