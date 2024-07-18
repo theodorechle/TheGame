@@ -73,7 +73,7 @@ class Inventory:
         ...
 
 class Player:
-    PLAYER_SIZE = (10, 10) # number of blocks width and height
+    PLAYER_SIZE = (1, 2) # number of blocks width and height
     image_size = (PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE, PLAYER_SIZE[1] * blocks.Block.BLOCK_SIZE)
     PATH = 'src/resources/images/persos'
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: Surface) -> None:
@@ -123,12 +123,16 @@ class Player:
         else:
             for _ in range(abs(self.speed_x)):
                 is_valid_pos = True
-                for y in range(self.PLAYER_SIZE[1]):
-                    block = self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y)
-                    if block == -1 or block != blocks.AIR:
+                for y in range(1, self.PLAYER_SIZE[1]):
+                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y) not in (blocks.NOTHING, blocks.AIR):
                         is_valid_pos = False
                         break
                 if is_valid_pos:
+                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) not in (blocks.NOTHING, blocks.AIR):
+                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1]) in (blocks.NOTHING, blocks.AIR):
+                            self.y += 1
+                        else:
+                            continue
                     self.x += sign
         self.speed_x = sign * (abs(self.speed_x) // 2)
 
