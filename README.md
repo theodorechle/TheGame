@@ -2,6 +2,10 @@
 
 ## PRIORITÉ
 
+- pouvoir se déplacer autrement que bloc par bloc
+
+- ne pas utiliser les FPS pour déterminer la vitesse du joueur et de ses actions
+
 - affichage et utilisation de l'inventaire
 
 ## GÉNÉRATION:
@@ -19,7 +23,6 @@
 - blocs principaux (terre,pierre, …)
 - minerais (en amas)
 - structures (prévoir un ordre)
-
 
 
 ## INTERACTIONS_FICHIERS :

@@ -1,6 +1,6 @@
 import blocks
 import pygame
-from math import ceil
+from math import trunc, ceil
 import blocks
 
 class Chunk:
@@ -72,8 +72,8 @@ class ChunkManager:
         window_size = self.window.get_size()
         nb_blocks_length = ceil(window_size[0] / blocks.Block.BLOCK_SIZE)
         nb_blocks_height = ceil(window_size[1] / blocks.Block.BLOCK_SIZE)
-        for i in range(x - nb_blocks_length // 2, x + nb_blocks_length // 2):
-            for j in range(y - nb_blocks_height // 2,  y + nb_blocks_height // 2):
+        for i in range(trunc(x) - nb_blocks_length // 2, trunc(x) + nb_blocks_length // 2):
+            for j in range(trunc(y) - nb_blocks_height // 2,  trunc(y) + nb_blocks_height // 2):
                 self.display_block(i, j, -x, -y)
     
     def display_block(self, x: int, y: int, x_add: int, y_add: int) -> None:
