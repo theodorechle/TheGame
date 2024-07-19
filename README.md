@@ -2,11 +2,7 @@
 
 ## PRIORITÉ
 
-- interaction range fonctionnelle
-
 - affichage et utilisation de l'inventaire
-
-- permettre de poser un bloc sous le joueur pour le faire monter
 
 ## GÉNÉRATION:
 
@@ -51,6 +47,7 @@
 
 - permettre un choix des touches
 - souris pour l’orientation du perso ?
+- interaction range
 
 ## INTERACTIONS AVEC LES BLOCS :
 

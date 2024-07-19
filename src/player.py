@@ -94,6 +94,13 @@ class Player:
         self.direction = False # False if right, True if left
         self.inventory_size = 10
         self.inventory = Inventory(self.inventory_size)
+        self.player_edges_pos()
+
+    def player_edges_pos(self) -> None:
+        self.top_player_pos = self.PLAYER_SIZE[1]
+        self.bottom_player_pos = 0
+        self.left_player_pos = -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2
+        self.right_player_pos = self.PLAYER_SIZE[0] // 2
     
     def load_image(self) -> None:
         self.image = load_image([f'{self.PATH}/{self.name}.png'], self.image_size)
@@ -148,33 +155,43 @@ class Player:
     
     def _is_interactable(self, x: int, y: int) -> bool:
         rx, ry = self._get_relative_pos(x, y)
-        top_player_pos = self.PLAYER_SIZE[1]
-        bottom_player_pos = 0
-        left_player_pos = -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2
-        right_player_pos = self.PLAYER_SIZE[0] // 2
-        if bottom_player_pos-self.interaction_range + 1 <= ry < top_player_pos + self.interaction_range - 1: # left or right
+
+        if self.bottom_player_pos-self.interaction_range + 1 <= ry < self.top_player_pos + self.interaction_range - 1: # left or right
             if self.direction:
-                return rx == left_player_pos - self.interaction_range
+                return rx == self.left_player_pos - self.interaction_range
             else:
-                return rx == right_player_pos + self.interaction_range
-        elif ry == bottom_player_pos-self.interaction_range or ry == top_player_pos + self.interaction_range - 1: # down or up
-            if left_player_pos - self.interaction_range + 1 <= rx < right_player_pos + self.interaction_range:
+                return rx == self.right_player_pos + self.interaction_range
+        elif ry == self.bottom_player_pos-self.interaction_range or ry == self.top_player_pos + self.interaction_range - 1: # down or up
+            if self.left_player_pos - self.interaction_range + 1 <= rx < self.right_player_pos + self.interaction_range:
                 return True
             # edges
-            elif left_player_pos - self.interaction_range == rx:
-                if ry == bottom_player_pos-self.interaction_range: # down-left
+            elif self.left_player_pos - self.interaction_range == rx:
+                if ry == self.bottom_player_pos-self.interaction_range: # down-left
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) == blocks.AIR
                 else: # up-left
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) == blocks.AIR
             elif rx == self.PLAYER_SIZE[0] // 2 + self.interaction_range:
-                if ry == bottom_player_pos-self.interaction_range: # down-right
+                if ry == self.bottom_player_pos-self.interaction_range: # down-right
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
                 else: # up-right
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
 
     def place_block(self, pos: tuple[int, int]) -> None:
-        if not self._is_interactable(*pos): return
         x, y = self._get_relative_pos(*pos)
+        if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y <= self.top_player_pos:
+            is_valid_pos = True
+            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
+                block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
+                if block == -1 or block != blocks.AIR:
+                    is_valid_pos = False
+                    break
+            if is_valid_pos:
+                self.y += 1
+                y = -1
+            else:
+                return
+        else:
+            if not self._is_interactable(*pos): return
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block == blocks.AIR:
             item, quantity = self.inventory.remove_element_at_pos(1, 0)
