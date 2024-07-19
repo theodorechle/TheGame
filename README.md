@@ -6,6 +6,8 @@
 
 ## GÉNÉRATION:
 
+- chunks verticaux
+
 - fichiers informations biomes :
     - hauteur min + max, dénivelé
     - bloc couche supérieur

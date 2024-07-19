@@ -86,9 +86,6 @@ class Player:
         self.render_distance = 3
         self.interaction_range = 1
         self.chunk_manager = chunk_manager.ChunkManager(3, 0, window)
-        self.chunk_manager.chunks[3].chunk[15][8] = blocks.GRASS
-        self.chunk_manager.chunks[0].chunk[16][0] = blocks.COAL
-        self.chunk_manager.chunks[0].chunk[15][1] = blocks.IRON
         self.image = None
         self.image_reversed = None
         self.direction = False # False if right, True if left
@@ -181,11 +178,11 @@ class Player:
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y <= self.top_player_pos:
             is_valid_pos = True
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-                block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
+                block = self.chunk_manager.get_block(self.x, self.y + self.top_player_pos)
                 if block == -1 or block != blocks.AIR:
                     is_valid_pos = False
                     break
-            if is_valid_pos:
+            if is_valid_pos and self.chunk_manager.get_block(self.x, self.y - 1) != blocks.AIR:
                 self.y += 1
                 y = -1
             else:
