@@ -27,9 +27,9 @@ class Game:
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
-                        player.speed_x = -0.1
+                        player.speed_x = -0.4
                     elif event.key == pygame.K_RIGHT:
-                        player.speed_x = 0.1
+                        player.speed_x = 0.4
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
                 player.place_block(pygame.mouse.get_pos())

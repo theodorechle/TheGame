@@ -88,7 +88,8 @@ class Player:
         self.window = window
         self.render_distance = 3
         self.interaction_range = 1
-        self.chunk_manager = chunk_manager.ChunkManager(3, 0, window)
+        self.chunk_manager = chunk_manager.ChunkManager(self.render_distance, 0, window)
+        self.chunk_manager.replace_block(self.x, self.y, blocks.LEAVES)
         self.image = None
         self.image_reversed = None
         self.direction = False # False if right, True if left
@@ -145,8 +146,8 @@ class Player:
                         else:
                             continue
                     self.x += sign
-            self.x += min(ceil(self.x), self.speed_x - nb_blocks_crossed) * sign
-        self.speed_x = sign * (abs(self.speed_x) // 2)
+            self.x = round(self.x + min(1 - self.x % 1, abs(self.speed_x) - nb_blocks_crossed) * sign, 1)
+        self.speed_x = (abs(self.speed_x) // 2)
 
     def save(self) -> None:
         ...
