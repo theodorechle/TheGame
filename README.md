@@ -1,5 +1,13 @@
 # TODO
 
+## PRIORITÉ
+
+- interaction range fonctionnelle
+
+- affichage et utilisation de l'inventaire
+
+- permettre de poser un bloc sous le joueur pour le faire monter
+
 ## GÉNÉRATION:
 
 - fichiers informations biomes :
