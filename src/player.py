@@ -208,6 +208,12 @@ class Player:
                 else: # up-right
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
 
+    def _is_surrounded_by_block(self, x: int, y: int) -> bool:
+        return (self.chunk_manager.get_block(x + 1, y) != blocks.AIR
+                or self.chunk_manager.get_block(x, y + 1) != blocks.AIR
+                or self.chunk_manager.get_block(x - 1, y) != blocks.AIR
+                or self.chunk_manager.get_block(x, y - 1) != blocks.AIR)
+
     def place_block(self, pos: tuple[int, int]) -> None:
         x, y = self._get_relative_pos(*pos)
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y <= self.top_player_pos:
@@ -224,13 +230,14 @@ class Player:
                 return
         else:
             if not self._is_interactable(*pos): return
-        block = self.chunk_manager.get_block(self.x + x, self.y + y)
-        if block == blocks.AIR:
+        block_x, block_y = self.x + x, self.y + y
+        block = self.chunk_manager.get_block(block_x, block_y)
+        if block == blocks.AIR and self._is_surrounded_by_block(block_x, block_y):
             item, quantity = self.inventory.remove_element_at_pos(1, self.inventory.selected)
             if quantity == 0: return
             block = convert_item_to_block(item)
             if block != None:
-                self.chunk_manager.replace_block(self.x + x, self.y + y, block)
+                self.chunk_manager.replace_block(block_x, block_y, block)
 
     def remove_block(self, pos: tuple[int, int]) -> None:
         if not self._is_interactable(*pos): return
