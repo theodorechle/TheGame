@@ -4,7 +4,7 @@
 
 - affichage et utilisation de l'inventaire
 
-- empêcher de placer un bloc dans le vide
+- adapter l'affichage pour pouvoir changer la taille
 
 ## GÉNÉRATION:
 

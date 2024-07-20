@@ -10,8 +10,8 @@ class Game:
         self.HEIGHT = 1000
         self.window = None
         self.keys = {
-            "mv_left": pygame.K_LEFT, #moves
-            "mv_right": pygame.K_RIGHT,
+            "mv_left": pygame.K_q, #moves
+            "mv_right": pygame.K_d,
             "inv_1": pygame.K_1, # inventory
             "inv_2": pygame.K_2,
             "inv_3": pygame.K_3,
@@ -78,7 +78,7 @@ class Game:
 
     def run(self) -> None:
         pygame.init()
-        self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+        self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
         for block in BLOCKS:
             block.load_image()
         for item in ITEMS:
@@ -89,5 +89,6 @@ class Game:
             exit = True
         pygame.quit()
 
+HUD_SIZE = 1 # percentage
 
 game = Game()

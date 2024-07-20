@@ -11,7 +11,7 @@ class Inventory:
         self.cells: list[list[blocks.Block|None, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
         self.window = window
         self.cell_size = 40
-        self.cells_borders_size = 5
+        self.cells_borders_size = 2
         self.blocks_qty_font_name = ""
         self.blocks_qty_font_size = 20
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
