@@ -1,14 +1,21 @@
 from load_image import load_image
 import chunk_manager
-from pygame import Surface
+import pygame
 import blocks
 import items
 from recipes import convert_block_to_items, convert_item_to_block
 
 class Inventory:
-    def __init__(self, nb_cells: int) -> None:
+    def __init__(self, nb_cells: int, window: pygame.Surface) -> None:
         self.nb_cells = nb_cells
-        self.cells: list[list[int, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
+        self.cells: list[list[blocks.Block|None, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
+        self.window = window
+        self.cell_size = 40
+        self.cells_borders_size = 5
+        self.blocks_qty_font_name = ""
+        self.blocks_qty_font_size = 20
+        self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
+        self.selected = 0
     
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -72,11 +79,36 @@ class Inventory:
     def sort(self) -> None:
         ...
 
+    def display(self) -> None:
+        ...
+    
+    def display_main_bar(self) -> None:
+        for index in range(10):
+            x, y = index * self.cell_size, self.window.get_size()[1] - self.cell_size - 5
+            self.display_cell(x, y, self.selected == index)
+            if index >= len(self.cells): continue
+            block, qty = self.cells[index]
+            if block is None: continue
+            item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2
+            self.window.blit(block.image, (x + item_img_start, y + item_img_start))
+            qty = str(qty)
+            qty_render_size = self.block_qty_font.size(qty)
+            self.window.blit(self.block_qty_font
+                             .render(qty, True, "#ffffff"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+
+    def display_cell(self, x: int, y: int, selected: bool) -> None:
+        pygame.draw.lines(
+            self.window,
+            "#aaaaaa",
+            True,
+            [(x, y), (x + self.cell_size, y), (x + self.cell_size, y + self.cell_size), (x, y + self.cell_size)],
+            self.cells_borders_size * (1 + selected))
+
 class Player:
     PLAYER_SIZE = (1, 2) # number of blocks width and height
     image_size = (PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE, PLAYER_SIZE[1] * blocks.Block.BLOCK_SIZE)
     PATH = 'src/resources/images/persos'
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: Surface) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface) -> None:
         self.name = name
         self.x = x
         self.y = y
@@ -90,7 +122,7 @@ class Player:
         self.image_reversed = None
         self.direction = False # False if right, True if left
         self.inventory_size = 10
-        self.inventory = Inventory(self.inventory_size)
+        self.inventory = Inventory(self.inventory_size, window)
         self.player_edges_pos()
 
     def player_edges_pos(self) -> None:
@@ -110,6 +142,9 @@ class Player:
             (window_size[0] // 2 - self.PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE // 2,
              window_size[1] // 2 - self.image_size[1])
         )
+    
+    def display_hud(self) -> None:
+        self.inventory.display_main_bar()
 
     def update(self) -> None:
         is_valid_pos = True
@@ -191,7 +226,7 @@ class Player:
             if not self._is_interactable(*pos): return
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block == blocks.AIR:
-            item, quantity = self.inventory.remove_element_at_pos(1, 0)
+            item, quantity = self.inventory.remove_element_at_pos(1, self.inventory.selected)
             if quantity == 0: return
             block = convert_item_to_block(item)
             if block != None:

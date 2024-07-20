@@ -4,6 +4,8 @@
 
 - affichage et utilisation de l'inventaire
 
+- empêcher de placer un bloc dans le vide
+
 ## GÉNÉRATION:
 
 - chunks verticaux
