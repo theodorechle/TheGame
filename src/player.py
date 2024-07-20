@@ -223,7 +223,7 @@ class Player:
                 if block == -1 or block != blocks.AIR:
                     is_valid_pos = False
                     break
-            if is_valid_pos and self.chunk_manager.get_block(self.x, self.y - 1) != blocks.AIR:
+            if is_valid_pos and self._is_surrounded_by_block(self.x, self.y):
                 self.y += 1
                 y = -1
             else:
