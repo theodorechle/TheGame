@@ -89,6 +89,6 @@ class Game:
             exit = True
         pygame.quit()
 
-HUD_SIZE = 1 # percentage
+hud_size = 1 # percentage
 
 game = Game()
