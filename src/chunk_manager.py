@@ -3,6 +3,8 @@ import pygame
 from math import ceil
 import blocks
 
+from random import choice
+
 class Chunk:
     LENGTH = 16
     HEIGHT = 32
@@ -12,7 +14,7 @@ class Chunk:
         self.load()
     
     def load(self):
-        self.chunk: list[list[blocks.Block]] = [[blocks.STONE for x in range(self.LENGTH)] for y in range(self.HEIGHT//2, self.HEIGHT)] \
+        self.chunk: list[list[blocks.Block]] = [[choice(blocks.BLOCKS) for x in range(self.LENGTH)] for y in range(self.HEIGHT//2, self.HEIGHT)] \
                 + [[blocks.AIR for x in range(self.LENGTH)] for y in range(self.HEIGHT//2)] # temp, for tests
     
     def unload(self):
@@ -87,9 +89,13 @@ class ChunkManager:
         block = chunk.chunk[y][x % Chunk.LENGTH]
         block_image = block.image
         window_size = self.window.get_size()
+        coords = window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x - Chunk.LENGTH // 2 + x_add - 0.5), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)
+        self.window.blit(
+            blocks.AIR.image,
+            coords
+        )
         self.window.blit(
             block_image,
-            (window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x - Chunk.LENGTH // 2 + x_add - 0.5),
-             window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add))
+            coords
         )
 

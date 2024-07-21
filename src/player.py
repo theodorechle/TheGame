@@ -238,6 +238,8 @@ class Player:
             block = convert_item_to_block(item)
             if block != None:
                 self.chunk_manager.replace_block(block_x, block_y, block)
+            else:
+                self.inventory.add_element_at_pos(item, 1, self.inventory.selected)
 
     def remove_block(self, pos: tuple[int, int]) -> None:
         if not self._is_interactable(*pos): return
