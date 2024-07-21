@@ -1,3 +1,9 @@
+import json
+
 class Biome:
-    def __init__(self, max_height) -> None:
-        pass
+    PATH = 
+    def __init__(self, name) -> None:
+        self.name = name
+
+    def load(self) -> None:
+        with open(self.path)

@@ -11,11 +11,13 @@ class Inventory:
         self.cells: list[list[blocks.Block|None, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
         self.window = window
         self.cell_size = 40
+        self.nb_cells_by_line = 10
         self.cells_borders_size = 2
         self.blocks_qty_font_name = ""
         self.blocks_qty_font_size = 20
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
         self.selected = 0
+        self.display_all = False
     
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -80,12 +82,25 @@ class Inventory:
         ...
 
     def display(self) -> None:
-        ...
+        self.display_main_bar()
+        if not self.display_all: return
+        for index in range(10, len(self.cells)):
+            x, y = (index % self.nb_cells_by_line) * self.cell_size, self.window.get_size()[1] // 2 + (index // self.nb_cells_by_line) * self.cell_size
+            self._display_cell(x, y, False)
+            block, qty = self.cells[index]
+            if block is None: continue
+            item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2
+            self.window.blit(block.image, (x + item_img_start, y + item_img_start))
+            qty = str(qty)
+            qty_render_size = self.block_qty_font.size(qty)
+            self.window.blit(self.block_qty_font
+                             .render(qty, True, "#ffffff"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+
     
     def display_main_bar(self) -> None:
         for index in range(10):
             x, y = index * self.cell_size, self.window.get_size()[1] - self.cell_size - 5
-            self.display_cell(x, y, self.selected == index)
+            self._display_cell(x, y, self.selected == index)
             if index >= len(self.cells): continue
             block, qty = self.cells[index]
             if block is None: continue
@@ -96,13 +111,15 @@ class Inventory:
             self.window.blit(self.block_qty_font
                              .render(qty, True, "#ffffff"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
 
-    def display_cell(self, x: int, y: int, selected: bool) -> None:
+    def _display_cell(self, x: int, y: int, selected: bool) -> None:
+        border_size = self.cells_borders_size * (1 + selected)
+        pygame.draw.rect(self.window, "#dddddd", pygame.Rect(x, y, self.cell_size, self.cell_size))
         pygame.draw.lines(
             self.window,
             "#aaaaaa",
             True,
             [(x, y), (x + self.cell_size, y), (x + self.cell_size, y + self.cell_size), (x, y + self.cell_size)],
-            self.cells_borders_size * (1 + selected))
+            border_size)
 
 class Player:
     PLAYER_SIZE = (1, 2) # number of blocks width and height
@@ -121,7 +138,7 @@ class Player:
         self.image = None
         self.image_reversed = None
         self.direction = False # False if right, True if left
-        self.inventory_size = 10
+        self.inventory_size = 50
         self.inventory = Inventory(self.inventory_size, window)
         self.player_edges_pos()
 
@@ -144,7 +161,7 @@ class Player:
         )
     
     def display_hud(self) -> None:
-        self.inventory.display_main_bar()
+        self.inventory.display()
 
     def update(self) -> None:
         is_valid_pos = True

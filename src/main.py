@@ -22,6 +22,7 @@ class Game:
             "inv_8": pygame.K_8,
             "inv_9": pygame.K_9,
             "inv_10": pygame.K_0,
+            "open_inv": pygame.K_i
         }
         self.run()
 
@@ -65,6 +66,8 @@ class Game:
                         player.inventory.selected = 8
                     elif event.key == self.keys["inv_10"]:
                         player.inventory.selected = 9
+                    elif event.key == self.keys["open_inv"]:
+                        player.inventory.display_all = not player.inventory.display_all
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
                 player.place_block(pygame.mouse.get_pos())
