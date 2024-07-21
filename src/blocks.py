@@ -29,6 +29,7 @@ NIGHT = Block('night')
 TORCH = Block('torch')
 FURNACE = Block('furnace')
 WORKBENCH = Block('workbench')
+WATER = Block('water')
 
 BLOCKS: list[Block] = [
     AIR,
@@ -45,5 +46,6 @@ BLOCKS: list[Block] = [
     NIGHT,
     TORCH,
     FURNACE,
-    WORKBENCH
+    WORKBENCH,
+    WATER
 ]

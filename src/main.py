@@ -2,6 +2,9 @@ import pygame
 from blocks import BLOCKS
 from items import ITEMS
 from player import Player
+from map_generation import MapGenerator
+from chunk_manager import Chunk
+from random import randint
 
 class Game:
     def __init__(self) -> None:
@@ -27,8 +30,12 @@ class Game:
         self.run()
 
     def game_loop(self) -> None:
+        is_new_map = True
         clock = pygame.time.Clock()
-        player = Player('base_character', 0, 16, 0, 0, self.window)
+        map_generator = MapGenerator(str(randint(-500000000, 500000000)))
+        if is_new_map:
+            map_generator.create_seeds(Chunk.HEIGHT)
+        player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator)
         player.load_image()
         pygame.key.set_repeat(100, 100)
         loop = True

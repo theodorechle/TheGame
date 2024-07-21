@@ -4,6 +4,7 @@ import pygame
 import blocks
 import items
 from recipes import convert_block_to_items, convert_item_to_block
+from map_generation import MapGenerator
 
 class Inventory:
     def __init__(self, nb_cells: int, window: pygame.Surface) -> None:
@@ -94,7 +95,7 @@ class Inventory:
             qty = str(qty)
             qty_render_size = self.block_qty_font.size(qty)
             self.window.blit(self.block_qty_font
-                             .render(qty, True, "#ffffff"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+                             .render(qty, True, "#000000"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
 
     
     def display_main_bar(self) -> None:
@@ -109,7 +110,7 @@ class Inventory:
             qty = str(qty)
             qty_render_size = self.block_qty_font.size(qty)
             self.window.blit(self.block_qty_font
-                             .render(qty, True, "#ffffff"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+                             .render(qty, True, "#000000"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
 
     def _display_cell(self, x: int, y: int, selected: bool) -> None:
         border_size = self.cells_borders_size * (1 + selected)
@@ -125,7 +126,7 @@ class Player:
     PLAYER_SIZE = (1, 2) # number of blocks width and height
     image_size = (PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE, PLAYER_SIZE[1] * blocks.Block.BLOCK_SIZE)
     PATH = 'src/resources/images/persos'
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, map_generator: MapGenerator) -> None:
         self.name = name
         self.x = x
         self.y = y
@@ -134,7 +135,7 @@ class Player:
         self.window = window
         self.render_distance = 3
         self.interaction_range = 1
-        self.chunk_manager = chunk_manager.ChunkManager(3, 0, window)
+        self.chunk_manager = chunk_manager.ChunkManager(self.render_distance, 0, window, map_generator)
         self.image = None
         self.image_reversed = None
         self.direction = False # False if right, True if left

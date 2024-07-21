@@ -1,9 +1,11 @@
 import json
 
 class Biome:
-    PATH = 
+    PATH = 'resources/biomes'
     def __init__(self, name) -> None:
         self.name = name
+        self.infos = None
 
     def load(self) -> None:
-        with open(self.path)
+        with open(f'{self.PATH}/{self.name}.json') as f:
+            self.infos = json.load(f)
