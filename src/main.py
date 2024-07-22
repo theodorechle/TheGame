@@ -15,6 +15,7 @@ class Game:
         self.keys = {
             "mv_left": pygame.K_q, #moves
             "mv_right": pygame.K_d,
+            "mv_up": pygame.K_z,
             "inv_1": pygame.K_1, # inventory
             "inv_2": pygame.K_2,
             "inv_3": pygame.K_3,
@@ -53,6 +54,8 @@ class Game:
                         player.speed_x = -1
                     elif event.key == self.keys["mv_right"]:
                         player.speed_x = 1
+                    elif event.key == self.keys["mv_up"]:
+                        player.speed_y = 1
                     elif event.key == self.keys["inv_1"]:
                         player.inventory.selected = 0
                     elif event.key == self.keys["inv_2"]:

@@ -178,13 +178,26 @@ class Player:
 
     def update(self) -> None:
         is_valid_pos = True
-        for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-            block = self.chunk_manager.get_block(self.x + x, self.y - 1)
-            if block == -1 or block != blocks.AIR:
-                is_valid_pos = False
-                break
-        if is_valid_pos:
-            self.y -= 1
+        if self.speed_y <= 0:
+            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
+                block = self.chunk_manager.get_block(self.x + x, self.y - 1)
+                if block == -1 or block not in blocks.TRAVERSABLE_BLOCKS:
+                    is_valid_pos = False
+                    break
+            if is_valid_pos:
+                self.y -= 1
+        else:
+            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
+                block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
+                if block == -1 or block not in blocks.SWIMMABLE_BLOCKS:
+                    is_valid_pos = False
+                    break
+            if is_valid_pos:
+                self.y += 1
+            if self.speed_y >= 1:
+                self.speed_y = 0.1
+            else:
+                self.speed_y = 0
         if not self.speed_x: return
         sign = (1 if self.speed_x >= 0 else -1)
         new_direction = (sign == -1)
@@ -194,13 +207,13 @@ class Player:
             for _ in range(abs(self.speed_x)):
                 is_valid_pos = True
                 for y in range(1, self.PLAYER_SIZE[1]):
-                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y) != blocks.AIR:
+                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y) not in blocks.TRAVERSABLE_BLOCKS:
                         is_valid_pos = False
                         break
                 if is_valid_pos:
-                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) != blocks.AIR:
-                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1]) == blocks.AIR \
-                                and self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2) * sign, self.y + self.PLAYER_SIZE[1]) == blocks.AIR:
+                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) not in blocks.TRAVERSABLE_BLOCKS:
+                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1]) in blocks.TRAVERSABLE_BLOCKS \
+                                and self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2) * sign, self.y + self.PLAYER_SIZE[1]) in blocks.TRAVERSABLE_BLOCKS:
                             self.y += 1
                         else:
                             continue
@@ -229,20 +242,20 @@ class Player:
             # edges
             elif self.left_player_pos - self.interaction_range == rx:
                 if ry == self.bottom_player_pos-self.interaction_range: # down-left
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) == blocks.AIR
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-left
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) == blocks.AIR
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
             elif rx == self.PLAYER_SIZE[0] // 2 + self.interaction_range:
                 if ry == self.bottom_player_pos-self.interaction_range: # down-right
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-right
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) == blocks.AIR or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) == blocks.AIR
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
 
     def _is_surrounded_by_block(self, x: int, y: int) -> bool:
-        return (self.chunk_manager.get_block(x + 1, y) != blocks.AIR
-                or self.chunk_manager.get_block(x, y + 1) != blocks.AIR
-                or self.chunk_manager.get_block(x - 1, y) != blocks.AIR
-                or self.chunk_manager.get_block(x, y - 1) != blocks.AIR)
+        return (self.chunk_manager.get_block(x + 1, y) not in blocks.TRAVERSABLE_BLOCKS
+                or self.chunk_manager.get_block(x, y + 1) not in blocks.TRAVERSABLE_BLOCKS
+                or self.chunk_manager.get_block(x - 1, y) not in blocks.TRAVERSABLE_BLOCKS
+                or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
     def place_block(self, pos: tuple[int, int]) -> None:
         x, y = self._get_relative_pos(*pos)
@@ -250,7 +263,7 @@ class Player:
             is_valid_pos = True
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
                 block = self.chunk_manager.get_block(self.x, self.y + self.top_player_pos)
-                if block == -1 or block != blocks.AIR:
+                if block == -1 or block not in blocks.TRAVERSABLE_BLOCKS:
                     is_valid_pos = False
                     break
             if is_valid_pos and self._is_surrounded_by_block(self.x, self.y):
@@ -262,7 +275,7 @@ class Player:
             if not self._is_interactable(*pos): return
         block_x, block_y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(block_x, block_y)
-        if block == blocks.AIR and self._is_surrounded_by_block(block_x, block_y):
+        if block in blocks.TRAVERSABLE_BLOCKS and self._is_surrounded_by_block(block_x, block_y):
             item, quantity = self.inventory.remove_element_at_pos(1, self.inventory.selected)
             if quantity == 0: return
             block = convert_item_to_block(item)
@@ -275,7 +288,7 @@ class Player:
         if not self._is_interactable(*pos): return
         x, y = self._get_relative_pos(*pos)
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
-        if block != blocks.AIR:
+        if block not in blocks.TRAVERSABLE_BLOCKS:
             self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
             for item, quantity in convert_block_to_items(block, 1).items():
                 self.inventory.add_element(item, quantity)

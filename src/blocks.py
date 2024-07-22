@@ -49,3 +49,14 @@ BLOCKS: list[Block] = [
     WORKBENCH,
     WATER
 ]
+
+TRAVERSABLE_BLOCKS = [
+    AIR,
+    WATER,
+    LAVA
+]
+
+SWIMMABLE_BLOCKS = [
+    WATER,
+    LAVA
+]
