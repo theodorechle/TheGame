@@ -1,7 +1,7 @@
 from load_image import load_image
 
 class Block:
-    BLOCK_SIZE = 40
+    BLOCK_SIZE = 20
     PATH = 'src/resources/images/blocks'
     def __init__(self, name) -> None:
         self.name = name

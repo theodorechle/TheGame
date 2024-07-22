@@ -6,18 +6,20 @@ from map_generation import MapGenerator
 
 class Chunk:
     LENGTH = 16
-    HEIGHT = 32
+    HEIGHT = 128
     def __init__(self, id, direction: int, map_generator: MapGenerator) -> None:
         """
         direction: 0 -> left, 1 -> right
         """
         self.id = id
+        self.direction = direction
+        self.map_generator = map_generator
         self.blocks: list[list[blocks.Block]] = None
-        self.blocks = map_generator.generate_chunk(direction, self.LENGTH, self.HEIGHT)
-        # self.load()
-    
+        self.load()
+
     def load(self):
-        ...
+        print("id: ", self.id)
+        self.blocks = self.map_generator.generate_chunk(self.direction, self.LENGTH, self.HEIGHT, central_chunk = (self.id == 0))
     
     def unload(self):
         ...
@@ -54,14 +56,14 @@ class ChunkManager:
         return True
 
     def change_nb_chunks(self, new_nb_chunks: int) -> None:
-        new_chunks = [None for _ in range(new_nb_chunks * 2 + 1)]
+        new_chunks: list[Chunk|None] = [None for _ in range(new_nb_chunks * 2 + 1)]
         difference = new_nb_chunks - self.nb_chunks_by_side
         if difference > 0:
             for i in range(self.nb_chunks_by_side*2 + 1):
                 new_chunks[difference + i] = self.chunks[i]
             for i in range(difference):
-                new_chunks[difference - i - 1] = Chunk(self.chunk_x_position - self.nb_chunks_by_side + i, 0, self.map_generator)
-                new_chunks[new_nb_chunks + i + 1] = Chunk(self.chunk_x_position + self.nb_chunks_by_side + i, 1, self.map_generator)
+                new_chunks[difference - i - 1] = Chunk(self.chunk_x_position - i - 1, 0, self.map_generator)
+                new_chunks[new_nb_chunks + i + 1] = Chunk(self.chunk_x_position + i + 1, 1, self.map_generator)
             if new_chunks[new_nb_chunks] is None: # central chunk
                 new_chunks[new_nb_chunks] = Chunk(self.chunk_x_position, 0, self.map_generator)
         else:

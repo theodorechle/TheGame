@@ -34,7 +34,7 @@ class Game:
         clock = pygame.time.Clock()
         map_generator = MapGenerator(str(randint(-500000000, 500000000)))
         if is_new_map:
-            map_generator.create_seeds(Chunk.HEIGHT)
+            map_generator.create_seeds()
         player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator)
         player.load_image()
         pygame.key.set_repeat(100, 100)
