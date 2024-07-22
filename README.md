@@ -1,9 +1,9 @@
-Pour installer les paquets nécessaires, lancez
+Pour installer les paquets nécessaires, exécutez la commande suivante :
 ```py
 python3 -m pip install -r requirements.txt
 ```
 
-Run
+Pour lancer le programme, exécutez la commande suivante :
 ```py
 python3 src/main.py
 ```
