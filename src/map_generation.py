@@ -31,10 +31,11 @@ class MapGenerator:
         self.rand_states = [random.getstate()] * 2
 
     @staticmethod
-    def generate_number(previous_value: int, max_gap: int, min_value: int, max_value: int):
+    def generate_number(previous_value: int, max_gap: int, min_value: int, max_value: int, keep_same: int = 0.5):
+        if random.random() < keep_same: return previous_value
         return min(max_value, max(min_value, previous_value + random.randint(-max_gap, max_gap)))
 
-    def generate_land_shape(self, chunk_height: int, chunk_length: int, min_height: int, max_height: int, max_height_difference: int, direction: int) -> list[list[blocks.Block]]:
+    def generate_land_shape(self, chunk_height: int, chunk_length: int, min_height: int, max_height: int, max_height_difference: int, direction: int, upper_block: blocks.Block) -> list[list[blocks.Block]]:
         last_height = self.last_block_height_values[direction]
         if last_height is None:
             last_height = min_height + (max_height - min_height) // 2
@@ -47,9 +48,10 @@ class MapGenerator:
         for x in x_range:
             min_ = max(min(min_height - last_height, 0), -max_height_difference)
             max_ = min(max(max_height - last_height, 0), max_height_difference)
-            height = last_height + random.randint(min_, max_)
+            height = last_height + random.randint(min_, max_) - 1
             for y in range(0, min(chunk_height - 1, height)):
                 chunk[y][x] = blocks.STONE
+            chunk[height][x] = upper_block
             last_height = height
             if is_first_column and self.is_central_chunk:
                 is_first_column = False
@@ -58,6 +60,13 @@ class MapGenerator:
         self.last_block_height_values[direction] = last_height
         return chunk
 
+    def fill_with_block(self, chunk: list[list[blocks.Block]], height: int, block: blocks.Block) -> list[list[blocks.Block]]:
+        for x in range(len(chunk[0])):
+            for y in range(height - 1, -1, -1):
+                if chunk[y][x] != blocks.AIR:
+                    break
+                chunk[y][x] = block
+        return chunk
 
     def generate_chunk(self, direction: str, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> list[list[blocks.Block]]:
         """
@@ -70,20 +79,18 @@ class MapGenerator:
         random.setstate(self.rand_states[direction])
         is_island = random.choices((0, 1), (0.4, 0.6))[0]
         if is_island:
-            block = blocks.STONE
+            height = self.generate_number(self.biome_height_values[direction], 1, 0, 2, keep_same=0.4)
+            if height == 0: # plain
+                chunk = self.generate_land_shape(chunk_height, chunk_length, 50, 60, 1, direction, blocks.GRASS)
+            if height == 1: # hill
+                chunk = self.generate_land_shape(chunk_height, chunk_length, 60, 80, 2, direction, blocks.GRASS)
+            if height == 2: # mountain
+                chunk = self.generate_land_shape(chunk_height, chunk_length, 100, 115, 3, direction, blocks.STONE)
         else:
-            block = blocks.WATER
-        
-        # height: 0 -> plain, 1 -> hill, 2 -> mountain
-        height = self.generate_number(self.biome_height_values[direction], 1, 0, 2)
-        if height == 0:
-            chunk = self.generate_land_shape(chunk_height, chunk_length, 50, 60, 1, direction)
-        if height == 1:
-            chunk = self.generate_land_shape(chunk_height, chunk_length, 60, 80, 2, direction)
-        if height == 2:
-            chunk = self.generate_land_shape(chunk_height, chunk_length, 100, 115, 3, direction)
+            chunk = self.generate_land_shape(chunk_height, chunk_length, 30, 40, 1, direction, blocks.STONE)
+            height = self.biome_height_values[direction]
 
-
+        chunk = self.fill_with_block(chunk, 50, blocks.WATER)
         # updates states and values
         self.rand_states[direction] = random.getstate()
         self.biome_height_values[direction] = height

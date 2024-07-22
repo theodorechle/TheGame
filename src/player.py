@@ -135,6 +135,11 @@ class Player:
         self.window = window
         self.render_distance = 3
         self.interaction_range = 1
+
+        self.infos_font_name = ""
+        self.infos_font_size = 20
+        self.infos_font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
+
         self.chunk_manager = chunk_manager.ChunkManager(self.render_distance, 0, window, map_generator)
         self.image = None
         self.image_reversed = None
@@ -163,6 +168,13 @@ class Player:
     
     def display_hud(self) -> None:
         self.inventory.display()
+        self._display_infos()
+
+    def _display_infos(self):
+        coords = f'coords: x: {self.x}, y: {self.y}'
+        self.window.blit(self.infos_font
+                .render(coords, True, "#000000"), (50, 50))
+
 
     def update(self) -> None:
         is_valid_pos = True
