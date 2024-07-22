@@ -1,7 +1,6 @@
 ## PRIORITÉ
 
 - permettre d'accéder à tout l'inventaire
-- permettre d'appuyer sur plusieurs touches en même temps
 
 ## GÉNÉRATION:
 
