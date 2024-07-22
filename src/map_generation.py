@@ -49,9 +49,9 @@ class MapGenerator:
         for x in x_range:
             min_ = max(min(min_height - last_height, 0), -max_height_difference)
             max_ = min(max(max_height - last_height, 0), max_height_difference)
-            height = last_height + random.randint(min_, max_) - 1
+            height = last_height + random.randint(min_, max_)
             height = min(chunk_height - 1, height)
-            for y in range(0, height):
+            for y in range(height):
                 chunk[y][x] = blocks.STONE
             for y in range(height, self.water_height):
                 chunk[y][x] = blocks.WATER

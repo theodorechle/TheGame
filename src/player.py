@@ -133,7 +133,7 @@ class Player:
         self.speed_x = speed_x
         self.speed_y = speed_y
         self.window = window
-        self.render_distance = 3
+        self.render_distance = 50
         self.interaction_range = 1
 
         self.infos_font_name = ""
