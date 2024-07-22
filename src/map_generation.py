@@ -30,6 +30,8 @@ class MapGenerator:
         self.temperature_values = [random.randint(0, 2)] * 2
         self.humidity_values = [random.randint(0, 2)] * 2
         self.rand_states = [random.getstate()] * 2
+        random.seed(random.randbytes(150))
+        self.rand_states[1] = random.getstate()
 
     @staticmethod
     def generate_number(previous_value: int, max_gap: int, min_value: int, max_value: int, keep_same: int = 0.5):
@@ -99,6 +101,5 @@ class MapGenerator:
         self.rand_states[direction] = random.getstate()
         self.biome_height_values[direction] = height
         if self.is_central_chunk:
-            self.rand_states[not direction] = self.rand_states[direction]
             self.biome_height_values[not direction] = self.biome_height_values[direction]
         return chunk
