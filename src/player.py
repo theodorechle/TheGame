@@ -188,7 +188,7 @@ class Player:
                 self.y -= 1
         else:
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-                block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
+                block = self.chunk_manager.get_block(self.x + x, self.y + 1)
                 if block == -1 or block not in blocks.SWIMMABLE_BLOCKS:
                     is_valid_pos = False
                     break
