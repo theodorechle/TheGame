@@ -3,7 +3,7 @@ import blocks
 import random
 
 class MapGenerator:
-    def __init__(self, seed: str) -> None:
+    def __init__(self, seed: str = str(random.randint(-500000000, 500000000))) -> None:
         self.seed = seed
         # states for next left and right chunks to be generated
         self.rand_states: list[tuple] = []
@@ -12,6 +12,7 @@ class MapGenerator:
         self.temperature_values: list[int] = []
         self.humidity_values: list[int] = []
         self.is_central_chunk = False
+        self.water_height: int = 50
         # self.load_biomes_data()
         self.get_structures()
 
@@ -49,9 +50,13 @@ class MapGenerator:
             min_ = max(min(min_height - last_height, 0), -max_height_difference)
             max_ = min(max(max_height - last_height, 0), max_height_difference)
             height = last_height + random.randint(min_, max_) - 1
-            for y in range(0, min(chunk_height - 1, height)):
+            height = min(chunk_height - 1, height)
+            for y in range(0, height):
                 chunk[y][x] = blocks.STONE
-            chunk[height][x] = upper_block
+            for y in range(height, self.water_height):
+                chunk[y][x] = blocks.WATER
+            if height >= self.water_height:
+                chunk[height][x] = upper_block
             last_height = height
             if is_first_column and self.is_central_chunk:
                 is_first_column = False
@@ -77,7 +82,7 @@ class MapGenerator:
         # TODO: add use for temperature and humidity values
 
         random.setstate(self.rand_states[direction])
-        is_island = random.choices((0, 1), (0.4, 0.6))[0]
+        is_island = random.choices((0, 1), (0.3, 0.7))[0]
         if is_island:
             height = self.generate_number(self.biome_height_values[direction], 1, 0, 2, keep_same=0.4)
             if height == 0: # plain
@@ -90,7 +95,6 @@ class MapGenerator:
             chunk = self.generate_land_shape(chunk_height, chunk_length, 30, 40, 1, direction, blocks.STONE)
             height = self.biome_height_values[direction]
 
-        chunk = self.fill_with_block(chunk, 50, blocks.WATER)
         # updates states and values
         self.rand_states[direction] = random.getstate()
         self.biome_height_values[direction] = height

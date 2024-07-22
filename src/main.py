@@ -32,7 +32,7 @@ class Game:
     def game_loop(self) -> None:
         is_new_map = True
         clock = pygame.time.Clock()
-        map_generator = MapGenerator(str(randint(-500000000, 500000000)))
+        map_generator = MapGenerator()
         if is_new_map:
             map_generator.create_seeds()
         player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator)
