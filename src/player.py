@@ -234,7 +234,7 @@ class Player:
 
     def place_block(self, pos: tuple[int, int]) -> None:
         x, y = self._get_relative_pos(*pos)
-        if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y <= self.top_player_pos:
+        if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y < self.top_player_pos:
             is_valid_pos = True
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
                 block = self.chunk_manager.get_block(self.x, self.y + self.top_player_pos)

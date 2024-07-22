@@ -45,7 +45,7 @@ class MapGenerator:
         # TODO: add use for temperature and humidity values
 
         random.setstate(self.rand_states[direction])
-        is_island = random.choices((0, 1), (0.4, 0.6))
+        is_island = random.choices((0, 1), (0.4, 0.6))[0]
         if is_island:
             block = blocks.STONE
         else:
