@@ -242,7 +242,7 @@ class Player:
             # edges
             elif self.left_player_pos - self.interaction_range == rx:
                 if ry == self.bottom_player_pos-self.interaction_range: # down-left
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TR or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
+                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-left
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
             elif rx == self.PLAYER_SIZE[0] // 2 + self.interaction_range:
