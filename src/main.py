@@ -16,17 +16,33 @@ class Game:
             "mv_left": pygame.K_q, #moves
             "mv_right": pygame.K_d,
             "mv_up": pygame.K_z,
-            "inv_1": pygame.K_1, # inventory
-            "inv_2": pygame.K_2,
-            "inv_3": pygame.K_3,
-            "inv_4": pygame.K_4,
-            "inv_5": pygame.K_5,
-            "inv_6": pygame.K_6,
-            "inv_7": pygame.K_7,
-            "inv_8": pygame.K_8,
-            "inv_9": pygame.K_9,
-            "inv_10": pygame.K_0,
+            "inv_0": pygame.K_1, # inventory
+            "inv_1": pygame.K_2,
+            "inv_2": pygame.K_3,
+            "inv_3": pygame.K_4,
+            "inv_4": pygame.K_5,
+            "inv_5": pygame.K_6,
+            "inv_6": pygame.K_7,
+            "inv_7": pygame.K_8,
+            "inv_8": pygame.K_9,
+            "inv_9": pygame.K_0,
             "open_inv": pygame.K_i
+        }
+        self.pressed_keys = {
+            "mv_left": False,
+            "mv_right": False,
+            "mv_up": False,
+            "inv_0": False,
+            "inv_1": False,
+            "inv_2": False,
+            "inv_3": False,
+            "inv_4": False,
+            "inv_5": False,
+            "inv_6": False,
+            "inv_7": False,
+            "inv_8": False,
+            "inv_9": False,
+            "open_inv": False
         }
         self.run()
 
@@ -50,34 +66,45 @@ class Game:
                     loop = False
                     break
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == self.keys["mv_left"]:
-                        player.speed_x = -1
-                    elif event.key == self.keys["mv_right"]:
-                        player.speed_x = 1
-                    elif event.key == self.keys["mv_up"]:
-                        player.speed_y = 1
-                    elif event.key == self.keys["inv_1"]:
-                        player.inventory.selected = 0
-                    elif event.key == self.keys["inv_2"]:
-                        player.inventory.selected = 1
-                    elif event.key == self.keys["inv_3"]:
-                        player.inventory.selected = 2
-                    elif event.key == self.keys["inv_4"]:
-                        player.inventory.selected = 3
-                    elif event.key == self.keys["inv_5"]:
-                        player.inventory.selected = 4
-                    elif event.key == self.keys["inv_6"]:
-                        player.inventory.selected = 5
-                    elif event.key == self.keys["inv_7"]:
-                        player.inventory.selected = 6
-                    elif event.key == self.keys["inv_8"]:
-                        player.inventory.selected = 7
-                    elif event.key == self.keys["inv_9"]:
-                        player.inventory.selected = 8
-                    elif event.key == self.keys["inv_10"]:
-                        player.inventory.selected = 9
-                    elif event.key == self.keys["open_inv"]:
-                        player.inventory.display_all = not player.inventory.display_all
+                    if event.key == self.keys['mv_left']:
+                        self.pressed_keys['mv_left'] = True
+                    elif event.key == self.keys['mv_right']:
+                        self.pressed_keys['mv_right'] = True
+                    elif event.key == self.keys['mv_up']:
+                        self.pressed_keys['mv_up'] = True
+                    elif event.key == self.keys['open_inv']:
+                        self.pressed_keys['open_inv'] = True
+                    else:
+                        for i in range(10):
+                            if event.key == self.keys[f'inv_{i}']:
+                                self.pressed_keys[f'inv_{i}'] = True
+                elif event.type == pygame.KEYUP:
+                    if event.key == self.keys['mv_left']:
+                        self.pressed_keys['mv_left'] = False
+                    elif event.key == self.keys['mv_right']:
+                        self.pressed_keys['mv_right'] = False
+                    elif event.key == self.keys['mv_up']:
+                        self.pressed_keys['mv_up'] = False
+                    elif event.key == self.keys['open_inv']:
+                        self.pressed_keys['open_inv'] = False
+                    else:
+                        for i in range(10):
+                            if event.key == self.keys[f'inv_{i}']:
+                                self.pressed_keys[f'inv_{i}'] = False
+
+
+            if self.pressed_keys['mv_left']:
+                player.speed_x = -1
+            if self.pressed_keys['mv_right']:
+                player.speed_x = 1
+            if self.pressed_keys['mv_up']:
+                player.speed_y = 1
+            if self.pressed_keys['open_inv']:
+                player.inventory.display_all = not player.inventory.display_all
+            for i in range(10):
+                if self.pressed_keys[f'inv_{i}']:
+                    player.inventory.selected = i
+
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
                 player.place_block(pygame.mouse.get_pos())

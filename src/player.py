@@ -177,8 +177,35 @@ class Player:
 
 
     def update(self) -> None:
-        is_valid_pos = True
-        if self.speed_y <= 0:
+        if self.speed_y > 0: # Go up
+            in_water = False
+            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
+                for y in range(self.PLAYER_SIZE[1]):
+                    block = self.chunk_manager.get_block(self.x + x, self.y + y)
+                    if block != -1 and block in blocks.SWIMMABLE_BLOCKS:
+                        in_water = True
+                        break
+            if in_water:
+                is_valid_pos = True
+                for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
+                    block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
+                    if block == -1 or block not in blocks.TRAVERSABLE_BLOCKS:
+                        is_valid_pos = False
+                        break
+                    block = self.chunk_manager.get_block(self.x + x, self.y + 1)
+                    if block == -1 or block not in blocks.SWIMMABLE_BLOCKS:
+                        is_valid_pos = False
+                        break
+                if is_valid_pos:
+                    self.y += 1
+                if self.speed_y >= 1:
+                    self.speed_y = 0.1
+                else:
+                    self.speed_y = 0
+            else:
+                self.speed_y = 0
+        if self.speed_y <= 0: # Fall
+            is_valid_pos = True
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
                 block = self.chunk_manager.get_block(self.x + x, self.y - 1)
                 if block == -1 or block not in blocks.TRAVERSABLE_BLOCKS:
@@ -186,18 +213,7 @@ class Player:
                     break
             if is_valid_pos:
                 self.y -= 1
-        else:
-            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-                block = self.chunk_manager.get_block(self.x + x, self.y + 1)
-                if block == -1 or block not in blocks.SWIMMABLE_BLOCKS:
-                    is_valid_pos = False
-                    break
-            if is_valid_pos:
-                self.y += 1
-            if self.speed_y >= 1:
-                self.speed_y = 0.1
-            else:
-                self.speed_y = 0
+
         if not self.speed_x: return
         sign = (1 if self.speed_x >= 0 else -1)
         new_direction = (sign == -1)
