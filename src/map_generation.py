@@ -92,8 +92,9 @@ class MapGenerator:
         last_add_y = 0
         last_height = last_height_before
         for zone in biome.blocks_by_zone:
+            max_size = zone[2] if len(zone) == 3 else last_height
             add_y = random.randint(0, 5)
-            for y in range(zone[1] + add_y, last_height + last_add_y):
+            for y in range(max(zone[1] + add_y, last_height - max_size), last_height + last_add_y):
                 if chunk[y][x] == blocks.STONE:
                     chunk[y][x] = zone[0]
             last_add_y = add_y
@@ -103,8 +104,9 @@ class MapGenerator:
         last_height = last_height_before
         if biome2 is not None:
             for zone in biome2.blocks_by_zone + [(blocks.STONE, 0)]:
+                max_size = zone[2] if len(zone) == 3 else last_height
                 add_y = random.randint(0, 5)
-                for y in range(zone[1] + add_y, last_height + last_add_y):
+                for y in range(max(zone[1] + add_y, last_height - max_size), last_height + last_add_y):
                     if chunk[y][x] not in blocks.TRAVERSABLE_BLOCKS and (y == 0 or chunk[y-1][x] not in blocks.TRAVERSABLE_BLOCKS) and random.random() > 0.4:
                         chunk[y][x] = zone[0]
                 last_add_y = add_y

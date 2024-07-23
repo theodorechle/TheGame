@@ -14,7 +14,7 @@ class Biome:
         self.max_height = max_height
         self.max_height_difference = max_height_difference
         self.upper_block = upper_block
-        # (block, min_height)
+        # (block, min_height, (max_size of the block stack))
         self.blocks_by_zone = blocks_by_zone
         # (min_qty, max_qty)
         self.ore_veins_qty = ore_veins_qty
@@ -28,14 +28,14 @@ def get_biome_environment_values(biome: Biome) -> tuple[int, int, int, int]|None
     return None
 
 PLAIN = Biome('plain', 50, 60, 1, blocks.GRASS,
-              [(blocks.EARTH, 40)],
+              [(blocks.EARTH, 40, 10)],
               (2, 10),
               [
     (0.6, blocks.COAL, 30, 40, 0.4),
     (0.4, blocks.IRON, 26, 37, 0.3)
 ])
 HILL = Biome('hill', 60, 80, 2, blocks.GRASS,
-             [(blocks.EARTH, 50)],
+             [(blocks.EARTH, 50, 10)],
              (4, 10),
              [
     (0.6, blocks.COAL, 50, 60, 0.4),
