@@ -65,7 +65,7 @@ class MapGenerator:
                 chunk[y][x] = blocks.STONE
             for y in range(height, self.water_height):
                 chunk[y][x] = blocks.WATER
-            if height < self.water_height and not used_biome.is_water_biome:
+            if height < self.water_height and not biomes.get_biome_environment_values(used_biome)[0]:
                 vars = biomes.get_biome_environment_values(used_biome)
                 if vars is not None:
                     used_biome = biomes.BIOMES[(0, 0, vars[2], vars[3])]
@@ -124,7 +124,6 @@ class MapGenerator:
         while y > 0 and chunk[y][x] in blocks.TRAVERSABLE_BLOCKS:
             y -= 1
         return y
-
 
     def create_new_biome_values(self, direction: bool):
         random.setstate(self.rand_states[direction])
