@@ -51,8 +51,7 @@ class MapGenerator:
             x_range = range(chunk_length - 1, -1, -1)
         is_first_column = True
         for x in x_range:
-            if self.last_biomes[direction] is not None and (last_height > biome.max_height or last_height < biome.min_height) \
-                and x - (chunk_length // 2) * (not direction) >= (chunk_length // 2) * direction: # if more than half of the chunk is generated, force the use of the new biome
+            if self.last_biomes[direction] is not None and (last_height > biome.max_height or last_height < biome.min_height):
                 used_biome = self.last_biomes[direction]
             else:
                 used_biome = biome
@@ -65,13 +64,13 @@ class MapGenerator:
                 chunk[y][x] = blocks.STONE
             for y in range(height, self.water_height):
                 chunk[y][x] = blocks.WATER
-            if height < self.water_height and biomes.get_biome_environment_values(used_biome)[0]:
-                vars = biomes.get_biome_environment_values(used_biome)
-                if vars is not None:
-                    used_biome = biomes.BIOMES[(0, 0, vars[2], vars[3])]
-            else:
+            if height >= self.water_height:
                 chunk[height][x] = used_biome.upper_block
-            self.place_biome_blocks(chunk, x, used_biome, height)
+            if used_biome != biome:
+                biome2 = used_biome
+            else:
+                biome2 = None
+            self.place_biome_blocks(chunk, x, biome, height, biome2)
             last_height = height
             if is_first_column and self.is_central_chunk:
                 is_first_column = False
@@ -80,15 +79,23 @@ class MapGenerator:
         self.last_block_height_values[direction] = last_height
         return chunk
 
-    def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height: int) -> None:
+    def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height: int, biome2: biomes.Biome|None = None) -> None:
         last_add_y = 0
+        if biome2 is not None and biome2.blocks_by_zone:
+            zone = biome2.blocks_by_zone[0]
+            add_y = random.randint(0, 5)
+            for y in range((last_height + last_add_y) -(zone[1] + add_y) // 3, last_height + last_add_y):
+                if chunk[y][x] == blocks.STONE:
+                    chunk[y][x] = zone[0]
+            last_add_y = add_y
+            last_height = zone[1]
         for zone in biome.blocks_by_zone:
             add_y = random.randint(0, 5)
             for y in range(zone[1] + add_y, last_height + last_add_y):
                 if chunk[y][x] == blocks.STONE:
                     chunk[y][x] = zone[0]
             last_add_y = add_y
-            last_height = zone[1]
+            last_height = zone[1]        
 
     @staticmethod
     def get_positions_for_ore_veins(chunk: list[list[blocks.Block]], x: int, y: int) -> list[tuple[int, int]]:
@@ -127,7 +134,7 @@ class MapGenerator:
 
     def create_new_biome_values(self, direction: bool):
         random.setstate(self.rand_states[direction])
-        return (random.choices((0, 1), (0.3, 0.7))[0], 0, 0)
+        return (0, 0)
 
     def generate_chunk(self, direction: bool, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
         """
@@ -137,16 +144,11 @@ class MapGenerator:
         chunk: list[list[blocks.Block]] = None
         # TODO: add use for temperature and humidity values
 
-        is_island, temperature, humidity = self.create_new_biome_values(direction)        
+        temperature, humidity = self.create_new_biome_values(direction)        
 
-        if is_island:
-            height = self.generate_number(self.biome_height_values[direction], 1, 0, 2, keep_same=0.4)
-            biome = biomes.BIOMES[(is_island, height, temperature, humidity)]
-            chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
-        else:
-            biome = biomes.BIOMES[(is_island, 0, temperature, humidity)]
-            chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
-            height = self.biome_height_values[direction]
+        height = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
+        biome = biomes.BIOMES[(height, temperature, humidity)]
+        chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
         
         self.place_ore_veins(chunk, biome)
         # updates states and values

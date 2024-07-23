@@ -1,7 +1,6 @@
 import blocks
 
 class Biome:
-    PATH = 'resources/biomes'
     def __init__(self, name: str,
                  min_height: int,
                  max_height: int,
@@ -49,8 +48,8 @@ MOUNTAIN = Biome('mountain', 100, 115, 3, blocks.STONE,
     (0.6, blocks.COAL, 70, 102, 0.4),
     (0.4, blocks.IRON, 60, 80, 0.3)
 ])
-LAKE = Biome('lake', 30, 40, 1, blocks.SAND,
-             [(blocks.SAND, 32)],
+LAKE = Biome('lake', 30, 40, 1, blocks.STONE,
+             [],
              (1, 3),
              [
     (0.7, blocks.COAL, 25, 32, 0.2),
@@ -59,8 +58,8 @@ LAKE = Biome('lake', 30, 40, 1, blocks.SAND,
 
 # tuple (is_island, height, temperature, humidity)
 BIOMES = {
-    (1, 0, 0, 0): PLAIN,
-    (1, 1, 0, 0): HILL,
-    (1, 2, 0, 0): MOUNTAIN,
-    (0, 0, 0, 0): LAKE
+    (0, 0, 0): PLAIN,
+    (1, 0, 0): HILL,
+    (2, 0, 0): MOUNTAIN,
+    (-1, 0, 0): LAKE
 }
