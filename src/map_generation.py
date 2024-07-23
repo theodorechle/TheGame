@@ -119,8 +119,18 @@ class MapGenerator:
                     chunk[y][x] = vein[1]
                     pos += self.get_positions_for_ore_veins(chunk, x, y)
 
+    def get_first_block_y(self, chunk: list[list[blocks.Block]], x: int) -> int:
+        y = len(chunk) - 1
+        while y > 0 and chunk[y][x] in blocks.TRAVERSABLE_BLOCKS:
+            y -= 1
+        return y
 
-    def generate_chunk(self, direction: str, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
+
+    def create_new_biome_values(self, direction: bool):
+        random.setstate(self.rand_states[direction])
+        return (random.choices((0, 1), (0.3, 0.7))[0], 0, 0)
+
+    def generate_chunk(self, direction: bool, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
         """
         direction: 0 -> left, 1 -> right
         """
@@ -128,10 +138,7 @@ class MapGenerator:
         chunk: list[list[blocks.Block]] = None
         # TODO: add use for temperature and humidity values
 
-        random.setstate(self.rand_states[direction])
-        is_island = random.choices((0, 1), (0.3, 0.7))[0]
-        temperature = 0
-        humidity = 0
+        is_island, temperature, humidity = self.create_new_biome_values(direction)        
 
         if is_island:
             height = self.generate_number(self.biome_height_values[direction], 1, 0, 2, keep_same=0.4)
