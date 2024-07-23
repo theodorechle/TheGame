@@ -80,10 +80,13 @@ class MapGenerator:
         return chunk
 
     def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height: int) -> None:
+        last_add_y = 0
         for zone in biome.blocks_by_zone:
-            for y in range(zone[1], last_height):
+            add_y = random.randint(0, 5)
+            for y in range(zone[1] + add_y, last_height + last_add_y):
                 if chunk[y][x] == blocks.STONE:
                     chunk[y][x] = zone[0]
+            last_add_y = add_y
             last_height = zone[1]
 
 
