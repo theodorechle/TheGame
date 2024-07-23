@@ -19,7 +19,6 @@ class Chunk:
         self.load()
 
     def load(self):
-        print(self.id)
         self.blocks, self.biome = self.map_generator.generate_chunk(self.direction, self.LENGTH, self.HEIGHT, central_chunk = (self.id == 0))
     
     def unload(self):

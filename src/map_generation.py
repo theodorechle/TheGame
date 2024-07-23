@@ -29,8 +29,8 @@ class MapGenerator:
         self.last_biomes = [None] * 2
         self.biome_height_values = [random.randint(0, 2)] * 2
         self.last_block_height_values = [None] * 2
-        self.temperature_values = [random.randint(0, 2)] * 2
-        self.humidity_values = [random.randint(0, 2)] * 2
+        self.temperature_values = [0] * 2
+        self.humidity_values = [0] * 2
         self.rand_states = [random.getstate()] * 2
         random.seed(random.randbytes(1))
         self.rand_states[1] = random.getstate()
@@ -41,54 +41,56 @@ class MapGenerator:
         return min(max_value, max(min_value, previous_value + random.randint(-max_gap, max_gap)))
 
     def generate_land_shape(self, chunk_height: int, chunk_length: int, direction: int, biome: biomes.Biome) -> list[list[blocks.Block]]:
+        next_biome_height = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
+        next_temperature, next_humidity = self.create_new_biome_values(direction)
+        next_biome = biomes.BIOMES[(next_biome_height, next_temperature, next_humidity)]
         last_height = self.last_block_height_values[direction]
+        previous_biome_distance = 0
         if last_height is None:
             last_height = biome.min_height + (biome.max_height - biome.min_height) // 2
         chunk = [[blocks.AIR for _ in range(chunk_length)] for _ in range(chunk_height)]
-        if direction:
-            x_range = range(chunk_length)
-        else:
-            x_range = range(chunk_length - 1, -1, -1)
-        is_first_column = True
-        for x in x_range:
+        for x in range(chunk_length):
+            used_x = x if direction else (chunk_length - 1 - x)
             if self.last_biomes[direction] is not None and (last_height > biome.max_height or last_height < biome.min_height):
                 used_biome = self.last_biomes[direction]
+                previous_biome_distance = 0
             else:
                 used_biome = biome
-                self.last_biomes[direction] = biome
+                previous_biome_distance += 1
             min_ = max(min(biome.min_height - last_height, 0), -used_biome.max_height_difference)
             max_ = min(max(biome.max_height - last_height, 0), used_biome.max_height_difference)
             height = last_height + random.randint(min_, max_)
             height = min(chunk_height - 1, height)
             for y in range(height):
-                chunk[y][x] = blocks.STONE
+                chunk[y][used_x] = blocks.STONE
             for y in range(height, self.water_height):
-                chunk[y][x] = blocks.WATER
+                chunk[y][used_x] = blocks.WATER
             if height >= self.water_height:
-                chunk[height][x] = used_biome.upper_block
-            if used_biome != biome:
-                biome2 = used_biome
+                chunk[height][used_x] = used_biome.upper_block
+            if 0 < previous_biome_distance < 3 and self.last_biomes[direction] is not None:
+                used_biome = self.last_biomes[direction]
+                biome2 = biome
+            elif x > chunk_length - 3 and height - (chunk_length - 1 - x) * used_biome.max_height_difference <= next_biome.max_height:
+                biome2 = next_biome
             else:
                 biome2 = None
-            self.place_biome_blocks(chunk, x, biome, height, biome2)
+            self.place_biome_blocks(chunk, used_x, used_biome, height, biome2)
             last_height = height
-            if is_first_column and self.is_central_chunk:
-                is_first_column = False
+            if x == 0 and self.is_central_chunk:
                 self.last_block_height_values[not direction] = height
+        self.last_biomes[direction] = used_biome
+        if self.is_central_chunk:
+            self.last_biomes[not direction] = used_biome
+        self.biome_height_values[direction] = next_biome_height
+        self.temperature_values[direction] = next_temperature
+        self.humidity_values[direction] = next_humidity
 
         self.last_block_height_values[direction] = last_height
         return chunk
 
-    def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height: int, biome2: biomes.Biome|None = None) -> None:
+    def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height_before: int, biome2: biomes.Biome|None = None) -> None:
         last_add_y = 0
-        if biome2 is not None and biome2.blocks_by_zone:
-            zone = biome2.blocks_by_zone[0]
-            add_y = random.randint(0, 5)
-            for y in range((last_height + last_add_y) -(zone[1] + add_y) // 3, last_height + last_add_y):
-                if chunk[y][x] == blocks.STONE:
-                    chunk[y][x] = zone[0]
-            last_add_y = add_y
-            last_height = zone[1]
+        last_height = last_height_before
         for zone in biome.blocks_by_zone:
             add_y = random.randint(0, 5)
             for y in range(zone[1] + add_y, last_height + last_add_y):
@@ -96,6 +98,17 @@ class MapGenerator:
                     chunk[y][x] = zone[0]
             last_add_y = add_y
             last_height = zone[1]        
+
+        last_add_y = 0
+        last_height = last_height_before
+        if biome2 is not None:
+            for zone in biome2.blocks_by_zone + [(blocks.STONE, 0)]:
+                add_y = random.randint(0, 5)
+                for y in range(zone[1] + add_y, last_height + last_add_y):
+                    if chunk[y][x] not in blocks.TRAVERSABLE_BLOCKS and (y == 0 or chunk[y-1][x] not in blocks.TRAVERSABLE_BLOCKS) and random.random() > 0.4:
+                        chunk[y][x] = zone[0]
+                last_add_y = add_y
+                last_height = zone[1]
 
     @staticmethod
     def get_positions_for_ore_veins(chunk: list[list[blocks.Block]], x: int, y: int) -> list[tuple[int, int]]:
@@ -133,7 +146,6 @@ class MapGenerator:
         return y
 
     def create_new_biome_values(self, direction: bool):
-        random.setstate(self.rand_states[direction])
         return (0, 0)
 
     def generate_chunk(self, direction: bool, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
@@ -143,17 +155,18 @@ class MapGenerator:
         self.is_central_chunk = central_chunk
         chunk: list[list[blocks.Block]] = None
         # TODO: add use for temperature and humidity values
+        random.setstate(self.rand_states[direction])
 
-        temperature, humidity = self.create_new_biome_values(direction)        
+        height = self.biome_height_values[direction]
+        temperature = self.temperature_values[direction]
+        humidity = self.humidity_values[direction]
 
-        height = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
         biome = biomes.BIOMES[(height, temperature, humidity)]
         chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
         
         self.place_ore_veins(chunk, biome)
         # updates states and values
         self.rand_states[direction] = random.getstate()
-        self.biome_height_values[direction] = height
         if self.is_central_chunk:
             self.biome_height_values[not direction] = self.biome_height_values[direction]
         return chunk, self.last_biomes[direction].name
