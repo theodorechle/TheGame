@@ -106,6 +106,7 @@ class Game:
                 player.speed_y = 1
             if self.pressed_keys['open_inv']:
                 player.inventory.display_all = not player.inventory.display_all
+                need_update = True
             for i in range(10):
                 if self.pressed_keys[f'inv_{i}']:
                     player.inventory.selected = i
