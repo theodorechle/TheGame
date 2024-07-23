@@ -52,7 +52,7 @@ class Game:
         map_generator = MapGenerator()
         if is_new_map:
             map_generator.create_seeds()
-        player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator)
+        player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator, clock)
         player.load_image()
         pygame.key.set_repeat(100, 100)
         loop = True
@@ -113,13 +113,11 @@ class Game:
 
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
-                player.place_block(pygame.mouse.get_pos())
-                need_update = True
-            if pressed_mouse_buttons[2]:
-                player.remove_block(pygame.mouse.get_pos())
-                need_update = True
+                need_update = player.place_block(pygame.mouse.get_pos())
+            elif pressed_mouse_buttons[2]:
+                need_update = player.remove_block(pygame.mouse.get_pos())
 
-            need_update = need_update or player.update()
+            need_update = player.update() or need_update
             clock.tick(self.FPS)
         player.save()
 

@@ -126,7 +126,7 @@ class Player:
     PLAYER_SIZE = (1, 2) # number of blocks width and height
     image_size = (PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE, PLAYER_SIZE[1] * blocks.Block.BLOCK_SIZE)
     PATH = 'src/resources/images/persos'
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, map_generator: MapGenerator) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, map_generator: MapGenerator, clock: pygame.time.Clock) -> None:
         self.name = name
         self.x = x
         self.y = y
@@ -135,6 +135,7 @@ class Player:
         self.window = window
         self.render_distance = 25
         self.interaction_range = 1
+        self.clock = clock
 
         self.infos_font_name = ""
         self.infos_font_size = 20
@@ -171,17 +172,15 @@ class Player:
         self._display_infos()
 
     def _display_infos(self):
-        coords = f'coords: x: {self.x}, y: {self.y}'
-        self.window.blit(self.infos_font
-                .render(coords, True, "#000000"), (50, 50))
+        infos = []
+        infos.append(f'coords: x: {self.x}, y: {self.y}')
         chunk = self.chunk_manager.get_chunk_and_coordinates(self.x, self.y)[0]
-        if chunk is None:
-            biome_str = f'biome:'
-        else:
-            biome_str = f'biome: {chunk.biome}'
-        self.window.blit(self.infos_font
-                .render(biome_str, True, "#000000"), (50, 75))
+        infos.append(f'biome: {chunk.biome if chunk is not None else ""}')
+        infos.append(f'FPS: {round(self.clock.get_fps())}')
 
+        for i, info in enumerate(infos, start=1):
+            self.window.blit(self.infos_font
+                    .render(info, True, "#000000"), (50, 20 * i))
 
     def update(self) -> bool:
         """
@@ -287,7 +286,7 @@ class Player:
                 or self.chunk_manager.get_block(x - 1, y) not in blocks.TRAVERSABLE_BLOCKS
                 or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
-    def place_block(self, pos: tuple[int, int]) -> None:
+    def place_block(self, pos: tuple[int, int]) -> bool:
         x, y = self._get_relative_pos(*pos)
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y < self.top_player_pos:
             is_valid_pos = True
@@ -300,25 +299,27 @@ class Player:
                 self.y += 1
                 y = -1
             else:
-                return
+                return False
         else:
-            if not self._is_interactable(*pos): return
+            if not self._is_interactable(*pos): return False
         block_x, block_y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(block_x, block_y)
         if block in blocks.TRAVERSABLE_BLOCKS and self._is_surrounded_by_block(block_x, block_y):
             item, quantity = self.inventory.remove_element_at_pos(1, self.inventory.selected)
-            if quantity == 0: return
+            if quantity == 0: return False
             block = convert_item_to_block(item)
             if block != None:
                 self.chunk_manager.replace_block(block_x, block_y, block)
             else:
                 self.inventory.add_element_at_pos(item, 1, self.inventory.selected)
+        return True
 
     def remove_block(self, pos: tuple[int, int]) -> None:
-        if not self._is_interactable(*pos): return
+        if not self._is_interactable(*pos): return False
         x, y = self._get_relative_pos(*pos)
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block not in blocks.TRAVERSABLE_BLOCKS:
             self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
             for item, quantity in convert_block_to_items(block, 1).items():
                 self.inventory.add_element(item, quantity)
+        return True
