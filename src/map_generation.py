@@ -51,7 +51,8 @@ class MapGenerator:
             x_range = range(chunk_length - 1, -1, -1)
         is_first_column = True
         for x in x_range:
-            if self.last_biomes[direction] is not None and (last_height > biome.max_height or last_height < biome.min_height):
+            if self.last_biomes[direction] is not None and (last_height > biome.max_height or last_height < biome.min_height) \
+                and x - (chunk_length // 2) * (not direction) >= (chunk_length // 2) * direction: # if more than half of the chunk is generated, force the use of the new biome
                 used_biome = self.last_biomes[direction]
             else:
                 used_biome = biome
@@ -64,7 +65,7 @@ class MapGenerator:
                 chunk[y][x] = blocks.STONE
             for y in range(height, self.water_height):
                 chunk[y][x] = blocks.WATER
-            if height <= self.water_height and not used_biome.is_water_biome:
+            if height < self.water_height and not used_biome.is_water_biome:
                 vars = biomes.get_biome_environment_values(used_biome)
                 if vars is not None:
                     used_biome = biomes.BIOMES[(0, 0, vars[2], vars[3])]

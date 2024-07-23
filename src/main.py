@@ -56,6 +56,7 @@ class Game:
         player.load_image()
         pygame.key.set_repeat(100, 100)
         loop = True
+        print(f'seed: {map_generator.seed}')
         while loop:
             self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
             player.chunk_manager.display_chunks(player.x, player.y)
