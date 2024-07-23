@@ -13,13 +13,15 @@ class Chunk:
         """
         self.id = id
         self.biome = ""
+        self.is_forest = False
         self.direction = direction
         self.map_generator = map_generator
         self.blocks: list[list[blocks.Block]] = None
         self.load()
 
     def load(self):
-        self.blocks, self.biome = self.map_generator.generate_chunk(self.direction, self.LENGTH, self.HEIGHT, central_chunk = (self.id == 0))
+        print(self.id)
+        self.blocks, self.biome, self.is_forest = self.map_generator.generate_chunk(self.direction, self.LENGTH, self.HEIGHT, central_chunk = (self.id == 0))
     
     def unload(self):
         ...

@@ -12,6 +12,7 @@ class Tree:
                 max_leaves_width: int,
                 tree_spawn_chance: float,
                 forest_spawn_chance: float,
+                stay_forest_chance: float,
                 grows_in: blocks.Block
                 ) -> None:
         self.trunk_block = trunk_block
@@ -24,6 +25,7 @@ class Tree:
         self.max_leaves_width = max_leaves_width
         self.tree_spawn_chance = tree_spawn_chance
         self.forest_spawn_chance = forest_spawn_chance
+        self.stay_forest_chance = stay_forest_chance
         self.grows_in = grows_in
 
 class Biome:
@@ -71,17 +73,18 @@ PLAIN = Biome(
         (0.6, blocks.COAL, 30, 40, 0.4),
         (0.4, blocks.IRON, 26, 37, 0.3)
     ],
-    tree = Tree(blocks.WOOD,
-                blocks.LEAVES,
-                4,
-                6,
-                1,
-                3,
-                1,
-                3,
-                0.1,
-                0.3,
-                blocks.AIR
+    tree = Tree(trunk_block=blocks.WOOD,
+                leave_block=blocks.LEAVES,
+                min_trunk_height=4,
+                max_trunk_height=6,
+                min_leaves_height=1,
+                max_leaves_height=3,
+                min_leaves_width=1,
+                max_leaves_width=3,
+                tree_spawn_chance=0.1,
+                forest_spawn_chance=0.3,
+                stay_forest_chance=0.7,
+                grows_in=blocks.AIR
                 )
 )
 
@@ -97,17 +100,18 @@ HILL = Biome(
         (0.6, blocks.COAL, 50, 60, 0.4),
         (0.4, blocks.IRON, 45, 57, 0.3)
     ],
-    tree = Tree(blocks.WOOD,
-                blocks.LEAVES,
-                4,
-                6,
-                1,
-                3,
-                1,
-                3,
-                0.1,
-                0.3,
-                blocks.AIR
+    tree = Tree(trunk_block=blocks.WOOD,
+                leave_block=blocks.LEAVES,
+                min_trunk_height=4,
+                max_trunk_height=6,
+                min_leaves_height=1,
+                max_leaves_height=3,
+                min_leaves_width=1,
+                max_leaves_width=3,
+                tree_spawn_chance=0.1,
+                forest_spawn_chance=0.3,
+                stay_forest_chance=0.7,
+                grows_in=blocks.AIR
                 )
 )
 

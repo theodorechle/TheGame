@@ -7,6 +7,7 @@ class MapGenerator:
         self.seed = seed
         # states for next left and right chunks to be generated
         self.rand_states: list[tuple] = []
+        self.are_last_biomes_forests: list[bool] = []
         self.last_biomes: list[biomes.Biome|None] = []
         self.biome_height_values: list[int] = []
         self.last_block_height_values: list[int|None] = []
@@ -28,6 +29,7 @@ class MapGenerator:
         random.seed(self.seed)
         self.last_biomes = [None] * 2
         self.biome_height_values = [random.randint(0, 2)] * 2
+        self.are_last_biomes_forests = [bool(random.randint(0, 1))] * 2
         self.last_block_height_values = [None] * 2
         self.temperature_values = [1] * 2
         self.humidity_values = [1] * 2
@@ -156,13 +158,16 @@ class MapGenerator:
         if y > 0 and chunk[y - 1][x] in (tree.trunk_block, tree.leave_block):
             return True
 
-    def create_trees(self, chunk: list[list[blocks.Block]], biome: biomes.Biome) -> None:
+    def create_trees(self, chunk: list[list[blocks.Block]], biome: biomes.Biome, is_forest: bool) -> None:
         tree = biome.tree
-        if tree is None: return
+        if is_forest:
+            spawn_chance = 0.8
+        else:
+            spawn_chance = tree.tree_spawn_chance
         for start_x in range(tree.min_leaves_width, len(chunk[0]) - tree.min_leaves_width):
-            if random.random() <= tree.tree_spawn_chance:
+            if random.random() <= spawn_chance:
                 y = self.get_first_block_y(chunk, start_x)
-                if chunk[y][start_x] != blocks.GRASS: break
+                if chunk[y][start_x] != blocks.GRASS: continue
                 chunk[y][start_x] = blocks.EARTH
                 for i in range(1, random.randint(tree.min_trunk_height, tree.max_trunk_height)):
                     if y + i < len(chunk) and chunk[y + i][start_x] == tree.grows_in:
@@ -172,7 +177,7 @@ class MapGenerator:
                 if i < tree.min_trunk_height:
                     for j in range(i + 1):
                         chunk[y + j][start_x] = tree.grows_in
-                    return
+                    continue
                 start_y = y + i
                 # leaves on the trunk
                 center_min_y = random.randint(-tree.max_leaves_height, -tree.min_leaves_height)
@@ -211,11 +216,20 @@ class MapGenerator:
         height = self.biome_height_values[direction]
         temperature = self.temperature_values[direction]
         humidity = self.humidity_values[direction]
-
         biome = biomes.BIOMES[(height, temperature, humidity)]
         chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
-        
-        self.create_trees(chunk, biome)
+        if biome.tree is not None:
+            is_forest = self.are_last_biomes_forests[direction]
+            if is_forest:
+                if random.random() > biome.tree.stay_forest_chance:
+                    is_forest = False
+            else:
+                if random.random() <= biome.tree.forest_spawn_chance:
+                    is_forest = True
+            self.are_last_biomes_forests[direction] = is_forest
+            self.create_trees(chunk, biome, is_forest)
+        else:
+            is_forest = False
         self.place_ore_veins(chunk, biome)
 
         self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
@@ -225,4 +239,4 @@ class MapGenerator:
         self.rand_states[direction] = random.getstate()
         if self.is_central_chunk:
             self.biome_height_values[not direction] = self.biome_height_values[direction]
-        return chunk, self.last_biomes[direction].name
+        return chunk, self.last_biomes[direction].name, is_forest

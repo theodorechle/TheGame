@@ -176,6 +176,7 @@ class Player:
         infos.append(f'coords: x: {self.x}, y: {self.y}')
         chunk = self.chunk_manager.get_chunk_and_coordinates(self.x, self.y)[0]
         infos.append(f'biome: {chunk.biome if chunk is not None else ""}')
+        infos.append(f'forest: {chunk.is_forest if chunk is not None else ""}')
         infos.append(f'FPS: {round(self.clock.get_fps())}')
 
         for i, info in enumerate(infos, start=1):
