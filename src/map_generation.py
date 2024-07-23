@@ -164,7 +164,7 @@ class MapGenerator:
             spawn_chance = 0.8
         else:
             spawn_chance = tree.tree_spawn_chance
-        for start_x in range(tree.min_leaves_width, len(chunk[0]) - tree.min_leaves_width):
+        for start_x in range(tree.min_leaves_width + 1, len(chunk[0]) - tree.min_leaves_width - 1):
             if random.random() <= spawn_chance:
                 y = self.get_first_block_y(chunk, start_x)
                 if chunk[y][start_x] != blocks.GRASS: continue
@@ -188,7 +188,7 @@ class MapGenerator:
                 # leaves before trunk
                 min_y = center_min_y
                 max_y = center_max_y
-                nb_leaves_left = random.randint(-tree.max_leaves_width, -tree.min_leaves_width)
+                nb_leaves_left = min(random.randint(-tree.max_leaves_width, -tree.min_leaves_width), min(start_x, len(chunk[0]) - 1 - start_x))
                 for x in range(-1, nb_leaves_left - 1, -1):
                     min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
                     for y in range(min_y, max_y + 1):
