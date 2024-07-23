@@ -89,6 +89,35 @@ class MapGenerator:
             last_add_y = add_y
             last_height = zone[1]
 
+    @staticmethod
+    def get_positions_for_ore_veins(chunk: list[list[blocks.Block]], x: int, y: int) -> list[tuple[int, int]]:
+        pos = []
+        if x > 0 and chunk[y][x - 1] == blocks.STONE:
+            pos.append((x - 1, y))
+        if x < len(chunk[0]) - 1 and chunk[y][x + 1] == blocks.STONE:
+            pos.append((x + 1, y))
+        if y > 0 and chunk[y - 1][x] == blocks.STONE:
+            pos.append((x, y - 1))
+        if y < len(chunk) - 1 and chunk[y + 1][x] == blocks.STONE:
+            pos.append((x, y + 1))
+        return pos
+
+    def place_ore_veins(self, chunk: list[list[blocks.Block]], biome: biomes.Biome):
+        nb_ore_veins = random.randint(*biome.ore_veins_qty)
+        ore_veins_probabilities = [vein[0] for vein in biome.ore_veins_repartition]
+        for _ in range(nb_ore_veins):
+            vein = random.choices(biome.ore_veins_repartition, weights=ore_veins_probabilities)[0]
+            vein_x = random.randrange(0, len(chunk[0]))
+            vein_y = random.randrange(vein[2], vein[3])
+            pos = []
+            if chunk[vein_y][vein_x] == blocks.STONE:
+                pos.append((vein_x, vein_y))
+            while pos:
+                x, y = pos.pop(0)
+                if random.random() < vein[4]:
+                    chunk[y][x] = vein[1]
+                    pos += self.get_positions_for_ore_veins(chunk, x, y)
+
 
     def generate_chunk(self, direction: str, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
         """
@@ -111,6 +140,8 @@ class MapGenerator:
             biome = biomes.BIOMES[(is_island, 0, temperature, humidity)]
             chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
             height = self.biome_height_values[direction]
+        
+        self.place_ore_veins(chunk, biome)
         # updates states and values
         self.rand_states[direction] = random.getstate()
         self.biome_height_values[direction] = height
