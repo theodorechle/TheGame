@@ -183,7 +183,11 @@ class Player:
                 .render(biome_str, True, "#000000"), (50, 75))
 
 
-    def update(self) -> None:
+    def update(self) -> bool:
+        """
+        Return whether the player has moved or not
+        """
+        need_update = False
         if self.speed_y > 0: # Go up
             in_water = False
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
@@ -205,6 +209,7 @@ class Player:
                         break
                 if is_valid_pos:
                     self.y += 1
+                    need_update = True
                 if self.speed_y >= 1:
                     self.speed_y = 0.1
                 else:
@@ -220,8 +225,8 @@ class Player:
                     break
             if is_valid_pos:
                 self.y -= 1
-
-        if not self.speed_x: return
+                need_update = True
+        if not self.speed_x: return need_update
         sign = (1 if self.speed_x >= 0 else -1)
         new_direction = (sign == -1)
         if new_direction != self.direction:
@@ -241,7 +246,9 @@ class Player:
                         else:
                             continue
                     self.x += sign
+                    need_update = True
         self.speed_x = sign * (abs(self.speed_x) // 2)
+        return need_update
 
     def save(self) -> None:
         ...

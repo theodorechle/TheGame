@@ -78,12 +78,6 @@ class MapGenerator:
         self.last_biomes[direction] = used_biome
         if self.is_central_chunk:
             self.last_biomes[not direction] = used_biome
-        
-        next_biome_height = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
-        next_temperature, next_humidity = self.create_new_biome_values(direction)
-        self.biome_height_values[direction] = next_biome_height
-        self.temperature_values[direction] = next_temperature
-        self.humidity_values[direction] = next_humidity
 
         self.last_block_height_values[direction] = last_height
         return chunk
@@ -166,6 +160,10 @@ class MapGenerator:
         biome = biomes.BIOMES[(height, temperature, humidity)]
         chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
         
+        self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
+        self.temperature_values[direction], self.humidity_values[direction] = self.create_new_biome_values(direction)
+
+
         self.place_ore_veins(chunk, biome)
         # updates states and values
         self.rand_states[direction] = random.getstate()

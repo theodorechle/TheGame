@@ -57,11 +57,15 @@ class Game:
         pygame.key.set_repeat(100, 100)
         loop = True
         print(f'seed: {map_generator.seed}')
+        need_update = True
         while loop:
-            self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
-            player.chunk_manager.display_chunks(player.x, player.y)
-            player.display()
-            player.display_hud()
+            if need_update:
+                self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
+                player.chunk_manager.display_chunks(player.x, player.y)
+                player.display()
+                player.display_hud()
+                pygame.display.update()
+            need_update = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
@@ -105,15 +109,17 @@ class Game:
             for i in range(10):
                 if self.pressed_keys[f'inv_{i}']:
                     player.inventory.selected = i
+                    need_update = True
 
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
                 player.place_block(pygame.mouse.get_pos())
+                need_update = True
             if pressed_mouse_buttons[2]:
                 player.remove_block(pygame.mouse.get_pos())
+                need_update = True
 
-            player.update()
-            pygame.display.update()
+            need_update = need_update or player.update()
             clock.tick(self.FPS)
         player.save()
 
