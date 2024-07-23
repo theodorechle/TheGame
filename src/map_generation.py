@@ -41,9 +41,6 @@ class MapGenerator:
         return min(max_value, max(min_value, previous_value + random.randint(-max_gap, max_gap)))
 
     def generate_land_shape(self, chunk_height: int, chunk_length: int, direction: int, biome: biomes.Biome) -> list[list[blocks.Block]]:
-        next_biome_height = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
-        next_temperature, next_humidity = self.create_new_biome_values(direction)
-        next_biome = biomes.BIOMES[(next_biome_height, next_temperature, next_humidity)]
         last_height = self.last_block_height_values[direction]
         previous_biome_distance = 0
         if last_height is None:
@@ -67,11 +64,11 @@ class MapGenerator:
                 chunk[y][used_x] = blocks.WATER
             if height >= self.water_height:
                 chunk[height][used_x] = used_biome.upper_block
+            else:
+                chunk[height][used_x] = blocks.SAND
             if 0 < previous_biome_distance < 3 and self.last_biomes[direction] is not None:
                 used_biome = self.last_biomes[direction]
                 biome2 = biome
-            elif x > chunk_length - 3 and height - (chunk_length - 1 - x) * used_biome.max_height_difference <= next_biome.max_height:
-                biome2 = next_biome
             else:
                 biome2 = None
             self.place_biome_blocks(chunk, used_x, used_biome, height, biome2)
@@ -81,6 +78,9 @@ class MapGenerator:
         self.last_biomes[direction] = used_biome
         if self.is_central_chunk:
             self.last_biomes[not direction] = used_biome
+        
+        next_biome_height = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
+        next_temperature, next_humidity = self.create_new_biome_values(direction)
         self.biome_height_values[direction] = next_biome_height
         self.temperature_values[direction] = next_temperature
         self.humidity_values[direction] = next_humidity
