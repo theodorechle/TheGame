@@ -230,6 +230,7 @@ class Player:
         new_direction = (sign == -1)
         if new_direction != self.direction:
             self.direction = new_direction
+            need_update = True
         else:
             for _ in range(abs(self.speed_x)):
                 is_valid_pos = True
