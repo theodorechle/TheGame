@@ -174,6 +174,13 @@ class Player:
         coords = f'coords: x: {self.x}, y: {self.y}'
         self.window.blit(self.infos_font
                 .render(coords, True, "#000000"), (50, 50))
+        chunk = self.chunk_manager.get_chunk_and_coordinates(self.x, self.y)[0]
+        if chunk is None:
+            biome_str = f'biome:'
+        else:
+            biome_str = f'biome: {chunk.biome}'
+        self.window.blit(self.infos_font
+                .render(biome_str, True, "#000000"), (50, 75))
 
 
     def update(self) -> None:
