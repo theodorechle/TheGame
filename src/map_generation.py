@@ -1,6 +1,7 @@
 import biomes
 import blocks
 import random
+from math import sqrt
 
 class MapGenerator:
     def __init__(self, seed: str = str(random.randint(-500000000, 500000000))) -> None:
@@ -204,6 +205,66 @@ class MapGenerator:
                         if self.can_place_leave(chunk, start_x + x, start_y + y, tree):
                             chunk[start_y + y][start_x + x] = tree.leave_block
 
+    @staticmethod
+    def is_valid_pos(x: int, y: int, width: int, height: int) -> bool:
+        return 0 <= x < width and 0 <= y < height
+
+    def carve(self, chunk: list[list[int]], x: int, y: int, radius: int) -> None:
+        width = len(chunk[0])
+        height = len(chunk)
+        if radius == 0: return
+        a = radius
+        b = 0
+        t1 = radius//16
+        while a >= b:
+            tmp_x = x + a
+            for tmp_y in range(y - b, y + b):
+                if self.is_valid_pos(tmp_x, tmp_y, width, height) and chunk[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk[tmp_y][tmp_x] = blocks.AIR
+            tmp_x = x + b
+            for tmp_y in range(y - a, y + a):
+                if self.is_valid_pos(tmp_x, tmp_y, width, height) and chunk[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk[tmp_y][tmp_x] = blocks.AIR
+            tmp_x = x - a
+            for tmp_y in range(y - b, y + b):
+                if self.is_valid_pos(tmp_x, tmp_y, width, height) and chunk[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk[tmp_y][tmp_x] = blocks.AIR
+            tmp_x = x - b
+            for tmp_y in range(y - a, y + a):
+                if self.is_valid_pos(tmp_x, tmp_y, width, height) and chunk[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk[tmp_y][tmp_x] = blocks.AIR
+            b += 1
+            t1 += b
+            t2 = t1 - a
+            if t2 >= 0:
+                t1 = t2
+                a -= 1
+
+
+    def create_caves(self, chunk: list[list[int]]) -> None:
+        for _ in range(random.randint(0, 3)):
+            x = random.randrange(0, len(chunk[0]))
+            y = self.get_first_block_y(chunk, x)
+            start = random.randint(0, y)
+            radius = random.randint(0, min(min(7, len(chunk) - start, len(chunk[0]) - x), start, x))
+            while True:
+                self.carve(chunk, x, start, radius)
+                if x >= len(chunk[0]) - 1 or not random.randint(0, 5):
+                    break
+                x += 1
+                if start > 0 and random.randint(0, 1):
+                    start -= 1
+                elif start < self.get_first_block_y(chunk, x) and random.randint(0, 1):
+                    start += 1
+
+                radius += random.randint(-1, 1)
+                if radius >= len(chunk):
+                    radius -= 1
+                elif radius < 0:
+                    radius += 1
+
+
+
     def generate_chunk(self, direction: bool, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
         """
         direction: 0 -> left, 1 -> right
@@ -230,6 +291,7 @@ class MapGenerator:
             self.create_trees(chunk, biome, is_forest)
         else:
             is_forest = False
+        self.create_caves(chunk)
         self.place_ore_veins(chunk, biome)
 
         self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)

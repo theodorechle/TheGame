@@ -115,7 +115,7 @@ class Game:
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
                 need_update = player.place_block(pygame.mouse.get_pos())
-            elif pressed_mouse_buttons[2]:
+            if pressed_mouse_buttons[2]:
                 need_update = player.remove_block(pygame.mouse.get_pos())
 
             need_update = player.update() or need_update
