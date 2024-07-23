@@ -1,5 +1,5 @@
 import blocks
 
-structure: dict[str, list[list[blocks.Block]]] = {
-    "tree1": ...
-}
+STRUCTURES: list[list[list[blocks.Block|None]]] = [
+
+]

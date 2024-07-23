@@ -56,7 +56,7 @@ class Game:
         player.load_image()
         pygame.key.set_repeat(100, 100)
         loop = True
-        print(f'seed: {map_generator.seed}')
+        print(f'seed: "{map_generator.seed}"')
         need_update = True
         while loop:
             if need_update:

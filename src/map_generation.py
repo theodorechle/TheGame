@@ -29,8 +29,8 @@ class MapGenerator:
         self.last_biomes = [None] * 2
         self.biome_height_values = [random.randint(0, 2)] * 2
         self.last_block_height_values = [None] * 2
-        self.temperature_values = [0] * 2
-        self.humidity_values = [0] * 2
+        self.temperature_values = [1] * 2
+        self.humidity_values = [1] * 2
         self.rand_states = [random.getstate()] * 2
         random.seed(random.randbytes(1))
         self.rand_states[1] = random.getstate()
@@ -40,6 +40,9 @@ class MapGenerator:
         if random.random() < keep_same: return previous_value
         return min(max_value, max(min_value, previous_value + random.randint(-max_gap, max_gap)))
 
+    def create_new_biome_values(self, direction: bool):
+        return (1, 1)
+    
     def generate_land_shape(self, chunk_height: int, chunk_length: int, direction: int, biome: biomes.Biome) -> list[list[blocks.Block]]:
         last_height = self.last_block_height_values[direction]
         previous_biome_distance = 0
@@ -107,15 +110,15 @@ class MapGenerator:
                 last_height = zone[1]
 
     @staticmethod
-    def get_positions_for_ore_veins(chunk: list[list[blocks.Block]], x: int, y: int) -> list[tuple[int, int]]:
+    def get_positions_for_ore_veins(chunk: list[list[blocks.Block]], x: int, y: int, block: blocks.Block) -> list[tuple[int, int]]:
         pos = []
-        if x > 0 and chunk[y][x - 1] == blocks.STONE:
+        if x > 0 and chunk[y][x - 1] == block:
             pos.append((x - 1, y))
-        if x < len(chunk[0]) - 1 and chunk[y][x + 1] == blocks.STONE:
+        if x < len(chunk[0]) - 1 and chunk[y][x + 1] == block:
             pos.append((x + 1, y))
-        if y > 0 and chunk[y - 1][x] == blocks.STONE:
+        if y > 0 and chunk[y - 1][x] == block:
             pos.append((x, y - 1))
-        if y < len(chunk) - 1 and chunk[y + 1][x] == blocks.STONE:
+        if y < len(chunk) - 1 and chunk[y + 1][x] == block:
             pos.append((x, y + 1))
         return pos
 
@@ -133,7 +136,7 @@ class MapGenerator:
                 x, y = pos.pop(0)
                 if random.random() < vein[4]:
                     chunk[y][x] = vein[1]
-                    pos += self.get_positions_for_ore_veins(chunk, x, y)
+                    pos += self.get_positions_for_ore_veins(chunk, x, y, blocks.STONE)
 
     def get_first_block_y(self, chunk: list[list[blocks.Block]], x: int) -> int:
         y = len(chunk) - 1
@@ -141,8 +144,60 @@ class MapGenerator:
             y -= 1
         return y
 
-    def create_new_biome_values(self, direction: bool):
-        return (0, 0)
+    @staticmethod
+    def can_place_leave(chunk: list[list[blocks.Block]], x: int, y: int, tree: biomes.Tree) -> bool:
+        if 0 > x or x >= len(chunk[0]) - 1 or 0 > y or y >= len(chunk) or chunk[y][x] != tree.grows_in: return False
+        if x < len(chunk[0]) - 1 and chunk[y][x + 1] in (tree.trunk_block, tree.leave_block):
+            return True
+        if x > 0 and chunk[y][x - 1] in (tree.trunk_block, tree.leave_block):
+            return True
+        if y < len(chunk) - 1 and chunk[y + 1][x] in (tree.trunk_block, tree.leave_block):
+            return True
+        if y > 0 and chunk[y - 1][x] in (tree.trunk_block, tree.leave_block):
+            return True
+
+    def create_trees(self, chunk: list[list[blocks.Block]], biome: biomes.Biome) -> None:
+        tree = biome.tree
+        if tree is None: return
+        for start_x in range(tree.min_leaves_width, len(chunk[0]) - tree.min_leaves_width):
+            if random.random() <= tree.tree_spawn_chance:
+                y = self.get_first_block_y(chunk, start_x)
+                if chunk[y][start_x] != blocks.GRASS: break
+                chunk[y][start_x] = blocks.EARTH
+                for i in range(1, random.randint(tree.min_trunk_height, tree.max_trunk_height)):
+                    if y + i < len(chunk) and chunk[y + i][start_x] == tree.grows_in:
+                        chunk[y + i][start_x] = tree.trunk_block
+                    else:
+                        break
+                if i < tree.min_trunk_height:
+                    for j in range(i + 1):
+                        chunk[y + j][start_x] = tree.grows_in
+                    return
+                start_y = y + i
+                # leaves on the trunk
+                center_min_y = random.randint(-tree.max_leaves_height, -tree.min_leaves_height)
+                center_max_y = random.randint(tree.min_leaves_height, tree.max_leaves_height)
+                for y in range(1, center_max_y + 1):
+                    if self.can_place_leave(chunk, start_x, start_y + y, tree):
+                        chunk[start_y + y][start_x] = tree.leave_block
+                # leaves before trunk
+                min_y = center_min_y
+                max_y = center_max_y
+                nb_leaves_left = random.randint(-tree.max_leaves_width, -tree.min_leaves_width)
+                for x in range(-1, nb_leaves_left - 1, -1):
+                    min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
+                    for y in range(min_y, max_y + 1):
+                        if self.can_place_leave(chunk, start_x + x, start_y + y, tree):
+                            chunk[start_y + y][start_x + x] = tree.leave_block
+                # leaves after trunk
+                min_y = center_min_y
+                max_y = center_max_y
+                nb_leaves_right = min(max(nb_leaves_left + random.randint(-1, 1), tree.min_leaves_width), tree.max_leaves_width)
+                for x in range(1, nb_leaves_right + 2):
+                    min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
+                    for y in range(min_y, max_y + 1):
+                        if self.can_place_leave(chunk, start_x + x, start_y + y, tree):
+                            chunk[start_y + y][start_x + x] = tree.leave_block
 
     def generate_chunk(self, direction: bool, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
         """
@@ -160,11 +215,12 @@ class MapGenerator:
         biome = biomes.BIOMES[(height, temperature, humidity)]
         chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
         
+        self.create_trees(chunk, biome)
+        self.place_ore_veins(chunk, biome)
+
         self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
         self.temperature_values[direction], self.humidity_values[direction] = self.create_new_biome_values(direction)
 
-
-        self.place_ore_veins(chunk, biome)
         # updates states and values
         self.rand_states[direction] = random.getstate()
         if self.is_central_chunk:
