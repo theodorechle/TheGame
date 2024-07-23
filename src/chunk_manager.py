@@ -5,7 +5,7 @@ import blocks
 from map_generation import MapGenerator
 
 class Chunk:
-    LENGTH = 16
+    LENGTH = 32
     HEIGHT = 128
     def __init__(self, id, direction: bool, map_generator: MapGenerator) -> None:
         """
