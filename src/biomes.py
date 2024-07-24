@@ -35,7 +35,7 @@ class Biome:
                 max_height: int,
                 max_height_difference: int,
                 upper_block: blocks.Block,
-                blocks_by_zone: list[tuple[blocks.Block, int]],
+                blocks_by_zone: list[tuple[blocks.Block, int, int]],
                 ore_veins_qty: tuple[int, int],
                 ore_veins_repartition: list[tuple[float, blocks.Block, int, int, float]],
                 tree: Tree = None
@@ -46,7 +46,7 @@ class Biome:
         self.max_height = max_height
         self.max_height_difference = max_height_difference
         self.upper_block = upper_block
-        # (block, min_height, (max_size of the block stack))
+        # (block, min_height, max_size of the block stack)
         self.blocks_by_zone = blocks_by_zone
         # (min_qty, max_qty)
         self.ore_veins_qty = ore_veins_qty
@@ -63,15 +63,15 @@ def get_biome_environment_values(biome: Biome) -> tuple[int, int, int, int]|None
 
 PLAIN = Biome(
     name='plain',
-    min_height=50,
-    max_height=60,
+    min_height=40,
+    max_height=50,
     max_height_difference=1,
     upper_block=blocks.GRASS,
-    blocks_by_zone=[(blocks.EARTH, 40, 10)],
+    blocks_by_zone=[(blocks.EARTH, 35, 10)],
     ore_veins_qty=(2, 10),
     ore_veins_repartition=[
-        (0.6, blocks.COAL, 30, 40, 0.4),
-        (0.4, blocks.IRON, 26, 37, 0.3)
+        (0.6, blocks.COAL, 20, 50, 0.4),
+        (0.4, blocks.IRON, 16, 47, 0.3)
     ],
     tree = Tree(trunk_block=blocks.WOOD,
                 leave_block=blocks.LEAVES,
@@ -91,14 +91,14 @@ PLAIN = Biome(
 HILL = Biome(
     name='hill',
     min_height=60,
-    max_height=80,
+    max_height=70,
     max_height_difference=2,
     upper_block=blocks.GRASS,
     blocks_by_zone=[(blocks.EARTH, 50, 10)],
     ore_veins_qty=(4, 10),
     ore_veins_repartition=[
-        (0.6, blocks.COAL, 50, 60, 0.4),
-        (0.4, blocks.IRON, 45, 57, 0.3)
+        (0.6, blocks.COAL, 30, 60, 0.4),
+        (0.4, blocks.IRON, 25, 57, 0.3)
     ],
     tree = Tree(trunk_block=blocks.WOOD,
                 leave_block=blocks.LEAVES,
@@ -117,11 +117,25 @@ HILL = Biome(
 
 MOUNTAIN = Biome(
     name='mountain',
-    min_height=100,
-    max_height=115,
+    min_height=70,
+    max_height=90,
     max_height_difference=3,
     upper_block=blocks.STONE,
     blocks_by_zone=[],
+    ore_veins_qty=(10, 20),
+    ore_veins_repartition=[
+        (0.6, blocks.COAL, 30, 80, 0.4),
+        (0.4, blocks.IRON, 20, 65, 0.3)
+    ]
+)
+
+HIGH_MOUNTAIN = Biome(
+    name='high-mountain',
+    min_height=100,
+    max_height=115,
+    max_height_difference=3,
+    upper_block=blocks.SNOW,
+    blocks_by_zone=[(blocks.SNOW, 100, 3)],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
         (0.6, blocks.COAL, 70, 102, 0.4),
@@ -131,15 +145,15 @@ MOUNTAIN = Biome(
 
 LAKE = Biome(
     name='lake',
-    min_height=30,
-    max_height=40,
+    min_height=20,
+    max_height=30,
     max_height_difference=1,
     upper_block=blocks.STONE,
     blocks_by_zone=[],
     ore_veins_qty=(1, 3),
     ore_veins_repartition=[
-        (0.7, blocks.COAL, 25, 32, 0.2),
-        (0.3, blocks.IRON, 15, 20, 0.1)
+        (0.7, blocks.COAL, 15, 22, 0.2),
+        (0.3, blocks.IRON, 5, 10, 0.1)
     ]
 )
 
@@ -148,5 +162,6 @@ BIOMES = {
     (0, 1, 1): PLAIN,
     (1, 1, 1): HILL,
     (2, 1, 1): MOUNTAIN,
+    (3, 1, 1): HIGH_MOUNTAIN,
     (-1, 1, 1): LAKE
 }

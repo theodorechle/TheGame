@@ -30,6 +30,7 @@ TORCH = Block('torch')
 FURNACE = Block('furnace')
 WORKBENCH = Block('workbench')
 WATER = Block('water')
+SNOW = Block('snow')
 
 BLOCKS: list[Block] = [
     AIR,
@@ -47,7 +48,8 @@ BLOCKS: list[Block] = [
     TORCH,
     FURNACE,
     WORKBENCH,
-    WATER
+    WATER,
+    SNOW
 ]
 
 TRAVERSABLE_BLOCKS = [

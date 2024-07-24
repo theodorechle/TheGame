@@ -5,7 +5,7 @@ import random
 class MapGenerator:
     def __init__(self, seed: str = str(random.randint(-500000000, 500000000))) -> None:
         self.seed = seed
-        self.water_height: int = 50
+        self.water_height: int = 40
         # states for next left and right chunks to be generated
         self.rand_states: list[tuple] = []
         self.are_last_biomes_forests: list[bool] = []
@@ -78,14 +78,14 @@ class MapGenerator:
         return chunk
 
     def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height_before: int, biome2: biomes.Biome|None = None) -> None:
-        if last_height_before >= self.water_height:
+        if last_height_before < self.water_height:
+            chunk[last_height_before][x] = blocks.SAND
+        else:
             if biome2 is not None and random.randint(0, 1):
                 block = biome2.upper_block
             else:
                 block = biome.upper_block
             chunk[last_height_before][x] = block
-        else:
-            chunk[last_height_before][x] = blocks.SAND
         last_add_y = 0
         last_height = last_height_before
         for zone in biome.blocks_by_zone:
@@ -240,7 +240,7 @@ class MapGenerator:
 
     def create_caves(self, chunk: list[list[int]], direction: bool) -> None:
         caves_pos_and_sizes = []
-        max_cave_radius = 10
+        max_cave_radius = 7
         for _ in range(random.randint(len(self.last_caves_pos_and_sizes[direction]), 2)):
             force_continue = False
             if self.last_caves_pos_and_sizes[direction]:
@@ -248,7 +248,7 @@ class MapGenerator:
                 x = 0 if direction else len(chunk[0]) - 1
                 force_continue = True
             else:
-                radius = random.randint(0, 7)
+                radius = random.randint(0, max_cave_radius)
                 x = random.randrange(radius * direction, len(chunk[0]) - radius * (not direction))
                 y = self.get_first_block_y(chunk, x)
                 start_y = random.randint(0, y - radius)
@@ -305,7 +305,7 @@ class MapGenerator:
         else:
             is_forest = False
 
-        self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
+        self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 3, keep_same=0.4)
         self.temperature_values[direction], self.humidity_values[direction] = self.create_new_biome_values(direction)
 
         # updates states and values
