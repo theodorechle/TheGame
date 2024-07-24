@@ -145,6 +145,7 @@ class Inventory:
                 x -= self.main_bar_start_pos[0]
                 x //= self.cell_size
                 index = x
+            else: return False
         elif self.complete_inventory_start_pos[1] <= y <= self.complete_inventory_start_pos[1] + self.cell_size * (self.nb_cells // self.nb_cells_by_line + 1): # all inventory
             if self.complete_inventory_start_pos[0] <= x <= self.complete_inventory_start_pos[0] + self.cell_size * self.nb_cells_by_line:
                 x -= self.complete_inventory_start_pos[0]
@@ -152,6 +153,7 @@ class Inventory:
                 y -= self.complete_inventory_start_pos[1]
                 y //= self.cell_size
                 index = y * self.nb_cells_by_line + x
+            else: return False
         else:
             return False
         if index >= self.nb_cells: return False

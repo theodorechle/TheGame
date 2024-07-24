@@ -4,7 +4,6 @@ from items import ITEMS
 from player import Player
 from map_generation import MapGenerator
 from chunk_manager import Chunk
-from random import randint
 
 class Game:
     def __init__(self) -> None:
@@ -13,9 +12,9 @@ class Game:
         self.HEIGHT = 980
         self.window = None
         self.keys = {
-            "mv_left": pygame.K_q, #moves
-            "mv_right": pygame.K_d,
-            "mv_up": pygame.K_z,
+            "mv_left": pygame.K_LEFT, #moves
+            "mv_right": pygame.K_RIGHT,
+            "mv_up": pygame.K_UP,
             "inv_0": pygame.K_1, # inventory
             "inv_1": pygame.K_2,
             "inv_2": pygame.K_3,
