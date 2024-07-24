@@ -1,70 +1,73 @@
-## PRIORITÉ
-
-- Les grottes peuvent faire voler des blocs
-
-## GÉNÉRATION:
-
-- [ ] chunks verticaux
-
-- fichiers informations biomes :
-    - [x] hauteur min + max, dénivelé
-    - [x] bloc couche supérieur
-    - [x] autres blocs, avec hauteur min + max, rareté
-    - [x] minerais, rareté
-
-- [x] forme globale (dénivelé)
-
-- [x] blocs principaux (terre,pierre, …)
-- [x] minerais (en amas)
-- [ ] structures (prévoir un ordre)
+## PRIORITY
 
 
+## GENERATION:
 
-## INTERACTIONS_FICHIERS :
+- [ ] vertical chunks
+- [x] biomes
+- [x] water
+- [x] ore veins
+- [x] trees and forests
+- [x] caves
 
-- doit être peu coûteux en temps et en place
+- Remove floating blocks
+  - (Generate caves only under surface ?)
+  
+- Create caves before placing biome blocks
 
-- chargement :
-    - chunks, inventaire, localisation, vie, inventaire
 
-- sauvegarde :
-    - chunks, inventaire, localisation, vie, inventaire
+## SAVES AND LOADS:
 
-## AFFICHAGE :
+- must be fast and memory efficient
 
-- [x] inventaire
-- [ ] vie
-- [ ] lumière
-- [ ] commandes ? Si oui pouvoir ouvrir et fermer
+- save and load: chunks, players' infos (place, inventory, ...)
 
-- adapter l'affichage pour pouvoir changer la taille
+## DISPLAY:
 
-## DÉPLACEMENTS :
+- [x] inventory
+- [ ] life
+- [ ] light
+- [ ] command panel ?
 
-- [ ] avec hitbox pour un déplacement plus réaliste (pas de bloc en bloc)
-- [ ] haut,gauche, droite, (bas ? Avec échelles…)
-- [ ] chute
+- responsive
 
-## INTERACTIONS HOMME-MACHINE :
+## MOVES:
 
-- [ ] permettre un choix des touches
-- [ ] souris pour l’orientation du perso ?
+- [ ] with hitboxes and not only block by block
+- [ ] left, right, down, up (ladders ?)
+- [x] fall
+
+## UI/UX:
+
+- [ ] allow changing keys
+- [ ] orientation of the player with the mouse ?
 - [ ] interaction range
 
-## INTERACTIONS AVEC LES BLOCS :
+## INTERACTIONS WITH BLOCKS:
 
-- [ ] établi (affiche les composants, la quantité et ce qu’on a)
-- [ ] coffre
+- [ ] workbench (display required components, need quantity and actual quantity)
+- [ ] furnace
+- [ ] chest
 
-## COMMANDES :
+## COMMANDS:
 
-- [ ] téléportation
-- [ ] se donner des items
-- [ ] afficher les hitboxs
+- [ ] teleportation
+- [ ] give items
+- [ ] display hitboxes
 
-## CHOIX SAUVEGARDE :
+## MENUS:
 
-- [ ] création de sauvegardes
-- [ ] suppression de sauvegardes
+- [ ] main menu
+- [ ] params menu
+- [ ] load world menu
+- [ ] create world menu
+- [ ] online menu
 
-## SONS
+## MULTIPLAYER:
+
+- [ ] test multiplayer offline
+- [ ] send data
+- [ ] receive data
+- [ ] synchronize chunks loaded by multiple players
+
+## SONGS:
