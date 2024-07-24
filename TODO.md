@@ -11,7 +11,7 @@
 - [x] caves
 
 - Remove floating blocks
-  - (Generate caves only under surface ?)
+  - (Generate caves only under surface?)
   
 - Create caves before placing biome blocks
 
@@ -27,20 +27,20 @@
 - [x] inventory
 - [ ] life
 - [ ] light
-- [ ] command panel ?
+- [ ] command panel?
 
 - responsive
 
 ## MOVES:
 
 - [ ] with hitboxes and not only block by block
-- [ ] left, right, down, up (ladders ?)
+- [ ] left, right, down, up (ladders?)
 - [x] fall
 
 ## UI/UX:
 
 - [ ] allow changing keys
-- [ ] orientation of the player with the mouse ?
+- [ ] orientation of the player with the mouse?
 - [ ] interaction range
 
 ## INTERACTIONS WITH BLOCKS:
