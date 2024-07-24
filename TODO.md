@@ -2,6 +2,7 @@
 
 - permettre d'accéder à tout l'inventaire
 
+
 ## GÉNÉRATION:
 
 - [ ] chunks verticaux

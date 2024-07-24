@@ -1,11 +1,11 @@
 import biomes
 import blocks
 import random
-from math import sqrt
 
 class MapGenerator:
     def __init__(self, seed: str = str(random.randint(-500000000, 500000000))) -> None:
         self.seed = seed
+        self.water_height: int = 50
         # states for next left and right chunks to be generated
         self.rand_states: list[tuple] = []
         self.are_last_biomes_forests: list[bool] = []
@@ -14,26 +14,19 @@ class MapGenerator:
         self.last_block_height_values: list[int|None] = []
         self.temperature_values: list[int] = []
         self.humidity_values: list[int] = []
+        self.last_caves_pos_and_sizes: list[list[tuple[int, int]]] = []
         self.is_central_chunk = False
-        self.water_height: int = 50
-        # self.load_biomes_data()
-        self.get_structures()
 
-    def load_biomes_data(self):
-        for biome in self.biomes:
-            biome.load()
 
-    def get_structures(self):
-        ...
-    
     def create_seeds(self):
         random.seed(self.seed)
-        self.last_biomes = [None] * 2
+        self.last_biomes = [None, None]
         self.biome_height_values = [random.randint(0, 2)] * 2
         self.are_last_biomes_forests = [bool(random.randint(0, 1))] * 2
         self.last_block_height_values = [None] * 2
-        self.temperature_values = [1] * 2
-        self.humidity_values = [1] * 2
+        self.last_caves_pos_and_sizes = [[], []]
+        self.temperature_values = [1, 1]
+        self.humidity_values = [1, 1]
         self.rand_states = [random.getstate()] * 2
         random.seed(random.randbytes(1))
         self.rand_states[1] = random.getstate()
@@ -241,28 +234,42 @@ class MapGenerator:
                 a -= 1
 
 
-    def create_caves(self, chunk: list[list[int]]) -> None:
-        for _ in range(random.randint(0, 3)):
-            x = random.randrange(0, len(chunk[0]))
-            y = self.get_first_block_y(chunk, x)
-            start = random.randint(0, y)
-            radius = random.randint(0, min(min(7, len(chunk) - start, len(chunk[0]) - x), start, x))
+    def create_caves(self, chunk: list[list[int]], direction: bool) -> None:
+        caves_pos_and_sizes = []
+        max_cave_radius = 10
+        for _ in range(random.randint(len(self.last_caves_pos_and_sizes[direction]), 2)):
+            force_continue = False
+            if self.last_caves_pos_and_sizes[direction]:
+                start_y, radius = self.last_caves_pos_and_sizes[direction].pop(0)
+                x = 0 if direction else len(chunk[0]) - 1
+                force_continue = True
+            else:
+                radius = random.randint(0, 7)
+                x = random.randrange(radius * direction, len(chunk[0]) - radius * (not direction))
+                y = self.get_first_block_y(chunk, x)
+                start_y = random.randint(0, y - radius)
             while True:
-                self.carve(chunk, x, start, radius)
-                if x >= len(chunk[0]) - 1 or not random.randint(0, 5):
+                self.carve(chunk, x, start_y, radius)
+                if (direction and x + radius >= len(chunk[0]) - 1) or (not direction and x - radius <= 0):
+                    force_continue = True
+                if (direction and x == len(chunk[0]) - 1) or (not direction and x == 0):
+                    caves_pos_and_sizes.append((start_y, radius))
                     break
-                x += 1
-                if start > 0 and random.randint(0, 1):
-                    start -= 1
-                elif start < self.get_first_block_y(chunk, x) and random.randint(0, 1):
-                    start += 1
+                if not force_continue and not random.randint(0, 15):
+                    break
+                force_continue = False
+                x += 1 if direction else -1
+                if start_y > 0 and random.randint(0, 1):
+                    start_y -= 1
+                elif start_y < self.get_first_block_y(chunk, x) and random.randint(0, 1):
+                    start_y += 1
 
                 radius += random.randint(-1, 1)
-                if radius >= len(chunk):
+                if radius > max_cave_radius:
                     radius -= 1
                 elif radius < 0:
                     radius += 1
-
+        self.last_caves_pos_and_sizes[direction] = caves_pos_and_sizes
 
 
     def generate_chunk(self, direction: bool, chunk_length: int, chunk_height: int, central_chunk: bool = False) -> tuple[list[list[blocks.Block]], str]:
@@ -291,7 +298,7 @@ class MapGenerator:
             self.create_trees(chunk, biome, is_forest)
         else:
             is_forest = False
-        self.create_caves(chunk)
+        self.create_caves(chunk, direction)
         self.place_ore_veins(chunk, biome)
 
         self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
