@@ -5,11 +5,12 @@ import blocks
 import items
 from recipes import convert_block_to_items, convert_item_to_block
 from map_generation import MapGenerator
+from time import monotonic
 
 class Inventory:
     def __init__(self, nb_cells: int, window: pygame.Surface) -> None:
         self.nb_cells = nb_cells
-        self.cells: list[list[blocks.Block|None, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
+        self.cells: list[list[items.Item, int]] = [[items.NOTHING, 0] for _ in range(self.nb_cells)] # list of list with items and quantities
         self.window = window
         self.cell_size = 40
         self.nb_cells_by_line = 10
@@ -19,6 +20,13 @@ class Inventory:
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
         self.selected = 0
         self.display_all = False
+        self.main_bar_start_pos = (0, self.window.get_size()[1] - self.cell_size)
+        self.complete_inventory_start_pos = (0, self.window.get_size()[1] // 2)
+        # item, quantity
+        self.current_clicked_item: tuple[items.Item, int] = (items.NOTHING, 0)
+        self.clicked_item_init_pos = -1
+        self.last_time_clicked = monotonic()
+        self.last_time_toggled = monotonic()
     
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -84,33 +92,24 @@ class Inventory:
 
     def display(self) -> None:
         self.display_main_bar()
-        if not self.display_all: return
-        for index in range(10, len(self.cells)):
-            x, y = (index % self.nb_cells_by_line) * self.cell_size, self.window.get_size()[1] // 2 + (index // self.nb_cells_by_line) * self.cell_size
-            self._display_cell(x, y, False)
-            block, qty = self.cells[index]
-            if block is None: continue
-            item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2
-            self.window.blit(block.image, (x + item_img_start, y + item_img_start))
-            qty = str(qty)
-            qty_render_size = self.block_qty_font.size(qty)
-            self.window.blit(self.block_qty_font
-                             .render(qty, True, "#000000"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
-
+        if self.display_all:
+            for index in range(10, len(self.cells)):
+                x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line) * self.cell_size
+                self._display_cell(x, y, False)
+                block, qty = self.cells[index]
+                if block is None: continue
+                self._display_block(x, y, block, qty)
+        if self.clicked_item_init_pos != -1:
+            self._display_block(*pygame.mouse.get_pos(), *self.current_clicked_item)
     
     def display_main_bar(self) -> None:
         for index in range(10):
-            x, y = index * self.cell_size, self.window.get_size()[1] - self.cell_size - 5
+            x, y = self.main_bar_start_pos[0] + index * self.cell_size, self.main_bar_start_pos[1]
             self._display_cell(x, y, self.selected == index)
             if index >= len(self.cells): continue
             block, qty = self.cells[index]
             if block is None: continue
-            item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2
-            self.window.blit(block.image, (x + item_img_start, y + item_img_start))
-            qty = str(qty)
-            qty_render_size = self.block_qty_font.size(qty)
-            self.window.blit(self.block_qty_font
-                             .render(qty, True, "#000000"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+            self._display_block(x, y, block, qty)
 
     def _display_cell(self, x: int, y: int, selected: bool) -> None:
         border_size = self.cells_borders_size * (1 + selected)
@@ -121,6 +120,55 @@ class Inventory:
             True,
             [(x, y), (x + self.cell_size, y), (x + self.cell_size, y + self.cell_size), (x, y + self.cell_size)],
             border_size)
+
+    def _display_block(self, x: int, y: int, block: blocks.Block, qty: int) -> None:
+        item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2
+        self.window.blit(block.image, (x + item_img_start, y + item_img_start))
+        qty = str(qty)
+        qty_render_size = self.block_qty_font.size(qty)
+        self.window.blit(self.block_qty_font
+                            .render(qty, True, "#000000"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+
+    def toggle_inventory(self) -> bool:
+        """
+        Returns whether it needs a screen update or not
+        """
+        if self.last_time_toggled > monotonic() - 0.1: return False
+        self.display_all = not self.display_all 
+        self.last_time_toggled = monotonic()
+        return True
+
+    def click_cell(self, x: int, y: int) -> bool:
+        if self.last_time_clicked > monotonic() - 0.1: return
+        if self.main_bar_start_pos[1] <= y <= self.main_bar_start_pos[1] + self.cell_size: # main bar
+            if self.main_bar_start_pos[0] <= x <= self.main_bar_start_pos[0] + self.cell_size * 10:
+                x -= self.main_bar_start_pos[0]
+                x //= self.cell_size
+                index = x
+        elif self.complete_inventory_start_pos[1] <= y <= self.complete_inventory_start_pos[1] + self.cell_size * (self.nb_cells // self.nb_cells_by_line + 1): # all inventory
+            if self.complete_inventory_start_pos[0] <= x <= self.complete_inventory_start_pos[0] + self.cell_size * self.nb_cells_by_line:
+                x -= self.complete_inventory_start_pos[0]
+                x //= self.cell_size
+                y -= self.complete_inventory_start_pos[1]
+                y //= self.cell_size
+                index = y * self.nb_cells_by_line + x
+        else:
+            return False
+        if index >= self.nb_cells: return False
+        if self.clicked_item_init_pos == -1:
+            item, qty = self.empty_cell(index)
+            if item != items.NOTHING:
+                self.clicked_item_init_pos = index
+                self.current_clicked_item = (item, qty)
+        else:
+            removed_qty = self.add_element_at_pos(self.current_clicked_item[0], self.current_clicked_item[1], index)
+            self.current_clicked_item = (self.current_clicked_item[0], self.current_clicked_item[1] - removed_qty)
+            if self.current_clicked_item[1] == 0:
+                self.current_clicked_item = (items.NOTHING, 0)
+                self.clicked_item_init_pos = -1
+        self.last_time_clicked = monotonic()
+        return True
+
 
 class Player:
     PLAYER_SIZE = (1, 2) # number of blocks width and height
@@ -188,7 +236,7 @@ class Player:
         """
         Return whether the player has moved or not
         """
-        need_update = False
+        need_update = self.inventory.clicked_item_init_pos != -1
         if self.speed_y > 0: # Go up
             in_water = False
             for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
@@ -290,6 +338,7 @@ class Player:
                 or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
     def place_block(self, pos: tuple[int, int]) -> bool:
+        if self.inventory.click_cell(*pos): return True
         x, y = self._get_relative_pos(*pos)
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y < self.top_player_pos:
             is_valid_pos = True

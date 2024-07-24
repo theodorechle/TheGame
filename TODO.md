@@ -1,8 +1,5 @@
 ## PRIORITÉ
 
-- permettre d'accéder à tout l'inventaire
-
-
 ## GÉNÉRATION:
 
 - [ ] chunks verticaux
@@ -10,13 +7,13 @@
 - fichiers informations biomes :
     - [x] hauteur min + max, dénivelé
     - [x] bloc couche supérieur
-    - [ ] autres blocs, avec hauteur min + max, rareté
-    - [ ] minerais, taille min+max veines, rareté
+    - [x] autres blocs, avec hauteur min + max, rareté
+    - [x] minerais, rareté
 
 - [x] forme globale (dénivelé)
 
-- [ ] blocs principaux (terre,pierre, …)
-- [ ] minerais (en amas)
+- [x] blocs principaux (terre,pierre, …)
+- [x] minerais (en amas)
 - [ ] structures (prévoir un ordre)
 
 

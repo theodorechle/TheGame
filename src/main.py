@@ -10,7 +10,7 @@ class Game:
     def __init__(self) -> None:
         self.FPS = 20
         self.WIDTH = 1500
-        self.HEIGHT = 1000
+        self.HEIGHT = 980
         self.window = None
         self.keys = {
             "mv_left": pygame.K_q, #moves
@@ -105,8 +105,7 @@ class Game:
             if self.pressed_keys['mv_up']:
                 player.speed_y = 1
             if self.pressed_keys['open_inv']:
-                player.inventory.display_all = not player.inventory.display_all
-                need_update = True
+                need_update = player.inventory.toggle_inventory()
             for i in range(10):
                 if self.pressed_keys[f'inv_{i}']:
                     player.inventory.selected = i

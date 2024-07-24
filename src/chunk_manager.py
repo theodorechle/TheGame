@@ -80,7 +80,7 @@ class ChunkManager:
     def display_chunks(self, x: int, y: int) -> None:
         window_size = self.window.get_size()
         nb_blocks_length = ceil(window_size[0] / blocks.Block.BLOCK_SIZE) + 2
-        nb_blocks_height = ceil(window_size[1] / blocks.Block.BLOCK_SIZE)
+        nb_blocks_height = ceil(window_size[1] / blocks.Block.BLOCK_SIZE) + 2
         for i in range(x - nb_blocks_length // 2, x + nb_blocks_length // 2):
             for j in range(y - nb_blocks_height // 2,  y + nb_blocks_height // 2):
                 self.display_block(i, j, -x, -y)
