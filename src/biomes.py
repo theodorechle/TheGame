@@ -34,7 +34,6 @@ class Biome:
                 min_height: int,
                 max_height: int,
                 max_height_difference: int,
-                upper_block: blocks.Block,
                 blocks_by_zone: list[tuple[blocks.Block, int, int]],
                 ore_veins_qty: tuple[int, int],
                 ore_veins_repartition: list[tuple[float, blocks.Block, int, int, float]],
@@ -45,7 +44,6 @@ class Biome:
         self.min_height = min_height
         self.max_height = max_height
         self.max_height_difference = max_height_difference
-        self.upper_block = upper_block
         # (block, min_height, max_size of the block stack)
         self.blocks_by_zone = blocks_by_zone
         # (min_qty, max_qty)
@@ -66,8 +64,10 @@ PLAIN = Biome(
     min_height=40,
     max_height=50,
     max_height_difference=1,
-    upper_block=blocks.GRASS,
-    blocks_by_zone=[(blocks.EARTH, 35, 10)],
+    blocks_by_zone=[
+        (blocks.GRASS, 40, 1),
+        (blocks.EARTH, 35, 10)
+    ],
     ore_veins_qty=(2, 10),
     ore_veins_repartition=[
         (0.6, blocks.COAL, 20, 50, 0.4),
@@ -93,8 +93,10 @@ HILL = Biome(
     min_height=60,
     max_height=70,
     max_height_difference=2,
-    upper_block=blocks.GRASS,
-    blocks_by_zone=[(blocks.EARTH, 50, 10)],
+    blocks_by_zone=[
+        (blocks.GRASS, 50, 1),
+        (blocks.EARTH, 40, 10)
+    ],
     ore_veins_qty=(4, 10),
     ore_veins_repartition=[
         (0.6, blocks.COAL, 30, 60, 0.4),
@@ -120,7 +122,6 @@ MOUNTAIN = Biome(
     min_height=70,
     max_height=90,
     max_height_difference=3,
-    upper_block=blocks.STONE,
     blocks_by_zone=[],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
@@ -134,7 +135,6 @@ HIGH_MOUNTAIN = Biome(
     min_height=100,
     max_height=115,
     max_height_difference=3,
-    upper_block=blocks.SNOW,
     blocks_by_zone=[(blocks.SNOW, 100, 3)],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
@@ -148,7 +148,6 @@ LAKE = Biome(
     min_height=20,
     max_height=30,
     max_height_difference=1,
-    upper_block=blocks.STONE,
     blocks_by_zone=[],
     ore_veins_qty=(1, 3),
     ore_veins_repartition=[

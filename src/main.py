@@ -12,9 +12,9 @@ class Game:
         self.HEIGHT = 980
         self.window = None
         self.keys = {
-            "mv_left": pygame.K_LEFT, #moves
-            "mv_right": pygame.K_RIGHT,
-            "mv_up": pygame.K_UP,
+            "mv_left": pygame.K_q, #moves
+            "mv_right": pygame.K_d,
+            "mv_up": pygame.K_z,
             "inv_0": pygame.K_1, # inventory
             "inv_1": pygame.K_2,
             "inv_2": pygame.K_3,

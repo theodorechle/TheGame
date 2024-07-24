@@ -133,7 +133,7 @@ class Inventory:
         """
         Returns whether it needs a screen update or not
         """
-        if self.last_time_toggled > monotonic() - 0.1: return False
+        if self.last_time_toggled > monotonic() - 0.2: return False
         self.display_all = not self.display_all 
         self.last_time_toggled = monotonic()
         return True

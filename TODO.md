@@ -1,5 +1,7 @@
 ## PRIORITÉ
 
+- Les grottes peuvent faire voler des blocs
+
 ## GÉNÉRATION:
 
 - [ ] chunks verticaux
