@@ -61,10 +61,6 @@ class MapGenerator:
                 chunk[y][used_x] = blocks.STONE
             for y in range(height, self.water_height):
                 chunk[y][used_x] = blocks.WATER
-            if height >= self.water_height:
-                chunk[height][used_x] = used_biome.upper_block
-            else:
-                chunk[height][used_x] = blocks.SAND
             if 0 < previous_biome_distance < 3 and self.last_biomes[direction] is not None:
                 used_biome = self.last_biomes[direction]
                 biome2 = biome
@@ -82,6 +78,14 @@ class MapGenerator:
         return chunk
 
     def place_biome_blocks(self, chunk: list[list[blocks.Block]], x: int, biome: biomes.Biome, last_height_before: int, biome2: biomes.Biome|None = None) -> None:
+        if last_height_before >= self.water_height:
+            if biome2 is not None and random.randint(0, 1):
+                block = biome2.upper_block
+            else:
+                block = biome.upper_block
+            chunk[last_height_before][x] = block
+        else:
+            chunk[last_height_before][x] = blocks.SAND
         last_add_y = 0
         last_height = last_height_before
         for zone in biome.blocks_by_zone:
@@ -286,6 +290,8 @@ class MapGenerator:
         humidity = self.humidity_values[direction]
         biome = biomes.BIOMES[(height, temperature, humidity)]
         chunk = self.generate_land_shape(chunk_height, chunk_length, direction, biome)
+        self.create_caves(chunk, direction)
+        self.place_ore_veins(chunk, biome)
         if biome.tree is not None:
             is_forest = self.are_last_biomes_forests[direction]
             if is_forest:
@@ -298,8 +304,6 @@ class MapGenerator:
             self.create_trees(chunk, biome, is_forest)
         else:
             is_forest = False
-        self.create_caves(chunk, direction)
-        self.place_ore_veins(chunk, biome)
 
         self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 2, keep_same=0.4)
         self.temperature_values[direction], self.humidity_values[direction] = self.create_new_biome_values(direction)
