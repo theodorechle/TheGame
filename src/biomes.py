@@ -138,8 +138,8 @@ HIGH_MOUNTAIN = Biome(
     blocks_by_zone=[(blocks.SNOW, 100, 3)],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
-        (0.6, blocks.COAL, 70, 102, 0.4),
-        (0.4, blocks.IRON, 60, 80, 0.3)
+        (0.6, blocks.COAL, 30, 102, 0.4),
+        (0.4, blocks.IRON, 40, 80, 0.3)
     ]
 )
 
