@@ -7,9 +7,6 @@ from chunk_manager import Chunk
 from gui.ui_manager import UIManager
 import menus
 
-EXIT = 0
-TO_MAIN_MENU = 1
-
 class Game:
     def __init__(self) -> None:
         self.FPS = 20
@@ -53,7 +50,7 @@ class Game:
 
     def game_loop(self) -> int:
         is_new_map = True
-        exit_code = EXIT
+        exit_code = menus.EXIT
         clock = pygame.time.Clock()
         map_generator = MapGenerator()
         if is_new_map:
@@ -75,9 +72,16 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
-                    exit_code = EXIT
+                    exit_code = menus.EXIT
                     break
                 elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        exit_code = menus.EscapeMenu(self.ui_manager).run()
+                        if exit_code == menus.EXIT:
+                            break
+                        elif exit_code == menus.TO_MAIN_MENU:
+                            loop = False
+                            break
                     if event.key == self.keys['mv_left']:
                         self.pressed_keys['mv_left'] = True
                     elif event.key == self.keys['mv_right']:
@@ -143,9 +147,9 @@ class Game:
                 break
             elif exit_code == menus.NEW_GAME:
                 exit_code = self.game_loop()
-                if exit_code == EXIT:
+                if exit_code == menus.EXIT:
                     break
-                elif exit_code == TO_MAIN_MENU:
+                elif exit_code == menus.TO_MAIN_MENU:
                     pass
         pygame.quit()
 
