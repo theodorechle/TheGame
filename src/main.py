@@ -7,6 +7,9 @@ from chunk_manager import Chunk
 from gui.ui_manager import UIManager
 import menus
 
+EXIT = 0
+TO_MAIN_MENU = 1
+
 class Game:
     def __init__(self) -> None:
         self.FPS = 20
@@ -48,8 +51,9 @@ class Game:
         }
         self.run()
 
-    def game_loop(self) -> None:
+    def game_loop(self) -> int:
         is_new_map = True
+        exit_code = EXIT
         clock = pygame.time.Clock()
         map_generator = MapGenerator()
         if is_new_map:
@@ -71,6 +75,7 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
+                    exit_code = EXIT
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == self.keys['mv_left']:
@@ -122,6 +127,7 @@ class Game:
             need_update = player.update() or need_update
             clock.tick(self.FPS)
         player.save()
+        return exit_code
 
     def run(self) -> None:
         pygame.init()
@@ -136,7 +142,11 @@ class Game:
             if exit_code == menus.EXIT:
                 break
             elif exit_code == menus.NEW_GAME:
-                self.game_loop()
+                exit_code = self.game_loop()
+                if exit_code == EXIT:
+                    break
+                elif exit_code == TO_MAIN_MENU:
+                    pass
         pygame.quit()
 
 hud_size = 1 # percentage
