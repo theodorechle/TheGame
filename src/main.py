@@ -77,6 +77,7 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         exit_code = menus.EscapeMenu(self.ui_manager).run()
+                        need_update = True
                         if exit_code == menus.EXIT:
                             break
                         elif exit_code == menus.TO_MAIN_MENU:

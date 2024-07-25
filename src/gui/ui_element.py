@@ -25,21 +25,21 @@ class UIElement:
         self.theme_elements_name = ['ui-element'] # a list of the class name and all is subclasses to get the themes
         if theme_elements_name is not None:
             self.theme_elements_name.extend(theme_elements_name)
-        self.theme = {}
-        self.ui_manager = ui_manager
-        self.ui_manager.add_element(self)
-        self.coords = start_x, start_y
-        self.start_coords = self.coords
-        self.size = (width, height)
-        self.relative_width = width is None
-        self.relative_height = height is None
-        self.horizontal_center = horizontal_center
-        self.vertical_center = vertical_center
-        self.visible = visible
-        self.parent = parent
-        self.hovered = False
-        self.clicked = False
-        self.unclicked = False
+        self._theme = {}
+        self._ui_manager = ui_manager
+        self._ui_manager.add_element(self)
+        self._coords = start_x, start_y
+        self._start_coords = self._coords
+        self._size = (width, height)
+        self._relative_width = width is None
+        self._relative_height = height is None
+        self._horizontal_center = horizontal_center
+        self._vertical_center = vertical_center
+        self._visible = visible
+        self._parent = parent
+        self._hovered = False
+        self._clicked = False
+        self._unclicked = False
         self.update_element()
 
     def update_element(self) -> None:
@@ -51,55 +51,55 @@ class UIElement:
         If erase is False, only the changed and added values will be set
         """
         if erase:
-            self.theme.clear()
+            self._theme.clear()
         for element_name in self.theme_elements_name:
             if element_name in theme_dict:
-                self.theme.update(theme_dict[element_name])
+                self._theme.update(theme_dict[element_name])
 
     def update_start_coords(self) -> None:
-        x, y = self.coords
-        screen_size = self.ui_manager.get_window_size()
+        x, y = self._coords
+        screen_size = self._ui_manager.get_window_size()
         content_size = self.get_size()
-        if self.horizontal_center:
+        if self._horizontal_center:
             x = screen_size[0] // 2 - content_size[0] // 2 - self.get_theme_value('edges-width')
-        if self.vertical_center:
+        if self._vertical_center:
             y = screen_size[1] // 2 - content_size[1] // 2 - self.get_theme_value('edges-width')
-        self.start_coords = (x, y)
+        self._start_coords = (x, y)
 
     def get_start_coords(self) -> tuple[int, int]:
-        return self.start_coords
+        return self._start_coords
     
     def update_size(self) -> None:
-        width, height = self.size
-        if self.relative_width or self.relative_height:
+        width, height = self._size
+        if self._relative_width or self._relative_height:
             content_width, content_height = self.get_content_size()
-        if self.relative_width:
+        if self._relative_width:
             width = content_width
-        if self.relative_height:
+        if self._relative_height:
             height = content_height
-        self.size = (width + 2*self.get_theme_value('edges-width'), height + 2*self.get_theme_value('edges-width'))
+        self._size = (width + 2*self.get_theme_value('edges-width'), height + 2*self.get_theme_value('edges-width'))
 
     def get_content_size(self) -> tuple[int, int]:
         raise NotImplementedError
 
     def get_size(self) -> tuple[int, int]:
-        return self.size
+        return self._size
 
     def is_in_element(self, x: int, y: int) -> bool:
-        return self.start_coords[0] <= x <= self.start_coords[0] + self.size[0] and self.start_coords[1] <= y <= self.start_coords[1] + self.size[1]
+        return self._start_coords[0] <= x <= self._start_coords[0] + self._size[0] and self._start_coords[1] <= y <= self._start_coords[1] + self._size[1]
 
     def is_visible(self) -> bool:
-        return self.visible
+        return self._visible
     
     def set_visibility(self, visible: bool) -> None:
-        self.visible = visible
-        self.ui_manager.ask_refresh()
+        self._visible = visible
+        self._ui_manager.ask_refresh()
 
     def display_element(self) -> bool:
         """
         Check whether the element can be displayed before calling the display method
         """
-        if self.visible:
+        if self._visible:
             self.display()
     
     def display(self) -> None:
@@ -113,22 +113,22 @@ class UIElement:
         Should be called by the subclasses to update the values linked to an event
         (hovered, clicked, ...)
         """
-        self.hovered = False
-        self.clicked = False
-        self.unclicked = False
+        self._hovered = False
+        self._clicked = False
+        self._unclicked = False
         
     def get_theme_value(self, variable: str) -> Any|None:
-        return self.theme.get(variable)
+        return self._theme.get(variable)
 
     def display_edge(self) -> None:
         pygame.draw.rect(
-            self.ui_manager.window,
+            self._ui_manager.window,
             self.get_theme_value('edges-color'),
             pygame.Rect(
-                self.start_coords[0],
-                self.start_coords[1],
-                self.size[0],
-                self.size[1]
+                self._start_coords[0],
+                self._start_coords[1],
+                self._size[0],
+                self._size[1]
             ),
             self.get_theme_value('edges-width'),
             self.get_theme_value('border-radius'),
