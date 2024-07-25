@@ -23,6 +23,10 @@ class MainMenu:
     def run(self) -> None:
         while self.loop:
             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_code = EXIT
+                    self.loop = False
+                    break
                 self.ui_manager.process_event(event)
                 self.ui_manager.update()
             pygame.display.update()
