@@ -4,6 +4,8 @@ from items import ITEMS
 from player import Player
 from map_generation import MapGenerator
 from chunk_manager import Chunk
+from gui.ui_manager import UIManager
+import menus
 
 class Game:
     def __init__(self) -> None:
@@ -11,6 +13,7 @@ class Game:
         self.WIDTH = 1500
         self.HEIGHT = 980
         self.window = None
+        self.ui_manager = None
         self.keys = {
             "mv_left": pygame.K_q, #moves
             "mv_right": pygame.K_d,
@@ -123,14 +126,17 @@ class Game:
     def run(self) -> None:
         pygame.init()
         self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
+        self.ui_manager = UIManager(self.window)
         for block in BLOCKS:
             block.load_image()
         for item in ITEMS:
             item.load_image()
-        exit = False
-        while not exit:
-            self.game_loop()
-            exit = True
+        while True:
+            exit_code = menus.MainMenu(self.ui_manager).run()
+            if exit_code == menus.EXIT:
+                break
+            elif exit_code == menus.NEW_GAME:
+                self.game_loop()
         pygame.quit()
 
 hud_size = 1 # percentage

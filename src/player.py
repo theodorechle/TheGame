@@ -114,12 +114,7 @@ class Inventory:
     def _display_cell(self, x: int, y: int, selected: bool) -> None:
         border_size = self.cells_borders_size * (1 + selected)
         pygame.draw.rect(self.window, "#dddddd", pygame.Rect(x, y, self.cell_size, self.cell_size))
-        pygame.draw.lines(
-            self.window,
-            "#aaaaaa",
-            True,
-            [(x, y), (x + self.cell_size, y), (x + self.cell_size, y + self.cell_size), (x, y + self.cell_size)],
-            border_size)
+        pygame.draw.rect(self.window, "#aaaaaa", pygame.Rect(x, y, self.cell_size, self.cell_size), border_size)
 
     def _display_block(self, x: int, y: int, block: blocks.Block, qty: int) -> None:
         item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2

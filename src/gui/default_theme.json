@@ -1,0 +1,15 @@
+{
+    "ui-element": {
+        "edges-width": 1,
+        "edges-color": "#bbbbbb",
+        "border-radius": 0,
+        "border-top-left-radius": -1,
+        "border-top-right-radius": -1,
+        "border-bottom-left-radius": -1,
+        "border-bottom-right-radius": -1
+    },
+    "button": {
+        "font-name": "",
+        "font-size": 35
+    }
+}
