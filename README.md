@@ -1,3 +1,9 @@
+To install the project, please run
+```
+git clone https://github.com/theodorechle/TheGame
+git submodule update --remote --init --recursive
+```
+
 Install the needed packages with:
 ```py
 python3 -m pip install -r requirements.txt
