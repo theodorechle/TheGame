@@ -4,6 +4,11 @@ from items import ITEMS
 from player import Player
 from map_generation import MapGenerator
 from chunk_manager import Chunk
+
+import os, sys
+gui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui')
+sys.path.append(gui_path)
+
 from gui.ui_manager import UIManager
 import menus
 
