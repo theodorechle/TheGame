@@ -5,6 +5,8 @@ from player import Player
 from map_generation import MapGenerator
 from chunk_manager import Chunk
 
+from time import monotonic
+
 import os, sys
 gui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui')
 sys.path.append(gui_path)
@@ -19,6 +21,8 @@ class Game:
         self.HEIGHT = 980
         self.window = None
         self.ui_manager = None
+        self.last_time_in_menu = 0
+        self.time_before_menu = 0.2
         self.keys = {
             "mv_left": pygame.K_q, #moves
             "mv_right": pygame.K_d,
@@ -53,11 +57,13 @@ class Game:
         }
         self.run()
 
-    def game_loop(self) -> int:
+    def game_loop(self, seed: str) -> int:
         is_new_map = True
         exit_code = menus.EXIT
         clock = pygame.time.Clock()
-        map_generator = MapGenerator()
+        if not seed:
+            seed = None
+        map_generator = MapGenerator(seed)
         if is_new_map:
             map_generator.create_seeds()
         player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator, clock)
@@ -81,12 +87,15 @@ class Game:
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        if self.last_time_in_menu > monotonic() - self.time_before_menu: continue
                         exit_code = menus.EscapeMenu(self.ui_manager).run()
+                        self.last_time_in_menu = monotonic()
                         need_update = True
-                        if exit_code == menus.EXIT:
-                            break
-                        elif exit_code == menus.TO_MAIN_MENU:
+                        if exit_code == menus.EXIT or exit_code == menus.TO_MAIN_MENU:
                             loop = False
+                            break
+                        elif exit_code == menus.BACK:
+                            need_update = True
                             break
                     if event.key == self.keys['mv_left']:
                         self.pressed_keys['mv_left'] = True
@@ -151,8 +160,11 @@ class Game:
             exit_code = menus.MainMenu(self.ui_manager).run()
             if exit_code == menus.EXIT:
                 break
-            elif exit_code == menus.NEW_GAME:
-                exit_code = self.game_loop()
+            elif exit_code == menus.CREATE_GAME:
+                menu = menus.CreateWorldMenu(self.ui_manager)
+                exit_code = menu.run()
+            if exit_code == menus.START_GAME:
+                exit_code = self.game_loop(menu.elements[1].get_text())
                 if exit_code == menus.EXIT:
                     break
                 elif exit_code == menus.TO_MAIN_MENU:

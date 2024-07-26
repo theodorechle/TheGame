@@ -32,6 +32,7 @@ PLANK = Item('plank')
 TORCH = Item('torch')
 FURNACE = Item('furnace')
 WORKBENCH = Item('workbench')
+SNOW = Item('snow')
 
 ITEMS: list[Item] = [
     IRON_INGOT,
@@ -50,4 +51,5 @@ ITEMS: list[Item] = [
     TORCH,
     FURNACE,
     WORKBENCH,
+    SNOW
 ]

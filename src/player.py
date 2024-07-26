@@ -25,8 +25,10 @@ class Inventory:
         # item, quantity
         self._current_clicked_item: tuple[items.Item, int] = (items.NOTHING, 0)
         self._clicked_item_init_pos = -1
-        self._last_time_clicked = monotonic()
-        self._last_time_toggled = monotonic()
+        self._last_time_clicked = 0
+        self._last_time_toggled = 0
+        self.time_before_toggle = 0.2
+        self.time_before_click = 0.2
     
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -128,13 +130,13 @@ class Inventory:
         """
         Returns whether it needs a screen update or not
         """
-        if self._last_time_toggled > monotonic() - 0.2: return False
+        if self._last_time_toggled > monotonic() - self.time_before_toggle: return False
         self._display_all = not self._display_all 
         self._last_time_toggled = monotonic()
         return True
 
     def click_cell(self, x: int, y: int) -> bool:
-        if self._last_time_clicked > monotonic() - 0.1: return
+        if self._last_time_clicked > monotonic() - self.time_before_click: return
         if self.main_bar_start_pos[1] <= y <= self.main_bar_start_pos[1] + self.cell_size: # main bar
             if self.main_bar_start_pos[0] <= x <= self.main_bar_start_pos[0] + self.cell_size * 10:
                 x -= self.main_bar_start_pos[0]

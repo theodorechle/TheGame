@@ -3,8 +3,11 @@ import blocks
 import random
 
 class MapGenerator:
-    def __init__(self, seed: str = str(random.randint(-500000000, 500000000))) -> None:
-        self.seed = seed
+    def __init__(self, seed: str|None = None) -> None:
+        if seed is None:
+            self.seed = str(random.randint(-500000000, 500000000))
+        else:
+            self.seed = seed
         self.water_height: int = 40
         # states for next left and right chunks to be generated
         self.rand_states: list[tuple] = []

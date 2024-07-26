@@ -14,7 +14,8 @@ _BLOCKS_TO_ITEMS: dict[blocks.Block, list[items.Item, int|tuple]] = {
     blocks.PLANK: [items.PLANK, 1],
     blocks.TORCH: [items.TORCH, 1],
     blocks.FURNACE: [items.FURNACE, 1],
-    blocks.WORKBENCH: [items.WORKBENCH, 1]
+    blocks.WORKBENCH: [items.WORKBENCH, 1],
+    blocks.SNOW: [items.SNOW, 1]
 }
 
 _ITEM_TO_BLOCK: dict[items.Item, blocks.Block] = {
@@ -27,6 +28,7 @@ _ITEM_TO_BLOCK: dict[items.Item, blocks.Block] = {
     items.TORCH: blocks.TORCH,
     items.FURNACE: blocks.FURNACE,
     items.WORKBENCH: blocks.WORKBENCH,
+    items.SNOW: blocks.SNOW
 }
 
 def convert_block_to_items(block: blocks.Block, quantity: int) -> dict[items.Item, int]:

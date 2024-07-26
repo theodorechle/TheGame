@@ -91,7 +91,7 @@ PLAIN = Biome(
 HILL = Biome(
     name='hill',
     min_height=60,
-    max_height=70,
+    max_height=65,
     max_height_difference=2,
     blocks_by_zone=[
         (blocks.GRASS, 50, 1),
@@ -119,7 +119,7 @@ HILL = Biome(
 
 MOUNTAIN = Biome(
     name='mountain',
-    min_height=70,
+    min_height=80,
     max_height=90,
     max_height_difference=3,
     blocks_by_zone=[],
