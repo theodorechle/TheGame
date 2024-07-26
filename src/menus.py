@@ -23,8 +23,7 @@ class Menu:
             return False
         self._loop = False
         self._exit_code = code
-        for element in self.elements:
-            self.ui_manager.remove_element(element)
+        self.ui_manager.clear_elements_list()
         return True
 
     def exit_menu(self, _) -> None:
@@ -55,8 +54,8 @@ class Menu:
 class MainMenu(Menu):
     def __init__(self, manager: ui_manager.UIManager) -> None:
         super().__init__(manager)
-        self.elements.append(elements.Button(manager, 'Create new world', on_click_function=self.create_new_game, start_y=manager.window.get_size()[1] // 4, horizontal_center=True))
-        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_game, start_y=manager.window.get_size()[1] // 4 * 3, horizontal_center=True))
+        self.elements.append(elements.Button(manager, 'Create new world', on_click_function=self.create_new_game, y=-manager.window.get_size()[1] // 4, anchor='center'))
+        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_game, y=manager.window.get_size()[1] // 4, anchor='center'))
     
     def exit_game(self, _) -> None:
         self.exit(EXIT)
@@ -67,10 +66,10 @@ class MainMenu(Menu):
 class CreateWorldMenu(Menu):
     def __init__(self, manager: ui_manager.UIManager) -> None:
         super().__init__(manager)
-        self.elements.append(elements.InputTextBox(manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], horizontal_center=True, start_y=400))
-        self.elements.append(elements.InputTextBox(manager, placeholder_text='Seed', horizontal_center=True, start_y=600))
-        self.elements.append(elements.Button(manager, 'Create', on_click_function=self.start_game, horizontal_center=True, start_y=800))
-        self.elements.append(elements.Button(manager, 'Back', on_click_function=self.exit_menu, start_x=100, start_y=100))
+        self.elements.append(elements.InputTextBox(manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y=400))
+        self.elements.append(elements.InputTextBox(manager, placeholder_text='Seed', anchor='top', y=600))
+        self.elements.append(elements.Button(manager, 'Create', on_click_function=self.start_game, anchor='top', y=800))
+        self.elements.append(elements.Button(manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
         
     def start_game(self, _) -> None:
         self.exit(START_GAME)
@@ -78,8 +77,8 @@ class CreateWorldMenu(Menu):
 class EscapeMenu(Menu):
     def __init__(self, manager: ui_manager.UIManager) -> None:
         super().__init__(manager)
-        self.elements.append(elements.Button(manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, horizontal_center=True, vertical_center=True))
-        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_menu, start_y=manager.window.get_size()[1] // 4 * 3, horizontal_center=True))
+        self.elements.append(elements.Button(manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
+        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_menu, y=manager.window.get_size()[1] // 4, anchor='center'))
     
     def exit_to_main_menu(self, _) -> None:
         self.exit(TO_MAIN_MENU)
