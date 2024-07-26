@@ -116,8 +116,6 @@ class Game:
                         self.pressed_keys['mv_right'] = False
                     elif event.key == self.keys['mv_up']:
                         self.pressed_keys['mv_up'] = False
-                    elif event.key == self.keys['open_inv']:
-                        self.pressed_keys['open_inv'] = False
                     else:
                         for i in range(10):
                             if event.key == self.keys[f'inv_{i}']:

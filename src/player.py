@@ -20,8 +20,8 @@ class Inventory:
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
         self.selected = 0
         self._display_all = False
-        self.main_bar_start_pos = (0, self.window.get_size()[1] - self.cell_size)
-        self.complete_inventory_start_pos = (0, self.window.get_size()[1] // 2)
+        self.main_bar_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] - self.cell_size)
+        self.complete_inventory_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] // 2)
         # item, quantity
         self._current_clicked_item: tuple[items.Item, int] = (items.NOTHING, 0)
         self._clicked_item_init_pos = -1
@@ -95,7 +95,7 @@ class Inventory:
     def display(self) -> None:
         self.display_main_bar()
         if self._display_all:
-            for index in range(10, len(self._cells)):
+            for index in range(self.nb_cells_by_line, len(self._cells)):
                 x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line) * self.cell_size
                 self._display_cell(x, y, False)
                 block, qty = self._cells[index]
@@ -105,13 +105,15 @@ class Inventory:
             self._display_block(*pygame.mouse.get_pos(), *self._current_clicked_item)
     
     def display_main_bar(self) -> None:
-        for index in range(10):
-            x, y = self.main_bar_start_pos[0] + index * self.cell_size, self.main_bar_start_pos[1]
-            self._display_cell(x, y, self.selected == index)
+        start_x = self.main_bar_start_pos[0]
+        start_y = self.main_bar_start_pos[1]
+        for index in range(self.nb_cells_by_line):
+            x = start_x + index * self.cell_size
+            self._display_cell(x, start_y, self.selected == index)
             if index >= len(self._cells): continue
             block, qty = self._cells[index]
             if block is None: continue
-            self._display_block(x, y, block, qty)
+            self._display_block(x, start_y, block, qty)
 
     def _display_cell(self, x: int, y: int, selected: bool) -> None:
         border_size = self.cells_borders_size * (1 + selected)
