@@ -29,7 +29,7 @@ class ChunkManager:
         return chunk, x % Chunk.LENGTH, y
 
     def get_block(self, x: int, y: int) -> blocks.Block|None:
-        """Return the value at given coordinates, or -1 if out of map"""
+        """Return the value at given coordinates, or blocks.NOTHING if out of map"""
         chunk, x, y = self.get_chunk_and_coordinates(x, y)
         if chunk is None: return blocks.NOTHING
         return chunk.blocks[y][x]

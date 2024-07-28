@@ -1,4 +1,3 @@
-from load_image import load_image
 import chunk_manager
 import pygame
 import blocks
@@ -7,6 +6,7 @@ from recipes import convert_block_to_items, convert_item_to_block
 from map_generation import MapGenerator
 from time import monotonic
 from save_manager import SaveManager
+from entity import Entity
 
 class Inventory:
     def __init__(self, nb_cells: int, window: pygame.Surface) -> None:
@@ -22,7 +22,7 @@ class Inventory:
         self.selected = 0
         self._display_all = False
         self.main_bar_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] - self.cell_size)
-        self.complete_inventory_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] // 2)
+        self.complete_inventory_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] // 2 - self.cell_size * (self._nb_cells // self.nb_cells_by_line - 1) // 2)
         # item, quantity
         self._current_clicked_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
         self._clicked_item_init_pos = -1
@@ -97,7 +97,7 @@ class Inventory:
         self.display_main_bar()
         if self._display_all:
             for index in range(self.nb_cells_by_line, len(self._cells)):
-                x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line) * self.cell_size
+                x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line - 1) * self.cell_size
                 self._display_cell(x, y, False)
                 block, qty = self._cells[index]
                 if block is None: continue
@@ -139,7 +139,7 @@ class Inventory:
         return True
     
     def have_clicked_item(self) -> bool:
-        return self._clicked_item_init_pos == -1
+        return self._clicked_item_init_pos != -1
 
     def click_cell(self, x: int, y: int) -> bool:
         if self._last_time_clicked > monotonic() - self.time_before_click: return False
@@ -155,6 +155,7 @@ class Inventory:
                 x //= self.cell_size
                 y -= self.complete_inventory_start_pos[1]
                 y //= self.cell_size
+                y += 1
                 index = y * self.nb_cells_by_line + x
             else: return False
         else:
@@ -175,17 +176,8 @@ class Inventory:
         return True
 
 
-class Player:
-    PLAYER_SIZE = (1, 2) # number of blocks width and height
-    image_size = (PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE, PLAYER_SIZE[1] * blocks.Block.BLOCK_SIZE)
-    PATH = 'src/resources/images/persos'
+class Player(Entity):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, map_generator: MapGenerator, clock: pygame.time.Clock, save_manager: SaveManager) -> None:
-        self.name = name
-        self.x: int = x
-        self.y: int = y
-        self.speed_x: int = speed_x
-        self.speed_y: int = speed_y
-        self.window: pygame.Surface = window
         self.render_distance: int = 25
         self.interaction_range: int = 1 # doesn't work
         self.clock: pygame.time.Clock = clock
@@ -196,26 +188,11 @@ class Player:
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
         self.chunk_manager: chunk_manager.ChunkManager = chunk_manager.ChunkManager(self.render_distance, 0, window, map_generator, save_manager)
-        self.image: pygame.Surface = load_image([f'{self.PATH}/{self.name}.png'], self.image_size)
-        self.image_reversed: pygame.Surface = load_image([f'{self.PATH}/{self.name}_reversed.png'], self.image_size)
-        self.direction: bool = False # False if right, True if left
+        super().__init__(name, x, y, speed_x, speed_y, window, 1, 2, self.chunk_manager, 'persos', True)
         self.inventory_size: int = 50
         self.inventory: Inventory = Inventory(self.inventory_size, window)
         self.set_player_edges_pos()
 
-    def set_player_edges_pos(self) -> None:
-        self.top_player_pos: int = self.PLAYER_SIZE[1]
-        self.bottom_player_pos: int = 0
-        self.left_player_pos: int = -self.PLAYER_SIZE[0] // 2 + self.PLAYER_SIZE[0] % 2
-        self.right_player_pos: int = self.PLAYER_SIZE[0] // 2
-
-    def display(self) -> None:
-        window_size = self.window.get_size()
-        self.window.blit(
-            self.image_reversed if self.direction else self.image,
-            (window_size[0] // 2 - self.PLAYER_SIZE[0] * blocks.Block.BLOCK_SIZE // 2,
-             window_size[1] // 2 - self.image_size[1])
-        )
     
     def display_hud(self) -> None:
         self.inventory.display()
@@ -228,79 +205,13 @@ class Player:
         infos.append(f'chunk: {chunk.id if chunk is not None else ""}')
         infos.append(f'biome: {chunk.biome.name if chunk is not None else ""}')
         infos.append(f'forest: {chunk.is_forest if chunk is not None else ""}')
-        infos.append(f'FPS: {round(self.clock.get_fps())}')
 
         for i, info in enumerate(infos, start=1):
             self.window.blit(self.infos_font
                     .render(info, True, "#000000"), (50, 20 * i))
 
     def update(self) -> bool:
-        """
-        Return whether the player has moved or not
-        """
-        need_update = self.inventory.have_clicked_item()
-        can_fall: bool = True
-        if self.speed_y > 0: # Go up
-            in_water = False
-            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-                for y in range(self.PLAYER_SIZE[1]):
-                    block = self.chunk_manager.get_block(self.x + x, self.y + y)
-                    if block != blocks.NOTHING and block in blocks.SWIMMABLE_BLOCKS:
-                        in_water = True
-                        break
-            if in_water:
-                is_valid_pos = True
-                for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-                    block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
-                    if block != blocks.NOTHING and block not in blocks.TRAVERSABLE_BLOCKS:
-                        is_valid_pos = False
-                        break
-                    block = self.chunk_manager.get_block(self.x + x, self.y + 1)
-                    if block != blocks.NOTHING and block not in blocks.SWIMMABLE_BLOCKS:
-                        is_valid_pos = False
-                        break
-                if is_valid_pos:
-                    self.y += 1
-                    need_update = True
-                if self.speed_y >= 1:
-                    can_fall = False
-                self.speed_y = 0
-            else:
-                self.speed_y = 0
-        if self.speed_y <= 0 and can_fall: # Fall
-            is_valid_pos = True
-            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
-                block = self.chunk_manager.get_block(self.x + x, self.y - 1)
-                if block != blocks.NOTHING and block not in blocks.TRAVERSABLE_BLOCKS:
-                    is_valid_pos = False
-                    break
-            if is_valid_pos:
-                self.y -= 1
-                need_update = True
-        if not self.speed_x: return need_update
-        sign = (1 if self.speed_x >= 0 else -1)
-        new_direction = (sign == -1)
-        if new_direction != self.direction:
-            self.direction = new_direction
-            need_update = True
-        else:
-            for _ in range(abs(self.speed_x)):
-                is_valid_pos = True
-                for y in range(1, self.PLAYER_SIZE[1]):
-                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + y) not in blocks.TRAVERSABLE_BLOCKS:
-                        is_valid_pos = False
-                        break
-                if is_valid_pos:
-                    if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y) not in blocks.TRAVERSABLE_BLOCKS:
-                        if self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2 + 1) * sign, self.y + self.PLAYER_SIZE[1]) in blocks.TRAVERSABLE_BLOCKS \
-                                and self.chunk_manager.get_block(self.x + (self.PLAYER_SIZE[0] // 2) * sign, self.y + self.PLAYER_SIZE[1]) in blocks.TRAVERSABLE_BLOCKS:
-                            self.y += 1
-                        else:
-                            continue
-                    self.x += sign
-                    need_update = True
-        self.speed_x = sign * (abs(self.speed_x) // 2)
-        return need_update
+        return super().update() or self.inventory.have_clicked_item()
 
     def save(self) -> None:
         ...
@@ -327,7 +238,7 @@ class Player:
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-left
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
-            elif rx == self.PLAYER_SIZE[0] // 2 + self.interaction_range:
+            elif rx == self.entity_size[0] // 2 + self.interaction_range:
                 if ry == self.bottom_player_pos-self.interaction_range: # down-right
                     return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-right
@@ -345,7 +256,7 @@ class Player:
         x, y = self._get_relative_pos(*pos)
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y < self.top_player_pos:
             is_valid_pos = True
-            for x in range(-(self.PLAYER_SIZE[0] // 2), self.PLAYER_SIZE[0] // 2 + 1):
+            for x in range(-(self.entity_size[0] // 2), self.entity_size[0] // 2 + 1):
                 block = self.chunk_manager.get_block(self.x, self.y + self.top_player_pos)
                 if block == blocks.NOTHING or block not in blocks.TRAVERSABLE_BLOCKS:
                     is_valid_pos = False
@@ -369,11 +280,13 @@ class Player:
                 self.inventory.add_element_at_pos(item, 1, self.inventory.selected)
         return True
 
-    def remove_block(self, pos: tuple[int, int]) -> None:
-        if not self._is_interactable(*pos): return
+    def remove_block(self, pos: tuple[int, int]) -> bool:
+        if not self._is_interactable(*pos): return False
         x, y = self._get_relative_pos(*pos)
         block = self.chunk_manager.get_block(self.x + x, self.y + y)
         if block is not None and block not in blocks.TRAVERSABLE_BLOCKS:
             self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
             for item, quantity in convert_block_to_items(block, 1).items():
                 self.inventory.add_element(item, quantity)
+            return True
+        return False

@@ -1,5 +1,9 @@
 ## PRIORITY
+Entities: Players and blocks
 
+Saves and loads
+
+Center on the  player entity
 
 ## GENERATION:
 
@@ -57,10 +61,10 @@
 
 ## MENUS:
 
-- [ ] main menu
+- [x] main menu
 - [ ] params menu
 - [ ] load world menu
-- [ ] create world menu
+- [x] create world menu
 - [ ] online menu
 
 ## MULTIPLAYER:
@@ -69,5 +73,7 @@
 - [ ] send data
 - [ ] receive data
 - [ ] synchronize chunks loaded by multiple players
+- [ ] two separated programs for client and server (display, input) and (game management)
+- [ ] server can be runned at same time as playing (but separated)
 
 ## SONGS:
