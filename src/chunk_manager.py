@@ -1,41 +1,24 @@
 import blocks
 import pygame
 from math import ceil
-import blocks
 from map_generation import MapGenerator
-
-class Chunk:
-    LENGTH = 32
-    HEIGHT = 128
-    def __init__(self, id, direction: bool, map_generator: MapGenerator) -> None:
-        """
-        direction: 0 -> left, 1 -> right
-        """
-        self.id = id
-        self.biome = ""
-        self.is_forest = False
-        self.direction = direction
-        self.map_generator = map_generator
-        self.blocks: list[list[blocks.Block]] = None
-        self.load()
-
-    def load(self):
-        print(self.id)
-        self.blocks, self.biome, self.is_forest = self.map_generator.generate_chunk(self.direction, self.LENGTH, self.HEIGHT, central_chunk = (self.id == 0))
-    
-    def unload(self):
-        ...
-
+from map_chunk import Chunk
+from save_manager import SaveManager
+from typing import cast
 class ChunkManager:
-    def __init__(self, nb_chunks_by_side, chunk_x_position, window: pygame.Surface, map_generator: MapGenerator) -> None:
-        self.nb_chunks_by_side = 0
-        self.chunk_x_position = chunk_x_position
-        self.window = window
-        self.map_generator = map_generator
-        self.chunks: list[Chunk] = [Chunk(chunk_x_position, False, map_generator)]
+    def __init__(self, nb_chunks_by_side: int, chunk_x_position: int, window: pygame.Surface, map_generator: MapGenerator, save_manager: SaveManager) -> None:
+        self.nb_chunks_by_side: int = 0
+        self.chunk_x_position: int = chunk_x_position
+        self.window: pygame.Surface = window
+        self.map_generator: MapGenerator = map_generator
+        self.save_manager: SaveManager = save_manager
+        central_chunk = save_manager.load_chunk(chunk_x_position)
+        if central_chunk is None:
+            central_chunk = self.map_generator.generate_chunk(False, chunk_x_position)
+        self.chunks: list[Chunk] = [central_chunk]
         self.change_nb_chunks(nb_chunks_by_side)
     
-    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk, int, int]:
+    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
         x += Chunk.LENGTH // 2
         if self.chunk_x_position != 0:
@@ -45,10 +28,10 @@ class ChunkManager:
         chunk = self.chunks[nb_chunk]
         return chunk, x % Chunk.LENGTH, y
 
-    def get_block(self, x: int, y: int) -> blocks.Block:
+    def get_block(self, x: int, y: int) -> blocks.Block|None:
         """Return the value at given coordinates, or -1 if out of map"""
         chunk, x, y = self.get_chunk_and_coordinates(x, y)
-        if chunk is None: return -1
+        if chunk is None: return blocks.NOTHING
         return chunk.blocks[y][x]
 
     def replace_block(self, x: int, y: int, block: blocks.Block) -> bool:
@@ -64,17 +47,22 @@ class ChunkManager:
             for i in range(self.nb_chunks_by_side*2 + 1):
                 new_chunks[difference + i] = self.chunks[i]
             for i in range(difference):
-                new_chunks[difference - i - 1] = Chunk(self.chunk_x_position - i - 1, False, self.map_generator)
-                new_chunks[new_nb_chunks + i + 1] = Chunk(self.chunk_x_position + i + 1, True, self.map_generator)
-            if new_chunks[new_nb_chunks] is None: # central chunk
-                new_chunks[new_nb_chunks] = Chunk(self.chunk_x_position, False, self.map_generator)
+                chunk = self.save_manager.load_chunk(self.chunk_x_position - i - 1)
+                if chunk is None:
+                    chunk = self.map_generator.generate_chunk(False, self.chunk_x_position - i - 1)
+                new_chunks[difference - i - 1] = chunk
+                chunk = self.save_manager.load_chunk(self.chunk_x_position + i + 1)
+                if chunk is None:
+                    chunk = self.map_generator.generate_chunk(True, self.chunk_x_position + i + 1)
+                new_chunks[new_nb_chunks + i + 1] = chunk
         else:
             for i in range(difference):
-                self.chunks[i].unload()
-                self.chunks[self.nb_chunks_by_side - i].unload()
+                self.save_manager.save_chunk(self.chunks[i])
+                self.save_manager.save_chunk(self.chunks[self.nb_chunks_by_side - i])
             for i in range(new_nb_chunks*2 + 1):
                 new_chunks[i] = self.chunks[difference + i]
-        self.chunks = new_chunks
+        
+        self.chunks = cast(list[Chunk], new_chunks)
         self.nb_chunks_by_side = new_nb_chunks
     
     def display_chunks(self, x: int, y: int) -> None:

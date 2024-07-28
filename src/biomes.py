@@ -1,32 +1,5 @@
 import blocks
-
-class Tree:
-    def __init__(self,
-                trunk_block: blocks.Block,
-                leave_block: blocks.Block,
-                min_trunk_height: int,
-                max_trunk_height: int,
-                min_leaves_height: int,
-                max_leaves_height: int,
-                min_leaves_width: int,
-                max_leaves_width: int,
-                tree_spawn_chance: float,
-                forest_spawn_chance: float,
-                stay_forest_chance: float,
-                grows_in: blocks.Block
-                ) -> None:
-        self.trunk_block = trunk_block
-        self.leave_block = leave_block
-        self.min_trunk_height = min_trunk_height
-        self.max_trunk_height = max_trunk_height
-        self.min_leaves_height = min_leaves_height
-        self.max_leaves_height = max_leaves_height
-        self.min_leaves_width = min_leaves_width
-        self.max_leaves_width = max_leaves_width
-        self.tree_spawn_chance = tree_spawn_chance
-        self.forest_spawn_chance = forest_spawn_chance
-        self.stay_forest_chance = stay_forest_chance
-        self.grows_in = grows_in
+from tree import Tree
 
 class Biome:
     def __init__(self,
@@ -37,7 +10,7 @@ class Biome:
                 blocks_by_zone: list[tuple[blocks.Block, int, int]],
                 ore_veins_qty: tuple[int, int],
                 ore_veins_repartition: list[tuple[float, blocks.Block, int, int, float]],
-                tree: Tree = None
+                tree: Tree|None = None
                 ) -> None:
 
         self.name = name
@@ -53,7 +26,7 @@ class Biome:
         self.tree = tree
 
 
-def get_biome_environment_values(biome: Biome) -> tuple[int, int, int, int]|None:
+def get_biome_environment_values(biome: Biome) -> tuple[int, int, int]|None:
     for vars, biome_ in BIOMES.items():
         if biome_ == biome:
             return vars

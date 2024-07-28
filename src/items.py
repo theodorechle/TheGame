@@ -4,13 +4,10 @@ from blocks import Block
 class Item:
     ITEM_SIZE = 20
     PATH = 'src/resources/images/items'
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.image = None
-        self.stack_size = 99
-    
-    def load_image(self) -> None:
         self.image = load_image([f'{self.PATH}/{self.name}.png', f'{Block.PATH}/{self.name}.png'], (self.ITEM_SIZE, self.ITEM_SIZE))
+        self.stack_size = 99
     
     def __repr__(self) -> str:
         return self.name

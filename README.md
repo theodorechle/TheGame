@@ -1,7 +1,6 @@
 To install the project, please run
 ```
-git clone https://github.com/theodorechle/TheGame
-git submodule update --remote --init --recursive
+git clone --recurse-submodules https://github.com/theodorechle/TheGame
 ```
 
 Install the needed packages with:

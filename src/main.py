@@ -1,29 +1,36 @@
-import pygame
-from blocks import BLOCKS
-from items import ITEMS
-from player import Player
-from map_generation import MapGenerator
-from chunk_manager import Chunk
-
-from time import monotonic
-
 import os, sys
 gui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui')
 sys.path.append(gui_path)
 
+
+import pygame
 from gui.ui_manager import UIManager
+pygame.init()
+
+WIDTH = 1500
+HEIGHT = 980
+window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+ui_manager = UIManager(window)
+
+from player import Player
+from map_generation import MapGenerator
+from chunk_manager import Chunk
+from save_manager import SaveManager
+
+from time import monotonic
+
 import menus
 
 class Game:
-    def __init__(self) -> None:
-        self.FPS = 20
-        self.WIDTH = 1500
-        self.HEIGHT = 980
-        self.window = None
-        self.ui_manager = None
-        self.last_time_in_menu = 0
-        self.time_before_menu = 0.2
-        self.keys = {
+    def __init__(self, window: pygame.Surface, ui_manager: UIManager) -> None:
+        self.FPS: int = 20
+        self.WIDTH: int = 1500
+        self.HEIGHT: int = 980
+        self.window: pygame.Surface = window
+        self.ui_manager: UIManager = ui_manager
+        self.last_time_in_menu: float = 0
+        self.time_before_menu: float = 0.2
+        self.keys: dict[str, int] = {
             "mv_left": pygame.K_q, #moves
             "mv_right": pygame.K_d,
             "mv_up": pygame.K_z,
@@ -39,7 +46,7 @@ class Game:
             "inv_9": pygame.K_0,
             "open_inv": pygame.K_i
         }
-        self.pressed_keys = {
+        self.pressed_keys: dict[str, bool] = {
             "mv_left": False,
             "mv_right": False,
             "mv_up": False,
@@ -57,17 +64,17 @@ class Game:
         }
         self.run()
 
-    def game_loop(self, seed: str) -> int:
+    def game_loop(self, seed: str|None=None, save_name: str|None=None) -> int:
         is_new_map = True
         exit_code = menus.EXIT
         clock = pygame.time.Clock()
         if not seed:
             seed = None
         map_generator = MapGenerator(seed)
+        save_manager = SaveManager()
         if is_new_map:
             map_generator.create_seeds()
-        player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator, clock)
-        player.load_image()
+        player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator, clock, save_manager)
         pygame.key.set_repeat(100, 100)
         loop = True
         print(f'seed: "{map_generator.seed}"')
@@ -130,6 +137,7 @@ class Game:
                 player.speed_y = 1
             if self.pressed_keys['open_inv']:
                 need_update = player.inventory.toggle_inventory()
+                self.pressed_keys['open_inv'] = False
             for i in range(10):
                 if self.pressed_keys[f'inv_{i}']:
                     player.inventory.selected = i
@@ -147,28 +155,22 @@ class Game:
         return exit_code
 
     def run(self) -> None:
-        pygame.init()
-        self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT), pygame.RESIZABLE)
-        self.ui_manager = UIManager(self.window)
-        for block in BLOCKS:
-            block.load_image()
-        for item in ITEMS:
-            item.load_image()
         while True:
-            exit_code = menus.MainMenu(self.ui_manager).run()
+            main_menu = menus.MainMenu(self.ui_manager)
+            exit_code = main_menu.run()
             if exit_code == menus.EXIT:
                 break
             elif exit_code == menus.CREATE_GAME:
-                menu = menus.CreateWorldMenu(self.ui_manager)
-                exit_code = menu.run()
-            if exit_code == menus.START_GAME:
-                exit_code = self.game_loop(menu.elements[1].get_text())
-                if exit_code == menus.EXIT:
-                    break
-                elif exit_code == menus.TO_MAIN_MENU:
-                    pass
+                create_world_menu = menus.CreateWorldMenu(self.ui_manager)
+                exit_code = create_world_menu.run()
+                if exit_code == menus.START_GAME:
+                    exit_code = self.game_loop(create_world_menu.seed_text_box.get_text())
+                    if exit_code == menus.EXIT:
+                        break
+                    elif exit_code == menus.TO_MAIN_MENU:
+                        pass
         pygame.quit()
 
 hud_size = 1 # percentage
 
-game = Game()
+game = Game(window, ui_manager)
