@@ -12,8 +12,8 @@ class MapGenerator:
         else:
             self.seed = seed
         self.water_height: int = 40
-        # states for next left and right chunks to be generated
-        self.rand_states: list[tuple[tuple[Any, ...], tuple[Any, ...]]] = []
+        # state of the normal random (not the one used for generation)
+        self.rand_state: tuple[tuple[Any, ...]] = random.getstate()
         self.are_last_biomes_forests: list[bool] = []
         self.last_biomes: list[biomes.Biome|None] = []
         self.biome_height_values: list[int] = []
@@ -32,9 +32,6 @@ class MapGenerator:
         self.last_caves_pos_and_sizes = [[], []]
         self.temperature_values = [1, 1]
         self.humidity_values = [1, 1]
-        self.rand_states = [random.getstate()] * 2
-        random.seed(random.randbytes(1))
-        self.rand_states[1] = random.getstate()
 
     @staticmethod
     def generate_number(previous_value: int, max_gap: int, min_value: int, max_value: int, keep_same: float = 0.5) -> int:
@@ -282,7 +279,7 @@ class MapGenerator:
     def generate_chunk(self, direction: bool, id: int) -> Chunk:
         """direction: 0 -> left, 1 -> right"""
         # TODO: add use for temperature and humidity values
-        random.setstate(self.rand_states[direction])
+        random.seed(f'{self.seed}{id}')
 
         height = self.biome_height_values[direction]
         temperature = self.temperature_values[direction]
@@ -310,7 +307,7 @@ class MapGenerator:
         self.temperature_values[direction], self.humidity_values[direction] = self.create_new_biome_values()
 
         # updates states and values
-        self.rand_states[direction] = random.getstate()
+        random.setstate(self.rand_state)
         if chunk.id == 0:
             self.biome_height_values[not direction] = self.biome_height_values[direction]
         return chunk

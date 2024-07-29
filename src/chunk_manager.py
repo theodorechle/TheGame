@@ -21,8 +21,7 @@ class ChunkManager:
     def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
         x += Chunk.LENGTH // 2
-        if self.chunk_x_position != 0:
-            x %= abs(self.chunk_x_position) * Chunk.LENGTH
+        x -= self.chunk_x_position * Chunk.LENGTH
         nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
         if nb_chunk < 0 or nb_chunk >= len(self.chunks): return None, -1, -1 # out of loaded chunks
         chunk = self.chunks[nb_chunk]
@@ -39,6 +38,31 @@ class ChunkManager:
         if chunk is None: return False
         chunk.blocks[y][x] = block
         return True
+    
+    def update(self, x: int) -> None:
+        x += Chunk.LENGTH // 2
+        x -= self.chunk_x_position * Chunk.LENGTH
+        if x < 0:
+            self.change_chunks(-1)
+        elif x >= Chunk.LENGTH:
+            self.change_chunks(1)
+
+    def change_chunks(self, added_x: int) -> None:
+        if added_x == 1:
+            self.save_manager.save_chunk(self.chunks.pop(0))
+            id = self.chunk_x_position + self.nb_chunks_by_side + 1
+            chunk = self.save_manager.load_chunk(id)
+            if chunk is None:
+                chunk = self.map_generator.generate_chunk(True, id)
+            self.chunks.append(chunk)
+        else:
+            self.save_manager.save_chunk(self.chunks.pop(-1))
+            id = self.chunk_x_position - self.nb_chunks_by_side - 1
+            chunk = self.save_manager.load_chunk(id)
+            if chunk is None:
+                chunk = self.map_generator.generate_chunk(False, id)
+            self.chunks.insert(0, chunk)
+        self.chunk_x_position += added_x
 
     def change_nb_chunks(self, new_nb_chunks: int) -> None:
         new_chunks: list[Chunk|None] = [None for _ in range(new_nb_chunks * 2 + 1)]
@@ -76,12 +100,11 @@ class ChunkManager:
     def display_block(self, x: int, y: int, x_add: int, y_add: int) -> None:
         if y < 0 or y >= Chunk.HEIGHT: return
         x += Chunk.LENGTH // 2
-        if self.chunk_x_position != 0:
-            x %= abs(self.chunk_x_position) * Chunk.LENGTH
-        nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
+        block_x = x - self.chunk_x_position * Chunk.LENGTH
+        nb_chunk: int = block_x // Chunk.LENGTH + self.nb_chunks_by_side
         if nb_chunk < 0 or nb_chunk >= len(self.chunks): return # out of loaded chunks
         chunk = self.chunks[nb_chunk]
-        block = chunk.blocks[y][x % Chunk.LENGTH]
+        block = chunk.blocks[y][block_x % Chunk.LENGTH]
         block_image = block.image
         window_size = self.window.get_size()
         coords = window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x - Chunk.LENGTH // 2 + x_add - 0.5), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)

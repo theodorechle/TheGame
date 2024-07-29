@@ -64,14 +64,14 @@ class Game:
         }
         self.run()
 
-    def game_loop(self, seed: str|None=None, save_name: str|None=None) -> int:
+    def game_loop(self, save_name: str, seed: str|None=None) -> int:
         is_new_map = True
         exit_code = menus.EXIT
         clock = pygame.time.Clock()
         if not seed:
             seed = None
         map_generator = MapGenerator(seed)
-        save_manager = SaveManager()
+        save_manager = SaveManager(save_name)
         if is_new_map:
             map_generator.create_seeds()
         player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator, clock, save_manager)
@@ -164,7 +164,7 @@ class Game:
                 create_world_menu = menus.CreateWorldMenu(self.ui_manager)
                 exit_code = create_world_menu.run()
                 if exit_code == menus.START_GAME:
-                    exit_code = self.game_loop(create_world_menu.seed_text_box.get_text())
+                    exit_code = self.game_loop(create_world_menu.world_name_text_box.get_text(), create_world_menu.seed_text_box.get_text())
                     if exit_code == menus.EXIT:
                         break
                     elif exit_code == menus.TO_MAIN_MENU:

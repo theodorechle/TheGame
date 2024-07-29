@@ -76,7 +76,8 @@ class CreateWorldMenu(Menu):
         self.elements.append(elements.Button(manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
     
     def start_game(self, _: UIElement) -> None:
-        self.exit(START_GAME)
+        if self.world_name_text_box.get_text():
+            self.exit(START_GAME)
 
 class EscapeMenu(Menu):
     def __init__(self, manager: UIManager) -> None:

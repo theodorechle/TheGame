@@ -178,7 +178,7 @@ class Inventory:
 
 class Player(Entity):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, map_generator: MapGenerator, clock: pygame.time.Clock, save_manager: SaveManager) -> None:
-        self.render_distance: int = 25
+        self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
         self.clock: pygame.time.Clock = clock
         self.save_manager: SaveManager = save_manager
@@ -211,7 +211,9 @@ class Player(Entity):
                     .render(info, True, "#000000"), (50, 20 * i))
 
     def update(self) -> bool:
-        return super().update() or self.inventory.have_clicked_item()
+        need_update = super().update() or self.inventory.have_clicked_item()
+        self.chunk_manager.update(self.x)
+        return need_update
 
     def save(self) -> None:
         ...

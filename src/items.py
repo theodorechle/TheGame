@@ -31,22 +31,25 @@ FURNACE = Item('furnace')
 WORKBENCH = Item('workbench')
 SNOW = Item('snow')
 
-ITEMS: list[Item] = [
-    IRON_INGOT,
-    STICK,
-    STONE_PICKAXE,
-    IRON_PICKAXE,
-    LAVA_BUCKET,
-    EARTH,
-    GRASS,
-    WOOD,
-    SAND,
-    STONE,
-    COAL,
-    IRON,
-    PLANK,
-    TORCH,
-    FURNACE,
-    WORKBENCH,
-    SNOW
-]
+# new items must be added to the end in order to not break the exisiting saves
+ITEMS_DICT: dict[Item, int] = {
+    IRON_INGOT: 0,
+    STICK: 1,
+    STONE_PICKAXE: 2,
+    IRON_PICKAXE: 3,
+    LAVA_BUCKET: 4,
+    EARTH: 5,
+    GRASS: 6,
+    WOOD: 7,
+    SAND: 8,
+    STONE: 9,
+    COAL: 10,
+    IRON: 11,
+    PLANK: 12,
+    TORCH: 13,
+    FURNACE: 14,
+    WORKBENCH: 15,
+    SNOW: 16
+}
+
+REVERSED_ITEMS_DICT: dict[int, Item] = {v: k for k, v in ITEMS_DICT.items()}
