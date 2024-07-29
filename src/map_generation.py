@@ -66,12 +66,12 @@ class MapGenerator:
                 chunk.blocks[y][used_x] = blocks.STONE
             for y in range(height, self.water_height):
                 chunk.blocks[y][used_x] = blocks.WATER
-            if 0 < previous_biome_distance < 3 and self.last_biomes[chunk.direction] is not None and self.last_biomes[chunk.direction] != used_biome:
-                used_biome = self.last_biomes[chunk.direction]
+            if 0 < previous_biome_distance < 3 and last_biome is not None:
+                used_biome = last_biome
                 biome2 = chunk.biome
             else:
                 biome2 = None
-            self.place_biome_blocks(chunk, used_x, height, biome2)
+            self.place_biome_blocks(chunk.blocks, used_biome, used_x, height, biome2)
             last_height = height
             if x == 0 and chunk.id == 0:
                 self.last_block_height_values[not chunk.direction] = height
@@ -81,31 +81,33 @@ class MapGenerator:
 
         self.last_block_height_values[chunk.direction] = last_height
 
-    def place_biome_blocks(self, chunk: Chunk, x: int, last_height_before: int, biome2: biomes.Biome|None = None) -> None:
+    def place_biome_blocks(self, blocks_chunk: list[list[blocks.Block]], biome: biomes.Biome, x: int, last_height_before: int, biome2: biomes.Biome|None = None) -> None:
         last_add_y = 0
         last_height = last_height_before
-        for zone in chunk.biome.blocks_by_zone:
+        for zone in biome.blocks_by_zone:
             add_y = random.randint(0, 5)
             min_height = max(zone[1] + add_y, last_height - zone[2])
             for y in range(min_height, last_height + last_add_y):
-                if chunk.blocks[y][x] == blocks.STONE:
-                    chunk.blocks[y][x] = zone[0]
+                if blocks_chunk[y][x] == blocks.STONE:
+                    blocks_chunk[y][x] = zone[0]
             last_add_y = add_y
             last_height = min_height      
 
         last_add_y = 0
         last_height = last_height_before
         if biome2 is not None:
-            for zone in biome2.blocks_by_zone:
+            for zone in biome2.blocks_by_zone + [(blocks.STONE, 0)]:
                 add_y = random.randint(0, 5)
-                min_height = max(zone[1] + add_y, last_height - zone[2])
+                min_height = zone[1] + add_y
+                if len(zone) == 3:
+                    min_height = max(min_height, last_height - zone[2])
                 for y in range(min_height, last_height + last_add_y):
-                    if chunk.blocks[y][x] not in blocks.TRAVERSABLE_BLOCKS and (y == 0 or chunk.blocks[y-1][x] not in blocks.TRAVERSABLE_BLOCKS) and random.random() > 0.4:
-                        chunk.blocks[y][x] = zone[0]
+                    if blocks_chunk[y][x] not in blocks.TRAVERSABLE_BLOCKS and (y == 0 or blocks_chunk[y-1][x] not in blocks.TRAVERSABLE_BLOCKS) and random.random() > 0.4:
+                        blocks_chunk[y][x] = zone[0]
                 last_add_y = add_y
                 last_height = min_height
         if last_height_before < self.water_height:
-            chunk.blocks[last_height_before][x] = blocks.SAND
+            blocks_chunk[last_height_before][x] = blocks.SAND
 
     @staticmethod
     def get_positions_for_ore_veins(chunk: Chunk, x: int, y: int, block: blocks.Block) -> list[tuple[int, int]]:
