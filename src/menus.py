@@ -71,6 +71,7 @@ class Menu:
             self.ui_manager.update()
             pygame.display.update()
             clock.tick(self.FPS)
+        pygame.event.clear()
         return self._exit_code
 
 class MainMenu(Menu):
@@ -143,7 +144,7 @@ class SettingsMenu(Menu):
             self.exit(EXIT)
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.exit(BACK)
+                self.exit(EXIT)
         return event
 
     def run_functions_end_loop(self) -> None:

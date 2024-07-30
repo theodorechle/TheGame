@@ -29,7 +29,7 @@ class Game:
         self.window: pygame.Surface = window
         self.ui_manager: UIManager = ui_manager
         self.last_time_in_menu: float = 0
-        self.time_before_menu: float = 0.2
+        self.time_before_menu: float = 0.3
         self.keys: dict[str, int] = {
             "mv_left": pygame.K_q, #moves
             "mv_right": pygame.K_d,
@@ -107,6 +107,7 @@ class Game:
                         elif exit_code == menus.SETTINGS:
                             menu = menus.SettingsMenu(self.ui_manager, player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
                             menu.run()
+                            self.last_time_in_menu = monotonic()
                             player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())
                             blocks.Block.BLOCK_SIZE = menu.slider_zoom.get_value()
                             for block in blocks.BLOCKS_DICT:
