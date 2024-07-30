@@ -160,7 +160,7 @@ class SettingsMenu(Menu):
 class LoadSaveMenu(Menu):
     def __init__(self, manager: UIManager) -> None:
         super().__init__(manager)
-        self.saves_list = elements.ItemList(self.ui_manager, height="50%")
+        self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='center', width='50%')
         self._elements.append(self.saves_list)
         self.add_saves()
     
