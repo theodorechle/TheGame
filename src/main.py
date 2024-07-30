@@ -104,6 +104,10 @@ class Game:
                         elif exit_code == menus.BACK:
                             need_update = True
                             break
+                        elif exit_code == menus.SETTINGS:
+                            menus.SettingsMenu(self.ui_manager).run()
+                            need_update = True
+                            break
                     if event.key == self.keys['mv_left']:
                         self.pressed_keys['mv_left'] = True
                     elif event.key == self.keys['mv_right']:

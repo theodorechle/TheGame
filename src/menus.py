@@ -10,8 +10,10 @@ CREATE_GAME = 1
 TO_MAIN_MENU = 2
 BACK = 3
 START_GAME = 4
+SETTINGS = 5
 
 class Menu:
+    FPS = 20
     def __init__(self, manager: UIManager) -> None:
         self.ui_manager = manager
         self._loop = True
@@ -42,22 +44,40 @@ class Menu:
             self.exit(EXIT)
         return event
 
+    def run_functions_start_loop(self) -> None:
+        """
+        Designed to be overriden.
+        Allow functions to run at the start of the loop, before events processing.
+        """
+        pass
+
+    def run_functions_end_loop(self) -> None:
+        """
+        Designed to be overriden.
+        Allow functions to run at the end of the loop, after events processing and before ui_manager and display update.
+        """
+        pass
+
     def run(self) -> int:
+        clock = pygame.time.Clock()
         while self._loop:
+            self.run_functions_start_loop()
             for event in pygame.event.get():
                 event = self.handle_special_events(event)
                 if event is None:
                     continue
                 self.ui_manager.process_event(event)
-                self.ui_manager.update()
+            self.run_functions_end_loop()
+            self.ui_manager.update()
             pygame.display.update()
+            clock.tick(self.FPS)
         return self._exit_code
 
 class MainMenu(Menu):
     def __init__(self, manager: UIManager) -> None:
         super().__init__(manager)
-        self.elements.append(elements.Button(manager, 'Create new world', on_click_function=self.create_new_game, y=-manager.window.get_size()[1] // 4, anchor='center'))
-        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_game, y=manager.window.get_size()[1] // 4, anchor='center'))
+        self.elements.append(elements.Button(manager, 'Create new world', on_click_function=self.create_new_game, y="-25%", anchor='center'))
+        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_game, y="25%", anchor='center', class_name='quit-button'))
     
     def exit_game(self, _: UIElement) -> None:
         self.exit(EXIT)
@@ -84,9 +104,13 @@ class EscapeMenu(Menu):
         super().__init__(manager)
         self.elements.append(elements.Button(manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
         self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_menu, y=manager.window.get_size()[1] // 4, anchor='center'))
+        self.elements.append(elements.Button(manager, 'SETTINGS', on_click_function=self.to_settings, y=-manager.window.get_size()[1] // 4, anchor='left'))
     
     def exit_to_main_menu(self, _: UIElement) -> None:
         self.exit(TO_MAIN_MENU)
+    
+    def to_settings(self, _: UIElement) -> None:
+        self.exit(SETTINGS)
     
     def handle_special_events(self, event: Event) -> Event | None:
         if event.type == pygame.QUIT:
@@ -95,3 +119,23 @@ class EscapeMenu(Menu):
             if event.key == pygame.K_ESCAPE:
                 self.exit(BACK)
         return event
+
+class SettingsMenu(Menu):
+    def __init__(self, manager: UIManager) -> None:
+        super().__init__(manager)
+        self.elements.append(elements.Label(manager, 'Nb chunks loaded', y="-20%", anchor='center'))
+        self.slider_nb_chunks = elements.Slider(manager, 0, 25, 1, y="-10%", anchor='center')
+        self.elements.append(self.slider_nb_chunks)
+        self.label_nb_chunks = elements.Label(manager, 'Nb chunks loaded', anchor='center')
+        self.elements.append(self.label_nb_chunks)
+    
+    def handle_special_events(self, event: Event) -> Event | None:
+        if event.type == pygame.QUIT:
+            self.exit(EXIT)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.exit(BACK)
+        return event
+
+    def run_functions_end_loop(self) -> None:
+        self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
