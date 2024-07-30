@@ -3,8 +3,8 @@ import pygame
 import blocks
 from chunk_manager import ChunkManager
 
+ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity:
-    PATH: str = 'src/resources/images'
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, image_length: int, image_height: int, chunk_manager: ChunkManager|None=None, add_path: str='', collisions: bool=True) -> None:
         """
         Base class for entities.
@@ -25,7 +25,7 @@ class Entity:
         self.window: pygame.Surface = window
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
-        self.path = self.PATH
+        self.path = ENTITIES_IMAGES_PATH
         if add_path:
             self.path += '/' + add_path
         self.scale_image()

@@ -11,6 +11,7 @@ TO_MAIN_MENU = 2
 BACK = 3
 START_GAME = 4
 SETTINGS = 5
+LOAD_SAVE = 6
 
 class Menu:
     FPS = 20
@@ -20,7 +21,7 @@ class Menu:
         self._exit_code = EXIT
         self.time_menu_creation = monotonic()
         self.min_time_before_exit = 0.2 # seconds
-        self.elements: list[UIElement] = []
+        self._elements: list[UIElement] = []
 
     def exit(self, code: int) -> bool:
         if self.time_menu_creation > monotonic() - self.min_time_before_exit:
@@ -77,11 +78,15 @@ class Menu:
 class MainMenu(Menu):
     def __init__(self, manager: UIManager) -> None:
         super().__init__(manager)
-        self.elements.append(elements.Button(manager, 'Create new world', on_click_function=self.create_new_game, y="-25%", anchor='center'))
-        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_game, y="25%", anchor='center', class_name='quit-button'))
+        self._elements.append(elements.Button(manager, 'Create new world', on_click_function=self.create_new_game, y="-25%", anchor='center'))
+        self._elements.append(elements.Button(manager, 'Load save', on_click_function=self.load_save, anchor='center'))
+        self._elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_game, y="25%", anchor='center'))
     
     def exit_game(self, _: UIElement) -> None:
         self.exit(EXIT)
+
+    def load_save(self, _: UIElement) -> None:
+        self.exit(LOAD_SAVE)
 
     def create_new_game(self, _: UIElement) -> None:
         self.exit(CREATE_GAME)
@@ -90,22 +95,23 @@ class CreateWorldMenu(Menu):
     def __init__(self, manager: UIManager) -> None:
         super().__init__(manager)
         self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y=400)
-        self.elements.append(self.world_name_text_box)
+        self._elements.append(self.world_name_text_box)
         self.seed_text_box: elements.InputTextBox = elements.InputTextBox(manager, placeholder_text='Seed', anchor='top', y=600)
-        self.elements.append(self.seed_text_box)
-        self.elements.append(elements.Button(manager, 'Create', on_click_function=self.start_game, anchor='top', y=800))
-        self.elements.append(elements.Button(manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
+        self._elements.append(self.seed_text_box)
+        self._elements.append(elements.Button(manager, 'Create', on_click_function=self.start_game, anchor='top', y=800))
+        self._elements.append(elements.Button(manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
     
     def start_game(self, _: UIElement) -> None:
-        if self.world_name_text_box.get_text():
+        text = self.world_name_text_box.get_text()
+        if text and not text.isspace():
             self.exit(START_GAME)
 
 class EscapeMenu(Menu):
     def __init__(self, manager: UIManager) -> None:
         super().__init__(manager)
-        self.elements.append(elements.Button(manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
-        self.elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_menu, y=manager.window.get_size()[1] // 4, anchor='center'))
-        self.elements.append(elements.Button(manager, 'SETTINGS', on_click_function=self.to_settings, y=-manager.window.get_size()[1] // 4, anchor='left'))
+        self._elements.append(elements.Button(manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
+        self._elements.append(elements.Button(manager, 'QUIT', on_click_function=self.exit_menu, y=manager.window.get_size()[1] // 4, anchor='center'))
+        self._elements.append(elements.Button(manager, 'SETTINGS', on_click_function=self.to_settings, y=-manager.window.get_size()[1] // 4, anchor='left'))
     
     def exit_to_main_menu(self, _: UIElement) -> None:
         self.exit(TO_MAIN_MENU)
@@ -125,19 +131,19 @@ class SettingsMenu(Menu):
     def __init__(self, manager: UIManager, nb_chunks_loaded: int=0, zoom: int=30) -> None:
         super().__init__(manager)
         # loaded chunks
-        self.elements.append(elements.Label(manager, 'Nb chunks loaded on each side', y="-30%", anchor='center'))
+        self._elements.append(elements.Label(manager, 'Nb chunks loaded on each side', y="-30%", anchor='center'))
         self.slider_nb_chunks = elements.Slider(manager, 0, 25, 1, y="-20%", anchor='center')
         self.slider_nb_chunks.set_value(nb_chunks_loaded)
-        self.elements.append(self.slider_nb_chunks)
+        self._elements.append(self.slider_nb_chunks)
         self.label_nb_chunks = elements.Label(manager, y='-15%', anchor='center', width=30)
-        self.elements.append(self.label_nb_chunks)
+        self._elements.append(self.label_nb_chunks)
         # zoom
-        self.elements.append(elements.Label(manager, 'Zoom', y="10%", anchor='center'))
+        self._elements.append(elements.Label(manager, 'Zoom', y="10%", anchor='center'))
         self.slider_zoom = elements.Slider(manager, 1, 40, 1, y="20%", anchor='center')
         self.slider_zoom.set_value(zoom)
-        self.elements.append(self.slider_nb_chunks)
+        self._elements.append(self.slider_nb_chunks)
         self.label_zoom = elements.Label(manager, y="25%", anchor='center', width=30)
-        self.elements.append(self.label_nb_chunks)
+        self._elements.append(self.label_nb_chunks)
     
     def handle_special_events(self, event: Event) -> Event | None:
         if event.type == pygame.QUIT:
@@ -150,3 +156,15 @@ class SettingsMenu(Menu):
     def run_functions_end_loop(self) -> None:
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
         self.label_zoom.set_text(str(self.slider_zoom.get_value()))
+
+class LoadSaveMenu(Menu):
+    def __init__(self, manager: UIManager) -> None:
+        super().__init__(manager)
+        self.saves_list = elements.ItemList(self.ui_manager, height="50%")
+        self._elements.append(self.saves_list)
+        self.add_saves()
+    
+    def add_saves(self) -> None:
+        import os
+        from save_manager import SAVES_PATH
+        self.saves_list.add_elements(os.listdir(SAVES_PATH))

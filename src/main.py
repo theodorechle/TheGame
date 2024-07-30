@@ -167,6 +167,8 @@ class Game:
 
     def run(self) -> None:
         while True:
+            save_name = ''
+            seed = ''
             main_menu = menus.MainMenu(self.ui_manager)
             exit_code = main_menu.run()
             if exit_code == menus.EXIT:
@@ -174,12 +176,17 @@ class Game:
             elif exit_code == menus.CREATE_GAME:
                 create_world_menu = menus.CreateWorldMenu(self.ui_manager)
                 exit_code = create_world_menu.run()
-                if exit_code == menus.START_GAME:
-                    exit_code = self.game_loop(create_world_menu.world_name_text_box.get_text(), create_world_menu.seed_text_box.get_text())
-                    if exit_code == menus.EXIT:
-                        break
-                    elif exit_code == menus.TO_MAIN_MENU:
-                        pass
+                save_name = create_world_menu.world_name_text_box.get_text().rstrip()
+                seed = create_world_menu.seed_text_box.get_text()
+            elif exit_code == menus.LOAD_SAVE:
+                load_save_menu = menus.LoadSaveMenu(self.ui_manager)
+                exit_code = load_save_menu.run()
+            if exit_code == menus.START_GAME:
+                exit_code = self.game_loop(save_name, seed)
+                if exit_code == menus.EXIT:
+                    break
+                elif exit_code == menus.TO_MAIN_MENU:
+                    pass
         pygame.quit()
 
 hud_size = 1 # percentage

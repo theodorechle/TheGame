@@ -1,15 +1,15 @@
 from load_image import load_image
 from pygame import Surface
 
+BLOCKS_IMAGES_PATH = 'src/resources/images/blocks'
 class Block:
     BLOCK_SIZE = 30
-    PATH = 'src/resources/images/blocks'
     def __init__(self, name: str) -> None:
         self.name = name
         self.scale_image()
     
     def scale_image(self):
-        self.image: Surface = load_image([f'{self.PATH}/{self.name}.png'], (self.BLOCK_SIZE, self.BLOCK_SIZE))
+        self.image: Surface = load_image([f'{BLOCKS_IMAGES_PATH}/{self.name}.png'], (self.BLOCK_SIZE, self.BLOCK_SIZE))
     
     def __repr__(self) -> str:
         return self.name
