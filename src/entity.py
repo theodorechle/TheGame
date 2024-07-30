@@ -25,13 +25,16 @@ class Entity:
         self.window: pygame.Surface = window
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
-        self.image_size: tuple[int, int] = (image_length * blocks.Block.BLOCK_SIZE, image_height * blocks.Block.BLOCK_SIZE)
-        path: str = self.PATH
+        self.path = self.PATH
         if add_path:
-            path += '/'+add_path
+            self.path += '/' + add_path
+        self.scale_image()
 
-        self.image: pygame.Surface = load_image([f'{path}/{self.name}.png'], self.image_size)
-        self.image_reversed: pygame.Surface = load_image([f'{path}/{self.name}_reversed.png'], self.image_size)
+    def scale_image(self):
+        self.image_size = (self.entity_size[0] * blocks.Block.BLOCK_SIZE, self.entity_size[1] * blocks.Block.BLOCK_SIZE)
+        self.image: pygame.Surface = load_image([f'{self.path}/{self.name}.png'], self.image_size)
+        self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.name}_reversed.png'], self.image_size)
+
 
     def set_player_edges_pos(self) -> None:
         self.top_player_pos: int = self.entity_size[1]

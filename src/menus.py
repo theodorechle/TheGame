@@ -18,8 +18,8 @@ class Menu:
         self.ui_manager = manager
         self._loop = True
         self._exit_code = EXIT
-        self.time_menu_creation = 0
-        self.min_time_before_exit = 0.3 # seconds
+        self.time_menu_creation = monotonic()
+        self.min_time_before_exit = 0.2 # seconds
         self.elements: list[UIElement] = []
 
     def exit(self, code: int) -> bool:
@@ -121,12 +121,21 @@ class EscapeMenu(Menu):
         return event
 
 class SettingsMenu(Menu):
-    def __init__(self, manager: UIManager) -> None:
+    def __init__(self, manager: UIManager, nb_chunks_loaded: int=0, zoom: int=30) -> None:
         super().__init__(manager)
-        self.elements.append(elements.Label(manager, 'Nb chunks loaded', y="-20%", anchor='center'))
-        self.slider_nb_chunks = elements.Slider(manager, 0, 25, 1, y="-10%", anchor='center')
+        # loaded chunks
+        self.elements.append(elements.Label(manager, 'Nb chunks loaded on each side', y="-30%", anchor='center'))
+        self.slider_nb_chunks = elements.Slider(manager, 0, 25, 1, y="-20%", anchor='center')
+        self.slider_nb_chunks.set_value(nb_chunks_loaded)
         self.elements.append(self.slider_nb_chunks)
-        self.label_nb_chunks = elements.Label(manager, 'Nb chunks loaded', anchor='center')
+        self.label_nb_chunks = elements.Label(manager, y='-15%', anchor='center', width=30)
+        self.elements.append(self.label_nb_chunks)
+        # zoom
+        self.elements.append(elements.Label(manager, 'Zoom', y="10%", anchor='center'))
+        self.slider_zoom = elements.Slider(manager, 1, 40, 1, y="20%", anchor='center')
+        self.slider_zoom.set_value(zoom)
+        self.elements.append(self.slider_nb_chunks)
+        self.label_zoom = elements.Label(manager, y="25%", anchor='center', width=30)
         self.elements.append(self.label_nb_chunks)
     
     def handle_special_events(self, event: Event) -> Event | None:
@@ -139,3 +148,4 @@ class SettingsMenu(Menu):
 
     def run_functions_end_loop(self) -> None:
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
+        self.label_zoom.set_text(str(self.slider_zoom.get_value()))

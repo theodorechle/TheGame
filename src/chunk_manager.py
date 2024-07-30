@@ -5,6 +5,7 @@ from map_generation import MapGenerator
 from map_chunk import Chunk
 from save_manager import SaveManager
 from typing import cast
+
 class ChunkManager:
     def __init__(self, nb_chunks_by_side: int, chunk_x_position: int, window: pygame.Surface, map_generator: MapGenerator, save_manager: SaveManager) -> None:
         self.nb_chunks_by_side: int = 0
@@ -73,12 +74,12 @@ class ChunkManager:
             for i in range(difference):
                 chunk = self.save_manager.load_chunk(self.chunk_x_position - i - 1)
                 if chunk is None:
-                    chunk = self.map_generator.generate_chunk(False, self.chunk_x_position - i - 1)
+                    chunk = self.map_generator.generate_chunk(False, self.chunk_x_position - self.nb_chunks_by_side - i - 1)
                 new_chunks[difference - i - 1] = chunk
                 chunk = self.save_manager.load_chunk(self.chunk_x_position + i + 1)
                 if chunk is None:
-                    chunk = self.map_generator.generate_chunk(True, self.chunk_x_position + i + 1)
-                new_chunks[new_nb_chunks + i + 1] = chunk
+                    chunk = self.map_generator.generate_chunk(True, self.chunk_x_position + self.nb_chunks_by_side + i + 1)
+                new_chunks[difference + self.nb_chunks_by_side*2 + 1 + i] = chunk
         else:
             for i in range(difference):
                 self.save_manager.save_chunk(self.chunks[i])

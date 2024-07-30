@@ -18,8 +18,8 @@ from chunk_manager import Chunk
 from save_manager import SaveManager
 
 from time import monotonic
-
 import menus
+import blocks
 
 class Game:
     def __init__(self, window: pygame.Surface, ui_manager: UIManager) -> None:
@@ -105,7 +105,13 @@ class Game:
                             need_update = True
                             break
                         elif exit_code == menus.SETTINGS:
-                            menus.SettingsMenu(self.ui_manager).run()
+                            menu = menus.SettingsMenu(self.ui_manager, player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
+                            menu.run()
+                            player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())
+                            blocks.Block.BLOCK_SIZE = menu.slider_zoom.get_value()
+                            for block in blocks.BLOCKS_DICT:
+                                block.scale_image()
+                            player.scale_image()
                             need_update = True
                             break
                     if event.key == self.keys['mv_left']:
