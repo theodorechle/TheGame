@@ -2,11 +2,13 @@ import pygame
 import items
 from time import monotonic
 
-
 class Inventory:
-    def __init__(self, nb_cells: int, window: pygame.Surface) -> None:
+    def __init__(self, nb_cells: int, window: pygame.Surface, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         self._nb_cells = nb_cells
-        self._cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
+        if cells:
+            self.cells: list[tuple[items.Item|None, int]] = cells.copy()
+        else:
+            self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
         self.window = window
         self.cell_size = 40
         self.nb_cells_by_line = 10
@@ -31,11 +33,11 @@ class Inventory:
         Tries to add the quantity of the given element in the inventory at pos.
         Returns the quantity effectively added.
         """
-        if 0 > pos or pos >= len(self._cells): return 0
-        if self._cells[pos][0] == items.NOTHING: self._cells[pos] = (element, 0)
-        elif self._cells[pos][0] != element: return 0
-        added_quantity = min(quantity, element.stack_size - self._cells[pos][1])
-        self._cells[pos] = (element, self._cells[pos][1] + added_quantity)
+        if 0 > pos or pos >= len(self.cells): return 0
+        if self.cells[pos][0] == items.NOTHING: self.cells[pos] = (element, 0)
+        elif self.cells[pos][0] != element: return 0
+        added_quantity = min(quantity, element.stack_size - self.cells[pos][1])
+        self.cells[pos] = (element, self.cells[pos][1] + added_quantity)
         return added_quantity
     
     def add_element(self, element: items.Item, quantity: int) -> int:
@@ -44,7 +46,7 @@ class Inventory:
         Returns the quantity effectively added.
         """
         added_quantity: int = 0
-        for index in range(len(self._cells)):
+        for index in range(len(self.cells)):
             added_quantity = self.add_element_at_pos(element, quantity - added_quantity, index)
             if quantity == added_quantity:
                 break
@@ -55,12 +57,12 @@ class Inventory:
         Tries to remove the quantity of the element in the inventory at pos.
         Returns the quantity effectively removed.
         """
-        if 0 > pos or pos >= len(self._cells): return (None, 0)
-        removed_quantity = min(quantity, self._cells[pos][1])
-        cell = (self._cells[pos][0], removed_quantity)
-        self._cells[pos] = (self._cells[pos][0], self._cells[pos][1] - removed_quantity)
-        if self._cells[pos][1] == 0:
-            self._cells[pos] = (items.NOTHING, 0)
+        if 0 > pos or pos >= len(self.cells): return (None, 0)
+        removed_quantity = min(quantity, self.cells[pos][1])
+        cell = (self.cells[pos][0], removed_quantity)
+        self.cells[pos] = (self.cells[pos][0], self.cells[pos][1] - removed_quantity)
+        if self.cells[pos][1] == 0:
+            self.cells[pos] = (items.NOTHING, 0)
         return cell
 
     def remove_element(self, element: items.Item) -> int:
@@ -69,10 +71,10 @@ class Inventory:
         Returns the quantity effectively removed
         """
         removed_quantity: int = 0
-        for index in range(len(self._cells)):
-            if self._cells[index][0] == element:
-                removed_quantity += self._cells[index][1]
-                self._cells[index] = (items.NOTHING, 0)
+        for index in range(len(self.cells)):
+            if self.cells[index][0] == element:
+                removed_quantity += self.cells[index][1]
+                self.cells[index] = (items.NOTHING, 0)
         return removed_quantity
 
     def empty_cell(self, pos: int) -> tuple[items.Item|None, int]:
@@ -80,9 +82,9 @@ class Inventory:
         Empty the inventory's cell at pos.
         Returns a tuple containing the item in the cell and the quantity of it.
         """
-        if 0 > pos or pos >= len(self._cells): return (items.NOTHING, 0)
-        cell = self._cells[pos]
-        self._cells[pos] = (items.NOTHING, 0)
+        if 0 > pos or pos >= len(self.cells): return (items.NOTHING, 0)
+        cell = self.cells[pos]
+        self.cells[pos] = (items.NOTHING, 0)
         return cell
 
     def sort(self) -> None:
@@ -91,10 +93,10 @@ class Inventory:
     def display(self) -> None:
         self.display_main_bar()
         if self._display_all:
-            for index in range(self.nb_cells_by_line, len(self._cells)):
+            for index in range(self.nb_cells_by_line, len(self.cells)):
                 x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line - 1) * self.cell_size
                 self._display_cell(x, y, False)
-                block, qty = self._cells[index]
+                block, qty = self.cells[index]
                 if block is None: continue
                 self._display_item(x, y, block, qty)
         if self._current_clicked_item[0] is not None:
@@ -106,8 +108,8 @@ class Inventory:
         for index in range(self.nb_cells_by_line):
             x = start_x + index * self.cell_size
             self._display_cell(x, start_y, self.selected == index)
-            if index >= len(self._cells): continue
-            block, qty = self._cells[index]
+            if index >= len(self.cells): continue
+            block, qty = self.cells[index]
             if block is None: continue
             self._display_item(x, start_y, block, qty)
 
@@ -162,10 +164,28 @@ class Inventory:
                 self._clicked_item_init_pos = index
                 self._current_clicked_item = (item, qty)
         else:
-            removed_qty = self.add_element_at_pos(self._current_clicked_item[0], self._current_clicked_item[1], index)
-            self._current_clicked_item = (self._current_clicked_item[0], self._current_clicked_item[1] - removed_qty)
-            if self._current_clicked_item[1] == 0:
-                self._current_clicked_item = (items.NOTHING, 0)
-                self._clicked_item_init_pos = -1
+            self.place_clicked_item(index)
         self._last_time_clicked = monotonic()
         return True
+
+    def place_clicked_item(self, pos: int) -> None:
+        removed_qty = self.add_element_at_pos(self._current_clicked_item[0], self._current_clicked_item[1], pos)
+        self._current_clicked_item = (self._current_clicked_item[0], self._current_clicked_item[1] - removed_qty)
+        if self._current_clicked_item[1] == 0:
+            self._current_clicked_item = (items.NOTHING, 0)
+            self._clicked_item_init_pos = -1
+
+    def place_back_clicked_item(self) -> None:
+        self.place_clicked_item(self._clicked_item_init_pos)
+        if self._clicked_item_init_pos == -1: return
+        removed_qty = self.add_element(*self._current_clicked_item)
+        self._current_clicked_item = (self._current_clicked_item[0], self._current_clicked_item[1] - removed_qty)
+        if self._current_clicked_item[1] == 0:
+            self._current_clicked_item = (items.NOTHING, 0)
+            self._clicked_item_init_pos = -1
+
+def inventory_cells_to_ints(cells: list[tuple[items.Item|None, int]]) -> list[tuple[int, int]]:
+    return [(items.ITEMS_DICT[cell[0]], cell[1]) if cell[0] is not None else cell for cell in cells]
+
+def ints_to_inventory_cells(ints: list[tuple[int, int]]) -> list[tuple[items.Item|None, int]]:
+    return [(items.REVERSED_ITEMS_DICT[cell[0]], cell[1]) if cell[0] is not None else cell for cell in ints]

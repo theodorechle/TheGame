@@ -8,9 +8,10 @@ from entity import Entity
 from inventory import Inventory
 from player_interface import PlayerInterface
 from map_chunk import Chunk
+from items import Item
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, map_generator: MapGenerator, save_manager: SaveManagerInterface) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, map_generator: MapGenerator, save_manager: SaveManagerInterface, inventory_cells: list[tuple[Item|None, int]]|None=None) -> None:
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
         self.save_manager: SaveManagerInterface = save_manager
@@ -22,7 +23,7 @@ class Player(Entity, PlayerInterface):
         self.chunk_manager: chunk_manager.ChunkManager = chunk_manager.ChunkManager(self.render_distance, round(x / Chunk.LENGTH), window, map_generator, save_manager)
         super().__init__(name, x, y, speed_x, speed_y, direction, window, 1, 2, self.chunk_manager, 'persos', True)
         self.inventory_size: int = 50
-        self.inventory: Inventory = Inventory(self.inventory_size, window)
+        self.inventory: Inventory = Inventory(self.inventory_size, window, inventory_cells)
         self.set_player_edges_pos()
 
     

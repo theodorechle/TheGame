@@ -87,6 +87,7 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if self.last_time_in_menu > monotonic() - self.time_before_menu: continue
+                        player.inventory.place_back_clicked_item()
                         exit_code = menus.EscapeMenu(self.ui_manager).run()
                         self.last_time_in_menu = monotonic()
                         need_update = True
@@ -201,7 +202,8 @@ class Game:
                         values['direction'],
                         self.window,
                         map_generator,
-                        save_manager
+                        save_manager,
+                        values['inventory']
                         )
                     )
                 player = players[0]

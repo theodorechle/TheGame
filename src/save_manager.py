@@ -5,6 +5,7 @@ from biomes import BIOMES, get_biome_environment_values
 from player_interface import PlayerInterface
 from save_manager_interface import SaveManagerInterface
 from typing import Any
+from inventory import inventory_cells_to_ints, ints_to_inventory_cells
 
 SAVES_PATH: str = 'saves'
 
@@ -46,7 +47,9 @@ class SaveManager(SaveManagerInterface):
         for player_file in os.listdir(self.players_path):
             try:
                 with open(os.path.join(self.players_path, player_file)) as f:
-                    players[player_file.removesuffix('.json')] = json.load(f)
+                    player_infos = json.load(f)
+                    player_infos['inventory'] = ints_to_inventory_cells(player_infos['inventory'])
+                    players[player_file.removesuffix('.json')] = player_infos
             except FileNotFoundError:
                 pass
         return players
@@ -58,7 +61,8 @@ class SaveManager(SaveManagerInterface):
                 'x': player.x,
                 'y': player.y,
                 'speed_x': player.speed_x,
-                'speed_y': player.speed_y
+                'speed_y': player.speed_y,
+                'inventory': inventory_cells_to_ints(player.inventory.cells)
             }
             with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:
                 json.dump(player_dict, f)
