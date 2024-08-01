@@ -64,7 +64,7 @@ class Entity(EntityInterface):
                 for x in range(-(self.entity_size[0] // 2), self.entity_size[0] // 2 + 1):
                     for y in range(self.entity_size[1]):
                         block = self.chunk_manager.get_block(self.x + x, self.y + y)
-                        if block != blocks.NOTHING and block in blocks.SWIMMABLE_BLOCKS:
+                        if block is not blocks.NOTHING and block in blocks.SWIMMABLE_BLOCKS:
                             in_water = True
                             break
             if not self.collisions or in_water:
@@ -72,11 +72,11 @@ class Entity(EntityInterface):
                 if self.collisions:
                     for x in range(-(self.entity_size[0] // 2), self.entity_size[0] // 2 + 1):
                         block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
-                        if block != blocks.NOTHING and block not in blocks.TRAVERSABLE_BLOCKS:
+                        if block is not blocks.NOTHING and block not in blocks.TRAVERSABLE_BLOCKS:
                             is_valid_pos = False
                             break
                         block = self.chunk_manager.get_block(self.x + x, self.y + 1)
-                        if block != blocks.NOTHING and block not in blocks.SWIMMABLE_BLOCKS:
+                        if block is not blocks.NOTHING and block not in blocks.SWIMMABLE_BLOCKS:
                             is_valid_pos = False
                             break
                 if is_valid_pos:
@@ -92,7 +92,7 @@ class Entity(EntityInterface):
             if self.collisions:
                 for x in range(-(self.entity_size[0] // 2), self.entity_size[0] // 2 + 1):
                     block = self.chunk_manager.get_block(self.x + x, self.y - 1)
-                    if block != blocks.NOTHING and block not in blocks.TRAVERSABLE_BLOCKS:
+                    if block is not blocks.NOTHING and block not in blocks.TRAVERSABLE_BLOCKS:
                         is_valid_pos = False
                         break
             if is_valid_pos:
@@ -114,7 +114,7 @@ class Entity(EntityInterface):
                             break
                 if is_valid_pos:
                     if self.collisions:
-                        # check if jump up to the next block
+                        # check if need to jump up to the next block
                         if self.chunk_manager.get_block(self.x + (self.entity_size[0] // 2 + 1) * sign, self.y) not in blocks.TRAVERSABLE_BLOCKS:
                             if self.chunk_manager.get_block(self.x + (self.entity_size[0] // 2 + 1) * sign, self.y + self.entity_size[1]) in blocks.TRAVERSABLE_BLOCKS \
                                     and self.chunk_manager.get_block(self.x + (self.entity_size[0] // 2) * sign, self.y + self.entity_size[1]) in blocks.TRAVERSABLE_BLOCKS:

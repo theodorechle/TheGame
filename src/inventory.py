@@ -160,7 +160,7 @@ class Inventory:
         if index >= self._nb_cells: return False
         if self._current_clicked_item[0] is None:
             item, qty = self.empty_cell(index)
-            if item != items.NOTHING:
+            if item is not items.NOTHING:
                 self._clicked_item_init_pos = index
                 self._current_clicked_item = (item, qty)
         else:

@@ -1,0 +1,10 @@
+{
+    ":item-list-childs": {
+        "border-width": 3,
+        "selected-border-color": "#555555",
+        "selected-text-color": "#999999"
+    },
+    ":options-container": {
+        "border-width": -1
+    }
+}

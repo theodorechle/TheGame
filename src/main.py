@@ -10,7 +10,6 @@ pygame.init()
 WIDTH = 1500
 HEIGHT = 980
 window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-ui_manager = UIManager(window)
 
 from player import Player
 from map_generation import MapGenerator
@@ -22,12 +21,11 @@ import menus
 import blocks
 
 class Game:
-    def __init__(self, window: pygame.Surface, ui_manager: UIManager) -> None:
+    def __init__(self, window: pygame.Surface) -> None:
         self.FPS: int = 20
         self.WIDTH: int = 1500
         self.HEIGHT: int = 980
         self.window: pygame.Surface = window
-        self.ui_manager: UIManager = ui_manager
         self.last_time_in_menu: float = 0
         self.time_before_menu: float = 0.3
         self.keys: dict[str, int] = {
@@ -86,9 +84,10 @@ class Game:
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        print("coucou")
                         if self.last_time_in_menu > monotonic() - self.time_before_menu: continue
                         player.inventory.place_back_clicked_item()
-                        exit_code = menus.EscapeMenu(self.ui_manager).run()
+                        exit_code = menus.EscapeMenu(self.window).run()
                         self.last_time_in_menu = monotonic()
                         need_update = True
                         if exit_code == menus.EXIT or exit_code == menus.TO_MAIN_MENU:
@@ -98,7 +97,7 @@ class Game:
                             need_update = True
                             break
                         elif exit_code == menus.SETTINGS:
-                            menu = menus.SettingsMenu(self.ui_manager, player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
+                            menu = menus.SettingsMenu(self.window, player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
                             menu.run()
                             self.last_time_in_menu = monotonic()
                             player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())
@@ -163,12 +162,12 @@ class Game:
         while True:
             save_name = ''
             seed = ''
-            main_menu = menus.MainMenu(self.ui_manager)
+            main_menu = menus.MainMenu(self.window)
             exit_code = main_menu.run()
             if exit_code == menus.EXIT:
                 break
             elif exit_code == menus.CREATE_GAME:
-                create_world_menu = menus.CreateWorldMenu(self.ui_manager)
+                create_world_menu = menus.CreateWorldMenu(self.window)
                 exit_code = create_world_menu.run()
                 if exit_code == menus.EXIT:
                     break
@@ -181,14 +180,14 @@ class Game:
                 map_generator.create_seeds()
                 player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self.window, map_generator, save_manager)
             elif exit_code == menus.LOAD_SAVE:
-                load_save_menu = menus.LoadSaveMenu(self.ui_manager)
+                load_save_menu = menus.LoadSaveMenu(self.window)
                 exit_code = load_save_menu.run()
                 if exit_code == menus.EXIT:
                     break
                 elif exit_code == menus.BACK:
                     continue
                 map_generator = MapGenerator(seed)
-                save_manager = SaveManager(load_save_menu.saves_list.child_focused.get_text())
+                save_manager = SaveManager(load_save_menu.saves_list.child_selected.get_text())
                 map_generator.create_seeds()
                 players_dict = save_manager.load_players()
                 players = []
@@ -217,4 +216,4 @@ class Game:
 
 hud_size = 1 # percentage
 
-game = Game(window, ui_manager)
+game = Game(window)
