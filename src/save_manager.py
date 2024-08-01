@@ -15,8 +15,9 @@ class SaveManager(SaveManagerInterface):
 
     def init_repository(self) -> None:
         self.chunks_path = os.path.join(SAVES_PATH, self.save_name, 'chunks')
-        self.players_path = os.path.join(SAVES_PATH, self.save_name, 'players.json')
+        self.players_path = os.path.join(SAVES_PATH, self.save_name, 'players')
         os.makedirs(self.chunks_path, exist_ok=True)
+        os.makedirs(self.players_path, exist_ok=True)
 
     def load_chunk(self, id: int) -> Chunk|None:
         try:
@@ -41,21 +42,23 @@ class SaveManager(SaveManagerInterface):
             json.dump(chunk_dict, f)
     
     def load_players(self) -> dict[str, dict[str, Any]]|None:
-        try:
-            with open(self.players_path) as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return None
+        players: dict[str, dict[str, Any]] = {}
+        for player_file in os.listdir(self.players_path):
+            try:
+                with open(os.path.join(self.players_path, player_file)) as f:
+                    players[player_file.removesuffix('.json')] = json.load(f)
+            except FileNotFoundError:
+                pass
+        return players
     
     def save_players(self, players: list[PlayerInterface]) -> None:
-        players_dict = {}
         for player in players:
-            players_dict[player.name] = {
+            player_dict = {
                 'direction': player.direction,
                 'x': player.x,
                 'y': player.y,
                 'speed_x': player.speed_x,
                 'speed_y': player.speed_y
             }
-        with open(self.players_path, 'w') as f:
-            json.dump(players_dict, f)
+            with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:
+                json.dump(player_dict, f)

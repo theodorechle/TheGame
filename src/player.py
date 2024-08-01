@@ -19,7 +19,7 @@ class Player(Entity, PlayerInterface):
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        self.chunk_manager: chunk_manager.ChunkManager = chunk_manager.ChunkManager(self.render_distance, x // Chunk.LENGTH, window, map_generator, save_manager)
+        self.chunk_manager: chunk_manager.ChunkManager = chunk_manager.ChunkManager(self.render_distance, round(x / Chunk.LENGTH), window, map_generator, save_manager)
         super().__init__(name, x, y, speed_x, speed_y, direction, window, 1, 2, self.chunk_manager, 'persos', True)
         self.inventory_size: int = 50
         self.inventory: Inventory = Inventory(self.inventory_size, window)
