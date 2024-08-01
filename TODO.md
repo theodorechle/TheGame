@@ -3,7 +3,16 @@ Entities: Players and blocks
 
 Saves and loads
 
-Center on the  player entity
+Add game file with seed
+
+Chunks are bugged when loading/unloading map (changing settings or menu)
+
+Forbid placing blocks behind the inventory
+
+Forbid getting items in the inventory while it's closed (maybe it can only after been opened once)
+
+Why can't we run while bridging anymore ?
+
 
 ## GENERATION:
 

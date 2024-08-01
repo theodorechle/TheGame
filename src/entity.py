@@ -2,10 +2,11 @@ from load_image import load_image
 import pygame
 import blocks
 from chunk_manager import ChunkManager
+from entity_interface import EntityInterface
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
-class Entity:
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, window: pygame.Surface, image_length: int, image_height: int, chunk_manager: ChunkManager|None=None, add_path: str='', collisions: bool=True) -> None:
+class Entity(EntityInterface):
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, image_length: int, image_height: int, chunk_manager: ChunkManager|None=None, add_path: str='', collisions: bool=True) -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
@@ -21,7 +22,7 @@ class Entity:
         self.y: int = y
         self.speed_x: int = speed_x
         self.speed_y: int = speed_y
-        self.direction: bool = False # False if right, True if left
+        self.direction: bool = direction # False if right, True if left
         self.window: pygame.Surface = window
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
@@ -30,7 +31,7 @@ class Entity:
             self.path += '/' + add_path
         self.scale_image()
 
-    def scale_image(self):
+    def scale_image(self) -> None:
         self.image_size = (self.entity_size[0] * blocks.Block.BLOCK_SIZE, self.entity_size[1] * blocks.Block.BLOCK_SIZE)
         self.image: pygame.Surface = load_image([f'{self.path}/{self.name}.png'], self.image_size)
         self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.name}_reversed.png'], self.image_size)
@@ -50,7 +51,7 @@ class Entity:
                 window_size[1] // 2 - self.image_size[1])
             )
 
-    def update(self) -> bool:
+    def update(self, delta_t: float) -> bool:
         """
         Move the player if needed
         Return whether the player has moved or not

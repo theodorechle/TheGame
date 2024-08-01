@@ -64,22 +64,14 @@ class Game:
         }
         self.run()
 
-    def game_loop(self, save_name: str, seed: str|None=None) -> int:
-        is_new_map = True
+    def game_loop(self, map_generator: MapGenerator, save_manager: SaveManager, player: Player) -> int:
         exit_code = menus.EXIT
         clock = pygame.time.Clock()
-        if not seed:
-            seed = None
-        map_generator = MapGenerator(seed)
-        save_manager = SaveManager(save_name)
-        if is_new_map:
-            map_generator.create_seeds()
-        player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, self.window, map_generator, clock, save_manager)
         pygame.key.set_repeat(100, 100)
         loop = True
-        print(f'seed: "{map_generator.seed}"')
         need_update = True
         while loop:
+            time_last_update: float = clock.get_rawtime()
             if need_update:
                 self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
                 player.chunk_manager.display_chunks(player.x, player.y)
@@ -160,9 +152,10 @@ class Game:
             if pressed_mouse_buttons[2]:
                 need_update = player.remove_block(pygame.mouse.get_pos())
 
-            need_update = player.update() or need_update
+            need_update = player.update(time_last_update) or need_update
             clock.tick(self.FPS)
         player.save()
+        save_manager.save_players([player])
         return exit_code
 
     def run(self) -> None:
@@ -176,13 +169,44 @@ class Game:
             elif exit_code == menus.CREATE_GAME:
                 create_world_menu = menus.CreateWorldMenu(self.ui_manager)
                 exit_code = create_world_menu.run()
+                if exit_code == menus.EXIT:
+                    break
                 save_name = create_world_menu.world_name_text_box.get_text().rstrip()
                 seed = create_world_menu.seed_text_box.get_text()
+                if not seed:
+                    seed = None
+                map_generator = MapGenerator(seed)
+                save_manager = SaveManager(save_name)
+                map_generator.create_seeds()
+                player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self.window, map_generator, save_manager)
             elif exit_code == menus.LOAD_SAVE:
                 load_save_menu = menus.LoadSaveMenu(self.ui_manager)
                 exit_code = load_save_menu.run()
+                if exit_code == menus.EXIT:
+                    break
+                elif exit_code == menus.BACK:
+                    continue
+                map_generator = MapGenerator(seed)
+                save_manager = SaveManager(load_save_menu.saves_list.child_focused.get_text())
+                map_generator.create_seeds()
+                players_dict = save_manager.load_players()
+                players = []
+                for player, values in players_dict.items():
+                    players.append(Player(
+                        player,
+                        values['x'],
+                        values['y'],
+                        values['speed_x'],
+                        values['speed_y'],
+                        values['direction'],
+                        self.window,
+                        map_generator,
+                        save_manager
+                        )
+                    )
+                player = players[0]
             if exit_code == menus.START_GAME:
-                exit_code = self.game_loop(save_name, seed)
+                exit_code = self.game_loop(map_generator, save_manager, player)
                 if exit_code == menus.EXIT:
                     break
                 elif exit_code == menus.TO_MAIN_MENU:

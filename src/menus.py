@@ -4,6 +4,8 @@ from gui import elements
 from gui.ui_element import UIElement
 import pygame
 from time import monotonic
+import os
+from save_manager import SAVES_PATH
 
 EXIT = 0
 CREATE_GAME = 1
@@ -160,11 +162,34 @@ class SettingsMenu(Menu):
 class LoadSaveMenu(Menu):
     def __init__(self, manager: UIManager) -> None:
         super().__init__(manager)
-        self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='center', width='50%')
+        self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='top', y='2%', width='50%')
         self._elements.append(self.saves_list)
+        self._elements.append(elements.Button(self.ui_manager, 'Load', self.load_save, anchor='right', y='-5%', x='-15%'))
+        self._elements.append(elements.Button(self.ui_manager, 'Delete save', self.delete_save, anchor='right', y='5%', x='-15%'))
+        self._elements.append(elements.Button(self.ui_manager, 'QUIT', self.exit_menu, anchor='bottom', y='-10%'))
         self.add_saves()
     
     def add_saves(self) -> None:
-        import os
-        from save_manager import SAVES_PATH
         self.saves_list.add_elements(os.listdir(SAVES_PATH))
+
+    def load_save(self, _: UIElement) -> None:
+        selected = self.saves_list.child_focused
+        if selected is None: return
+        self.exit(START_GAME)
+    
+    def delete_save(self, _: UIElement) -> None:
+        selected = self.saves_list.child_focused
+        if selected is None: return
+        path = os.path.join(SAVES_PATH, selected.get_text())
+        if not os.path.exists(path): return
+        self.delete_folder(path)
+        self.saves_list.remove_element(selected)
+
+    def delete_folder(self, path) -> None:
+        for file in os.listdir(path):
+            file_path = os.path.join(path, file)
+            if os.path.isdir(file_path):
+                self.delete_folder(file_path)
+            else:
+                os.remove(file_path)
+        os.rmdir(path)
