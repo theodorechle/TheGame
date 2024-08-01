@@ -84,7 +84,6 @@ class Game:
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        print("coucou")
                         if self.last_time_in_menu > monotonic() - self.time_before_menu: continue
                         player.inventory.place_back_clicked_item()
                         exit_code = menus.EscapeMenu(self.window).run()

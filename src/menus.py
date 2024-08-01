@@ -76,7 +76,6 @@ class Menu:
             pygame.display.update()
             clock.tick(self.FPS)
         pygame.event.clear()
-        print("cleared")
         return self._exit_code
 
 class MainMenu(Menu):
