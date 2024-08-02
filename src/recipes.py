@@ -18,3 +18,4 @@ def craft(craft_name, recipes, inventory: Inventory) -> bool:
         inventory.remove_quantity(item, qty)
     for item, qty in crafted_items:
         inventory.add_element(item, qty)
+    return True

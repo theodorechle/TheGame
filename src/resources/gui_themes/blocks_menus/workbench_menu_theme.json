@@ -1,7 +1,21 @@
 {
-    ":item-list-childs": {
+    ":craft-list-childs": {
         "border-width": 3,
         "selected-border-color": "#555555",
         "selected-text-color": "#999999"
+    },
+    ":item-lists-childs": {
+        "vertical-center": true,
+        "horizontal-center": true
+    },
+    ":craft-actual-on-needed-label": {
+        "horizontal-center": true
+    },
+    ":craft-give-label": {
+        "horizontal-center": true,
+        "vertical-center": true
+    },
+    ":craft-indicator-label": {
+        "border-width": -1
     }
 }

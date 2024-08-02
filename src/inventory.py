@@ -77,6 +77,13 @@ class Inventory:
                 self.cells[index] = (items.NOTHING, 0)
         return removed_quantity
 
+    def get_element_quantity(self, element: items.Item) -> int:
+        quantity = 0
+        for cell in self.cells:
+            if cell[0] != element: continue
+            quantity += cell[1]
+        return quantity
+
     def is_present_in_quantity(self, element: items.Item, quantity: int) -> bool:
         """
         Check if the given quantity of the given element is present in the inventory
