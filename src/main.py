@@ -15,6 +15,7 @@ from player import Player
 from map_generation import MapGenerator
 from chunk_manager import Chunk
 from save_manager import SaveManager
+from entity import Entity
 
 from time import monotonic
 import menus
@@ -68,15 +69,25 @@ class Game:
         pygame.key.set_repeat(100, 100)
         loop = True
         need_update = True
+        entities: list[Entity] = []
+        for i in range(5):
+            entities.append(Entity('base_character', i, Chunk.HEIGHT, 0, 0, False, self.window, 1, 2, map_generator, save_manager, 'persos', True))
+        blocks_to_update: list[tuple[int, int, blocks.Block]] = []
         while loop:
             time_last_update: float = clock.get_rawtime()
             if need_update:
+                for entity in entities:
+                    for block in blocks_to_update:
+                        entity.chunk_manager.replace_block(*block)
+                blocks_to_update.clear()
                 self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
                 player.chunk_manager.display_chunks(player.x, player.y)
                 player.display()
+                for entity in entities:
+                    entity.display(rel_x=player.x, rel_y=player.y)
                 player.display_hud()
                 pygame.display.update()
-            need_update = False
+                need_update = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     loop = False
@@ -104,6 +115,8 @@ class Game:
                             for block in blocks.BLOCKS_DICT:
                                 block.scale_image()
                             player.scale_image()
+                            for entity in entities:
+                                entity.scale_image()
                             need_update = True
                             break
                     if event.key == self.keys['mv_left']:
@@ -147,11 +160,21 @@ class Game:
 
             pressed_mouse_buttons = pygame.mouse.get_pressed()
             if pressed_mouse_buttons[0]:
-                need_update = player.place_block(pygame.mouse.get_pos())
+                updates = player.place_block(pygame.mouse.get_pos())
+                if updates is not None:
+                    need_update = True
+                    if 'changed_block' in updates:
+                        blocks_to_update.append(updates['changed_block'])
             if pressed_mouse_buttons[2]:
-                need_update = player.remove_block(pygame.mouse.get_pos())
+                updates = player.remove_block(pygame.mouse.get_pos())
+                if updates is not None:
+                    need_update = True
+                    if 'changed_block' in updates:
+                        blocks_to_update.append(updates['changed_block'])
 
             need_update = player.update(time_last_update) or need_update
+            for entity in entities:
+                need_update = entity.update(time_last_update) or need_update
             clock.tick(self.FPS)
         player.save()
         save_manager.save_players([player])

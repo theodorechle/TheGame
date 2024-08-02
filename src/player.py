@@ -7,7 +7,6 @@ from save_manager_interface import SaveManagerInterface
 from entity import Entity
 from inventory import Inventory
 from player_interface import PlayerInterface
-from map_chunk import Chunk
 from items import Item
 
 class Player(Entity, PlayerInterface):
@@ -20,8 +19,7 @@ class Player(Entity, PlayerInterface):
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        self.chunk_manager: chunk_manager.ChunkManager = chunk_manager.ChunkManager(self.render_distance, round(x / Chunk.LENGTH), window, map_generator, save_manager)
-        super().__init__(name, x, y, speed_x, speed_y, direction, window, 1, 2, self.chunk_manager, 'persos', True)
+        super().__init__(name, x, y, speed_x, speed_y, direction, window, 1, 2, map_generator, save_manager, 'persos', True)
         self.inventory_size: int = 50
         self.inventory: Inventory = Inventory(self.inventory_size, window, inventory_cells)
         self.set_player_edges_pos()
@@ -86,9 +84,11 @@ class Player(Entity, PlayerInterface):
                 or self.chunk_manager.get_block(x - 1, y) not in blocks.TRAVERSABLE_BLOCKS
                 or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
-    def place_block(self, pos: tuple[int, int]) -> bool:
-        if self.inventory.click_cell(*pos): return True
+    def place_block(self, pos: tuple[int, int]) -> dict|None:
+        if self.inventory.click_cell(*pos): return {} # temp
+        if self.inventory.is_inventory_opened(): return
         x, y = self._get_relative_pos(*pos)
+        # place block under player
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y < self.top_player_pos:
             is_valid_pos = True
             for x in range(-(self.entity_size[0] // 2), self.entity_size[0] // 2 + 1):
@@ -100,28 +100,32 @@ class Player(Entity, PlayerInterface):
                 self.y += 1
                 y = -1
             else:
-                return False
+                return None
         else:
-            if not self._is_interactable(*pos): return False
+            if not self._is_interactable(*pos): return None
         block_x, block_y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(block_x, block_y)
         if block in blocks.TRAVERSABLE_BLOCKS and self._is_surrounded_by_block(block_x, block_y):
             item, _ = self.inventory.remove_element_at_pos(1, self.inventory.selected)
-            if item is None: return False
+            if item is None: return None
             block = convert_item_to_block(item)
             if block is not None:
                 self.chunk_manager.replace_block(block_x, block_y, block)
+                return {'changed_block': (block_x, block_y, block)}
             else:
                 self.inventory.add_element_at_pos(item, 1, self.inventory.selected)
-        return True
 
-    def remove_block(self, pos: tuple[int, int]) -> bool:
-        if not self._is_interactable(*pos): return False
+    def remove_block(self, pos: tuple[int, int]) -> dict|None:
+        if self.inventory.is_inventory_opened(): return
+        if not self._is_interactable(*pos): return None
         x, y = self._get_relative_pos(*pos)
-        block = self.chunk_manager.get_block(self.x + x, self.y + y)
+        block_x, block_y = self.x + x, self.y + y
+        block = self.chunk_manager.get_block(block_x, block_y)
         if block is not None and block not in blocks.TRAVERSABLE_BLOCKS:
-            self.chunk_manager.replace_block(self.x + x, self.y + y, blocks.AIR)
+            self.chunk_manager.replace_block(block_x, block_y, blocks.AIR)
             for item, quantity in convert_block_to_items(block, 1).items():
                 self.inventory.add_element(item, quantity)
-            return True
-        return False
+            return {'changed_block': (block_x, block_y, blocks.AIR)}
+
+    def display(self) -> None:
+        super().display(self.x, self.y)

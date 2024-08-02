@@ -16,6 +16,7 @@ class ChunkManager:
         central_chunk = save_manager.load_chunk(chunk_x_position)
         if central_chunk is None:
             central_chunk = self.map_generator.generate_chunk(False, chunk_x_position)
+            self.save_manager.save_chunk(central_chunk)
         self.chunks: list[Chunk] = [central_chunk]
         self.change_nb_chunks(nb_chunks_by_side)
     
@@ -76,10 +77,12 @@ class ChunkManager:
                 chunk = self.save_manager.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
                 if chunk is None:
                     chunk = self.map_generator.generate_chunk(False, self.chunk_x_position - self.nb_chunks_by_side - i - 1)
+                    self.save_manager.save_chunk(chunk)
                 new_chunks[difference - i - 1] = chunk
                 chunk = self.save_manager.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
                 if chunk is None:
                     chunk = self.map_generator.generate_chunk(True, self.chunk_x_position + self.nb_chunks_by_side + i + 1)
+                    self.save_manager.save_chunk(chunk)
                 new_chunks[difference + self.nb_chunks_by_side*2 + 1 + i] = chunk
         else:
             for i in range(new_nb_chunks, self.nb_chunks_by_side):

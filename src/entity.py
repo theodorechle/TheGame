@@ -3,20 +3,20 @@ import pygame
 import blocks
 from chunk_manager import ChunkManager
 from entity_interface import EntityInterface
+from map_chunk import Chunk
+from map_generation import MapGenerator
+from save_manager_interface import SaveManagerInterface
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity(EntityInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, image_length: int, image_height: int, chunk_manager: ChunkManager|None=None, add_path: str='', collisions: bool=True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, image_length: int, image_height: int, map_generator: MapGenerator, save_manager: SaveManagerInterface, add_path: str='', collisions: bool=True) -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
         If no chunk manager is given, collisions are disabled, because we can't check if they collide with blocks.
         """
-        self.chunk_manager = chunk_manager
-        if chunk_manager is None:
-            self.collisions = False
-        else:
-            self.collisions = collisions
+        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH), window, map_generator, save_manager)
+        self.collisions = collisions
         self.name: str = name
         self.x: int = x
         self.y: int = y
@@ -43,12 +43,16 @@ class Entity(EntityInterface):
         self.left_player_pos: int = -self.entity_size[0] // 2 + self.entity_size[0] % 2
         self.right_player_pos: int = self.entity_size[0] // 2
 
-    def display(self) -> None:
+    def display(self, rel_x: int, rel_y: int) -> None:
+            """
+            rel_x and rel_y are the coords of the block in the center of the image
+            """
             window_size = self.window.get_size()
+            x = window_size[0] // 2 - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2 + (self.x - rel_x) * blocks.Block.BLOCK_SIZE
+            y = window_size[1] // 2 - self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE
             self.window.blit(
                 self.image_reversed if self.direction else self.image,
-                (window_size[0] // 2 - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2,
-                window_size[1] // 2 - self.image_size[1])
+                (x, y)
             )
 
     def update(self, delta_t: float) -> bool:

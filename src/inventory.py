@@ -17,7 +17,7 @@ class Inventory:
         self.blocks_qty_font_size = 20
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
         self.selected = 0
-        self._display_all = False
+        self._is_opened = False
         self.main_bar_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] - self.cell_size)
         self.complete_inventory_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] // 2 - self.cell_size * (self._nb_cells // self.nb_cells_by_line - 1) // 2)
         # item, quantity
@@ -92,7 +92,7 @@ class Inventory:
 
     def display(self) -> None:
         self.display_main_bar()
-        if self._display_all:
+        if self._is_opened:
             for index in range(self.nb_cells_by_line, len(self.cells)):
                 x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line - 1) * self.cell_size
                 self._display_cell(x, y, False)
@@ -131,10 +131,13 @@ class Inventory:
         Returns whether it needs a screen update or not
         """
         if self._last_time_toggled > monotonic() - self.time_before_toggle: return False
-        self._display_all = not self._display_all 
+        self._is_opened = not self._is_opened 
         self._last_time_toggled = monotonic()
         return True
     
+    def is_inventory_opened(self) -> bool:
+        return self._is_opened
+
     def have_clicked_item(self) -> bool:
         return self._clicked_item_init_pos != -1
 
@@ -146,7 +149,7 @@ class Inventory:
                 x //= self.cell_size
                 index = x
             else: return False
-        elif self.complete_inventory_start_pos[1] <= y <= self.complete_inventory_start_pos[1] + self.cell_size * (self._nb_cells // self.nb_cells_by_line + 1): # all inventory
+        elif self._is_opened and self.complete_inventory_start_pos[1] <= y <= self.complete_inventory_start_pos[1] + self.cell_size * (self._nb_cells // self.nb_cells_by_line + 1): # all inventory
             if self.complete_inventory_start_pos[0] <= x <= self.complete_inventory_start_pos[0] + self.cell_size * self.nb_cells_by_line:
                 x -= self.complete_inventory_start_pos[0]
                 x //= self.cell_size
