@@ -14,7 +14,6 @@ class Item:
 
 NOTHING = None
 IRON_INGOT = Item('iron_ingot')
-STICK = Item('stick')
 STONE_PICKAXE = Item('stone_pickaxe')
 IRON_PICKAXE = Item('iron_pickaxe')
 LAVA_BUCKET = Item('lava_bucket')
@@ -30,11 +29,12 @@ TORCH = Item('torch')
 FURNACE = Item('furnace')
 WORKBENCH = Item('workbench')
 SNOW = Item('snow')
+WOODEN_STICK = Item('wooden_stick')
 
 # new items must be added to the end in order to not break the exisiting saves
 ITEMS_DICT: dict[Item, int] = {
     IRON_INGOT: 0,
-    STICK: 1,
+    WOODEN_STICK: 1,
     STONE_PICKAXE: 2,
     IRON_PICKAXE: 3,
     LAVA_BUCKET: 4,
@@ -49,7 +49,7 @@ ITEMS_DICT: dict[Item, int] = {
     TORCH: 13,
     FURNACE: 14,
     WORKBENCH: 15,
-    SNOW: 16
+    SNOW: 16,
 }
 
 REVERSED_ITEMS_DICT: dict[int, Item] = {v: k for k, v in ITEMS_DICT.items()}

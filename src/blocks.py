@@ -1,7 +1,9 @@
+BLOCKS_IMAGES_PATH = 'src/resources/images/blocks'
+
 from load_image import load_image
 from pygame import Surface
+from blocks_menus.workbench_menu import WorkbenchMenu
 
-BLOCKS_IMAGES_PATH = 'src/resources/images/blocks'
 class Block:
     BLOCK_SIZE = 30
     def __init__(self, name: str) -> None:
@@ -66,3 +68,7 @@ SWIMMABLE_BLOCKS = [
     WATER,
     LAVA
 ]
+
+INTERACTABLE_BLOCKS = {
+    WORKBENCH: WorkbenchMenu
+}

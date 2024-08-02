@@ -39,7 +39,6 @@ class Menu:
 
     def handle_special_events(self, event: pygame.event.Event) -> pygame.event.Event|None:
         """
-        This function exists to be overriden
         Get every event and process it.
         Can return the event, in which case it will be processed by the normal run method and the ui manager.
         By default, it will only quit the menu if the window exit cross is pressed (send an EXIT code)

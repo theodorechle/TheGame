@@ -77,6 +77,27 @@ class Inventory:
                 self.cells[index] = (items.NOTHING, 0)
         return removed_quantity
 
+    def is_present_in_quantity(self, element: items.Item, quantity: int) -> bool:
+        """
+        Check if the given quantity of the given element is present in the inventory
+        """
+        for cell in self.cells:
+            if cell[0] != element: continue
+            quantity -= min(quantity, cell[1])
+            if quantity == 0: break
+        return quantity == 0
+
+    def remove_quantity(self, element: items.Item, quantity: int) -> int:
+        """
+        Returns the quantity effectively removed
+        """
+        removed_quantity = 0
+        for index, cell in enumerate(self.cells):
+            if cell[0] != element: continue
+            removed_quantity += self.remove_element_at_pos(quantity - removed_quantity, index)[1]
+            if quantity == removed_quantity: return removed_quantity
+        return removed_quantity
+
     def empty_cell(self, pos: int) -> tuple[items.Item|None, int]:
         """
         Empty the inventory's cell at pos.

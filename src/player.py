@@ -1,13 +1,13 @@
-import chunk_manager
 import pygame
 import blocks
-from recipes import convert_block_to_items, convert_item_to_block
+from conversions_items_blocks import convert_block_to_items, convert_item_to_block
 from map_generation import MapGenerator
 from save_manager_interface import SaveManagerInterface
 from entity import Entity
 from inventory import Inventory
 from player_interface import PlayerInterface
 from items import Item
+from blocks_menus.block_menu import BlockMenu
 
 class Player(Entity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, map_generator: MapGenerator, save_manager: SaveManagerInterface, inventory_cells: list[tuple[Item|None, int]]|None=None) -> None:
@@ -55,27 +55,26 @@ class Player(Entity, PlayerInterface):
         return x, y
     
     def _is_interactable(self, x: int, y: int) -> bool:
-        rx, ry = self._get_relative_pos(x, y)
 
-        if self.bottom_player_pos-self.interaction_range + 1 <= ry < self.top_player_pos + self.interaction_range - 1: # left or right
+        if self.bottom_player_pos-self.interaction_range + 1 <= y < self.top_player_pos + self.interaction_range - 1: # left or right
             if self.direction:
-                return rx == self.left_player_pos - self.interaction_range
+                return x == self.left_player_pos - self.interaction_range
             else:
-                return rx == self.right_player_pos + self.interaction_range
-        elif ry == self.bottom_player_pos-self.interaction_range or ry == self.top_player_pos + self.interaction_range - 1: # down or up
-            if self.left_player_pos - self.interaction_range + 1 <= rx < self.right_player_pos + self.interaction_range:
+                return x == self.right_player_pos + self.interaction_range
+        elif y == self.bottom_player_pos-self.interaction_range or y == self.top_player_pos + self.interaction_range - 1: # down or up
+            if self.left_player_pos - self.interaction_range + 1 <= x < self.right_player_pos + self.interaction_range:
                 return True
             # edges
-            elif self.left_player_pos - self.interaction_range == rx:
-                if ry == self.bottom_player_pos-self.interaction_range: # down-left
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
+            elif self.left_player_pos - self.interaction_range == x:
+                if y == self.bottom_player_pos-self.interaction_range: # down-left
+                    return self.chunk_manager.get_block(self.x + x, self.y + y + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + x + self.interaction_range, self.y + y) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-left
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx + self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
-            elif rx == self.entity_size[0] // 2 + self.interaction_range:
-                if ry == self.bottom_player_pos-self.interaction_range: # down-right
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
+                    return self.chunk_manager.get_block(self.x + x, self.y + y - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + x + self.interaction_range, self.y + y) in blocks.TRAVERSABLE_BLOCKS
+            elif x == self.entity_size[0] // 2 + self.interaction_range:
+                if y == self.bottom_player_pos-self.interaction_range: # down-right
+                    return self.chunk_manager.get_block(self.x + x, self.y + y + self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + x - self.interaction_range, self.y + y) in blocks.TRAVERSABLE_BLOCKS
                 else: # up-right
-                    return self.chunk_manager.get_block(self.x + rx, self.y + ry - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + rx - self.interaction_range, self.y + ry) in blocks.TRAVERSABLE_BLOCKS
+                    return self.chunk_manager.get_block(self.x + x, self.y + y - self.interaction_range) in blocks.TRAVERSABLE_BLOCKS or self.chunk_manager.get_block(self.x + x - self.interaction_range, self.y + y) in blocks.TRAVERSABLE_BLOCKS
         return False
 
     def _is_surrounded_by_block(self, x: int, y: int) -> bool:
@@ -102,7 +101,7 @@ class Player(Entity, PlayerInterface):
             else:
                 return None
         else:
-            if not self._is_interactable(*pos): return None
+            if not self._is_interactable(x, y): return None
         block_x, block_y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(block_x, block_y)
         if block in blocks.TRAVERSABLE_BLOCKS and self._is_surrounded_by_block(block_x, block_y):
@@ -117,8 +116,8 @@ class Player(Entity, PlayerInterface):
 
     def remove_block(self, pos: tuple[int, int]) -> dict|None:
         if self.inventory.is_inventory_opened(): return
-        if not self._is_interactable(*pos): return None
         x, y = self._get_relative_pos(*pos)
+        if not self._is_interactable(x, y): return None
         block_x, block_y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(block_x, block_y)
         if block is not None and block not in blocks.TRAVERSABLE_BLOCKS:
@@ -126,6 +125,14 @@ class Player(Entity, PlayerInterface):
             for item, quantity in convert_block_to_items(block, 1).items():
                 self.inventory.add_element(item, quantity)
             return {'changed_block': (block_x, block_y, blocks.AIR)}
+
+    def interact_with_block(self, pos: tuple[int, int]) -> BlockMenu|None:
+        if self.inventory.is_inventory_opened(): return
+        x, y = self._get_relative_pos(*pos)
+        if not self._is_interactable(x, y): return None
+        block = self.chunk_manager.get_block(self.x + x, self.y + y)
+        return blocks.INTERACTABLE_BLOCKS.get(block, None)
+
 
     def display(self) -> None:
         super().display(self.x, self.y)
