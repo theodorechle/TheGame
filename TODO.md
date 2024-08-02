@@ -1,10 +1,8 @@
 ## PRIORITY
 
-Bug with generation (see 'aaaaaa' save or 'agrt zrr')
-
 Entities: Players and blocks
 
-Why can't we run while bridging anymore ?
+Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
 
 Allow renaming saves
 
@@ -65,8 +63,8 @@ Allow renaming saves
 ## MENUS:
 
 - [x] main menu
-- [ ] params menu
-- [ ] load world menu
+- [x] params menu
+- [x] load world menu
 - [x] create world menu
 - [ ] online menu
 

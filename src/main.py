@@ -4,7 +4,6 @@ sys.path.append(gui_path)
 
 
 import pygame
-from gui.ui_manager import UIManager
 pygame.init()
 
 WIDTH = 1500

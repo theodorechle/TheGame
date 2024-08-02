@@ -42,10 +42,14 @@ class Menu:
         This function exists to be overriden
         Get every event and process it.
         Can return the event, in which case it will be processed by the normal run method and the ui manager.
-        By default, it will only quit the menu if the window exit cross is pressed
+        By default, it will only quit the menu if the window exit cross is pressed (send an EXIT code)
+        and when the escape button is pressed (send a BACK code)
         """
         if event.type == pygame.QUIT:
             self.exit(EXIT)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.exit(BACK)
         return event
 
     def run_functions_start_loop(self) -> None:
@@ -93,6 +97,11 @@ class MainMenu(Menu):
 
     def create_new_game(self, _: UIElement) -> None:
         self.exit(CREATE_GAME)
+    
+    def handle_special_events(self, event: Event) -> Event | None:
+        if event.type == pygame.QUIT:
+            self.exit(EXIT)
+        return event
 
 class CreateWorldMenu(Menu):
     def __init__(self, window: pygame.Surface) -> None:
@@ -113,22 +122,14 @@ class EscapeMenu(Menu):
     def __init__(self, window: pygame.Surface) -> None:
         super().__init__(window)
         self._elements.append(elements.Button(self.ui_manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
-        self._elements.append(elements.Button(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, y=self.ui_manager.window.get_size()[1] // 4, anchor='center'))
-        self._elements.append(elements.Button(self.ui_manager, 'SETTINGS', on_click_function=self.to_settings, y=-self.ui_manager.window.get_size()[1] // 4, anchor='left'))
+        self._elements.append(elements.Button(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
+        self._elements.append(elements.Button(self.ui_manager, 'SETTINGS', on_click_function=self.to_settings, x='2%', y='-25%', anchor='left'))
     
     def exit_to_main_menu(self, _: UIElement) -> None:
         self.exit(TO_MAIN_MENU)
     
     def to_settings(self, _: UIElement) -> None:
         self.exit(SETTINGS)
-    
-    def handle_special_events(self, event: Event) -> Event | None:
-        if event.type == pygame.QUIT:
-            self.exit(EXIT)
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.exit(BACK)
-        return event
 
 class SettingsMenu(Menu):
     def __init__(self, window: pygame.Surface, nb_chunks_loaded: int=0, zoom: int=30) -> None:
@@ -147,14 +148,7 @@ class SettingsMenu(Menu):
         self._elements.append(self.slider_nb_chunks)
         self.label_zoom = elements.Label(self.ui_manager, y="25%", anchor='center', width=30)
         self._elements.append(self.label_nb_chunks)
-    
-    def handle_special_events(self, event: Event) -> Event | None:
-        if event.type == pygame.QUIT:
-            self.exit(EXIT)
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                self.exit(EXIT)
-        return event
+        self._elements.append(elements.Button(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
 
     def run_functions_end_loop(self) -> None:
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
@@ -170,7 +164,7 @@ class LoadSaveMenu(Menu):
         self._elements.append(options_container)
         load_button = elements.Button(self.ui_manager, 'Load', self.load_save, anchor='top')
         self._elements.append(load_button)
-        delete_button = elements.Button(self.ui_manager, 'Delete save', self.delete_save, anchor='bottom')
+        delete_button = elements.Button(self.ui_manager, 'Delete save', self.delete_save, anchor='bottom', classes_names=['delete-save-button'])
         self._elements.append(delete_button)
         options_container.add_element(load_button)
         options_container.add_element(delete_button)

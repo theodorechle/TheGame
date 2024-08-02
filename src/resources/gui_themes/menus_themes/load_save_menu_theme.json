@@ -6,5 +6,11 @@
     },
     ":options-container": {
         "border-width": -1
+    },
+    ":delete-save-button": {
+        "border-color": "#dd1111",
+        "text-color": "#cccccc",
+        "hovered-border-color": "#ff0000",
+        "hovered-text-color": "#ffffff"
     }
 }
