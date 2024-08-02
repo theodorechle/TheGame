@@ -1,14 +1,8 @@
 ## PRIORITY
 
-Bug with generation (see aaaaaa save)
+Bug with generation (see 'aaaaaa' save or 'agrt zrr')
 
 Entities: Players and blocks
-
-Add game file with seed
-
-Forbid placing blocks behind the inventory
-
-Forbid getting items in the inventory while it's closed (maybe it can only after been opened once)
 
 Why can't we run while bridging anymore ?
 

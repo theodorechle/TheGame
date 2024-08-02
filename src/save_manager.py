@@ -17,6 +17,7 @@ class SaveManager(SaveManagerInterface):
     def init_repository(self) -> None:
         self.chunks_path = os.path.join(SAVES_PATH, self.save_name, 'chunks')
         self.players_path = os.path.join(SAVES_PATH, self.save_name, 'players')
+        self.generation_infos_path = os.path.join(SAVES_PATH, self.save_name, 'generation_infos.json')
         os.makedirs(self.chunks_path, exist_ok=True)
         os.makedirs(self.players_path, exist_ok=True)
 
@@ -66,3 +67,14 @@ class SaveManager(SaveManagerInterface):
             }
             with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:
                 json.dump(player_dict, f)
+
+    def load_generation_infos(self) -> dict[str, Any]|None:
+        try:
+            with open(self.generation_infos_path) as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return
+    
+    def save_generation_infos(self, infos: dict[str, Any]) -> None:
+        with open(self.generation_infos_path, 'w') as f:
+            json.dump(infos, f)

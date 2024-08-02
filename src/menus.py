@@ -135,7 +135,7 @@ class SettingsMenu(Menu):
         super().__init__(window)
         # loaded chunks
         self._elements.append(elements.Label(self.ui_manager, 'Nb chunks loaded on each side', y="-30%", anchor='center'))
-        self.slider_nb_chunks = elements.Slider(self.ui_manager, 0, 25, 1, y="-20%", anchor='center')
+        self.slider_nb_chunks = elements.Slider(self.ui_manager, 1, 25, 1, y="-20%", anchor='center')
         self.slider_nb_chunks.set_value(nb_chunks_loaded)
         self._elements.append(self.slider_nb_chunks)
         self.label_nb_chunks = elements.Label(self.ui_manager, y='-15%', anchor='center', width=30)

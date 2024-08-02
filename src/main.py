@@ -20,6 +20,7 @@ from entity import Entity
 from time import monotonic
 import menus
 import blocks
+import random
 
 class Game:
     def __init__(self, window: pygame.Surface) -> None:
@@ -174,16 +175,17 @@ class Game:
 
             need_update = player.update(time_last_update) or need_update
             for entity in entities:
+                entity.speed_x += random.randint(-1, 1)
                 need_update = entity.update(time_last_update) or need_update
             clock.tick(self.FPS)
         player.save()
         save_manager.save_players([player])
+        save_manager.save_generation_infos(map_generator.get_infos_to_save())
         return exit_code
 
     def run(self) -> None:
         while True:
             save_name = ''
-            seed = ''
             main_menu = menus.MainMenu(self.window)
             exit_code = main_menu.run()
             if exit_code == menus.EXIT:
@@ -208,9 +210,10 @@ class Game:
                     break
                 elif exit_code == menus.BACK:
                     continue
-                map_generator = MapGenerator(seed)
                 save_manager = SaveManager(load_save_menu.saves_list.child_selected.get_text())
-                map_generator.create_seeds()
+                generation_infos = save_manager.load_generation_infos()
+                map_generator = MapGenerator()
+                map_generator.set_infos(generation_infos)
                 players_dict = save_manager.load_players()
                 players = []
                 for player, values in players_dict.items():
