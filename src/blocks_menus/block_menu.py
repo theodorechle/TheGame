@@ -7,9 +7,9 @@ import os
 BLOCKS_MENUS_THEMES_PATH = os.path.join('src', 'resources', 'gui_themes', 'blocks_menus')
 
 class BlockMenu():
-    def __init__(self, window: pygame.Surface) -> None:
+    def __init__(self, window: pygame.Surface, *ui_manager_parameters) -> None:
         self.window = window
-        self._ui_manager = UIManager(window)
+        self._ui_manager = UIManager(window, *ui_manager_parameters)
         self._elements: list[UIElement] = []
         self.need_update = False
 

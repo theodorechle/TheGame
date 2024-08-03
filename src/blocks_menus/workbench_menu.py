@@ -8,18 +8,18 @@ import os
 
 class WorkbenchMenu(BlockMenu):
     def __init__(self, window: Surface, player_inventory: Inventory) -> None:
-        super().__init__(window)
+        super().__init__(window, 'src/resources/images/blocks/wood.png')
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'workbench_menu_theme.json'))
         self.player_inventory = player_inventory
-        self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', childs_classes_names=['craft-list-childs'], on_select_function=self.select_craft)
+        self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', childs_classes_names=['craft-list-childs'], on_select_item_function=self.select_craft)
         self._elements.append(self.crafts_list)
         self.needed_items = elements.ItemList(self._ui_manager, anchor='left', x='40%', width='15%', height='50%', childs_classes_names=['item-lists-childs'])
         self._elements.append(self.needed_items)
-        self.actual_quantities = elements.ItemList(self._ui_manager, anchor='left', x='55%', width='5%', height='50%', childs_classes_names=['item-lists-childs'])
-        self._elements.append(self.actual_quantities)
-        self._elements.append(elements.Label(self._ui_manager, '/', anchor='left', x='60%', width='2%', classes_names=['craft-actual-on-needed-label', 'craft-indicator-label']))
-        self.needed_quantities = elements.ItemList(self._ui_manager, anchor='left', x='62%', width='5%', height='50%', childs_classes_names=['item-lists-childs'])
+        self.needed_quantities = elements.ItemList(self._ui_manager, anchor='left', x='55%', width='5%', height='50%', childs_classes_names=['item-lists-childs'])
         self._elements.append(self.needed_quantities)
+        self._elements.append(elements.Label(self._ui_manager, '/', anchor='left', x='60%', width='2%', classes_names=['craft-actual-on-needed-label', 'craft-indicator-label']))
+        self.actual_quantities = elements.ItemList(self._ui_manager, anchor='left', x='62%', width='5%', height='50%', childs_classes_names=['item-lists-childs'])
+        self._elements.append(self.actual_quantities)
         self._elements.append(elements.Label(self._ui_manager, '=', anchor='left', x='67%', width='3%', classes_names=['craft-give-label', 'craft-indicator-label']))
         self.crafted_items = elements.ItemList(self._ui_manager, anchor='left', x='70%', width='15%', height='50%', childs_classes_names=['item-lists-childs'])
         self._elements.append(self.crafted_items)

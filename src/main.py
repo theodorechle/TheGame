@@ -21,6 +21,7 @@ from time import monotonic
 import menus
 import blocks
 import random
+import items
 
 class Game:
     def __init__(self, window: pygame.Surface) -> None:
@@ -222,6 +223,8 @@ class Game:
                 save_manager = SaveManager(save_name)
                 map_generator.create_seeds()
                 player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self.window, map_generator, save_manager)
+                player.inventory.add_element(items.WORKBENCH, 5)
+                player.inventory.add_element(items.FURNACE, 5)
             elif exit_code == menus.LOAD_SAVE:
                 load_save_menu = menus.LoadSaveMenu(self.window)
                 exit_code = load_save_menu.run()

@@ -3,7 +3,9 @@ from inventory import Inventory
 
 # item name: (need items and qties, crafted items and qties)
 WORKBENCH_RECIPES = {
-    'stone pickaxe': ([(items.STONE, 2), (items.WOODEN_STICK, 1)], [(items.STONE_PICKAXE, 1)])
+    'stone pickaxe': ([(items.STONE, 2), (items.WOODEN_STICK, 1)], [(items.STONE_PICKAXE, 1)]),
+    'iron pickaxe': ([(items.IRON_INGOT, 2), (items.WOODEN_STICK, 1)], [(items.IRON_PICKAXE, 1)]),
+    'torch': ([(items.WOODEN_STICK, 1), (items.COAL, 1)], [(items.TORCH, 1)])
 }
 
 def craft(craft_name, recipes, inventory: Inventory) -> bool:
