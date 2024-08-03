@@ -10,7 +10,7 @@ _BLOCKS_TO_ITEMS: dict[blocks.Block, list[tuple[items.Item, int|tuple[int, int]]
     blocks.SAND: [(items.SAND, 1)],
     blocks.STONE: [(items.STONE, 1)],
     blocks.COAL: [(items.COAL, (1, 3))],
-    blocks.IRON: [(items.IRON, (1, 2))],
+    blocks.IRON: [(items.IRON_NUGGET, (1, 2))],
     blocks.PLANK: [(items.PLANK, 1)],
     blocks.TORCH: [(items.TORCH, 1)],
     blocks.FURNACE: [(items.FURNACE, 1)],

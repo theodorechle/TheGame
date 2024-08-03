@@ -3,6 +3,7 @@ BLOCKS_IMAGES_PATH = 'src/resources/images/blocks'
 from load_image import load_image
 from pygame import Surface
 from blocks_menus.workbench_menu import WorkbenchMenu
+from blocks_menus.furnace_menu import FurnaceMenu
 
 class Block:
     BLOCK_SIZE = 30
@@ -70,5 +71,6 @@ SWIMMABLE_BLOCKS = [
 ]
 
 INTERACTABLE_BLOCKS = {
-    WORKBENCH: WorkbenchMenu
+    WORKBENCH: WorkbenchMenu,
+    FURNACE: FurnaceMenu
 }

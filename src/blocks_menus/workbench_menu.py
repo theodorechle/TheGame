@@ -5,12 +5,12 @@ from recipes import WORKBENCH_RECIPES, craft
 from inventory import Inventory
 from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
 import os
+from typing import Any
 
 class WorkbenchMenu(BlockMenu):
-    def __init__(self, window: Surface, player_inventory: Inventory) -> None:
-        super().__init__(window)
+    def __init__(self, block_data: dict[str, Any], player_inventory: Inventory, window: Surface) -> None:
+        super().__init__(block_data, player_inventory, window)
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'workbench_menu_theme.json'))
-        self.player_inventory = player_inventory
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', childs_classes_names=['craft-list-childs'], on_select_item_function=self.select_craft)
         self._elements.append(self.crafts_list)
         self.needed_items = elements.ItemList(self._ui_manager, anchor='left', x='40%', width='15%', height='50%', childs_classes_names=['item-lists-childs'])

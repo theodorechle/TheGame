@@ -24,7 +24,7 @@ WOOD = Item('wood')
 SAND = Item('sand')
 STONE = Item('stone')
 COAL = Item('coal')
-IRON = Item('iron')
+IRON_NUGGET = Item('iron')
 PLANK = Item('plank')
 TORCH = Item('torch')
 FURNACE = Item('furnace')
@@ -45,7 +45,7 @@ ITEMS_DICT: dict[Item, int] = {
     SAND: 8,
     STONE: 9,
     COAL: 10,
-    IRON: 11,
+    IRON_NUGGET: 11,
     PLANK: 12,
     TORCH: 13,
     FURNACE: 14,

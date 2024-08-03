@@ -16,6 +16,7 @@ from chunk_manager import Chunk
 from save_manager import SaveManager
 from entity import Entity
 from blocks_menus.block_menu import BlockMenu
+from typing import Any
 
 from time import monotonic
 import menus
@@ -71,7 +72,9 @@ class Game:
         # for i in range(5):
             # entities.append(Entity('base_character', i, Chunk.HEIGHT, 0, 0, False, self.window, 1, 2, map_generator, save_manager, 'persos', True))
         blocks_to_update: list[tuple[int, int, blocks.Block]] = []
+        blocks_data: dict[tuple[int, int], dict[str, Any]] = {}
         menu_opened: BlockMenu|type[BlockMenu]|None = None
+        block_interacting: tuple[int, int]|None = None
         while loop:
             time_last_update: float = clock.get_rawtime()
             if need_update:
@@ -175,6 +178,9 @@ class Game:
             if self.pressed_keys['interact']:
                 if last_time_toggled_menu + min_time_before_toggling_menu < monotonic():
                     if menu_opened is not None:
+                        if block_interacting in blocks_data and not blocks_data[block_interacting]:
+                            blocks_data.pop(block_interacting)
+                        block_interacting = None
                         menu_opened = None
                         need_update = True
                         last_time_toggled_menu = monotonic()
@@ -182,10 +188,13 @@ class Game:
                             self.pressed_keys[key] = False
                         pygame.event.clear()
                     else:
-                        menu_opened = player.interact_with_block(pygame.mouse.get_pos())
+                        menu_opened, block_interacting = player.interact_with_block(pygame.mouse.get_pos())
                         if menu_opened is not None:
                             need_update = True
-                            menu_opened = menu_opened(self.window, player.inventory)
+                            block_data = blocks_data.get(block_interacting, None)
+                            if block_data is None:
+                                block_data = {}
+                            menu_opened = menu_opened(block_data, player.inventory, self.window)
                             last_time_toggled_menu = monotonic()
                             for key in self.pressed_keys.keys():
                                 self.pressed_keys[key] = False

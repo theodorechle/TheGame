@@ -126,13 +126,16 @@ class Player(Entity, PlayerInterface):
                 self.inventory.add_element(item, quantity)
             return {'changed_block': (block_x, block_y, blocks.AIR)}
 
-    def interact_with_block(self, pos: tuple[int, int]) -> BlockMenu|None:
+    def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
         if self.inventory.is_inventory_opened(): return
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None
-        block = self.chunk_manager.get_block(self.x + x, self.y + y)
-        return blocks.INTERACTABLE_BLOCKS.get(block, None)
-
+        x, y = self.x + x, self.y + y
+        block = self.chunk_manager.get_block(x, y)
+        menu = blocks.INTERACTABLE_BLOCKS.get(block, None)
+        if menu is not None:
+            return menu, (x, y)
+        return None, None
 
     def display(self) -> None:
         super().display(self.x, self.y)
