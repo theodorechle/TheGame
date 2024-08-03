@@ -8,7 +8,7 @@ import os
 
 class WorkbenchMenu(BlockMenu):
     def __init__(self, window: Surface, player_inventory: Inventory) -> None:
-        super().__init__(window, 'src/resources/images/blocks/wood.png')
+        super().__init__(window)
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'workbench_menu_theme.json'))
         self.player_inventory = player_inventory
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', childs_classes_names=['craft-list-childs'], on_select_item_function=self.select_craft)
