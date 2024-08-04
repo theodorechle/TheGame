@@ -11,9 +11,6 @@ from typing import Any
 class FurnaceMenu(BlockMenu):
     def __init__(self, block_data: dict[str, Any], player_inventory: Inventory, window: Surface) -> None:
         super().__init__(block_data, player_inventory, window)
-        if 'inventory' not in self.block_data:
-            self.block_data['inventory'] = FurnaceInventory(5, self.window)
-        self.block_inventory = self.block_data['inventory']
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'furnace_menu_theme.json'))
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', childs_classes_names=['craft-list-childs'], on_select_item_function=self.select_craft)
         self._elements.append(self.crafts_list)
@@ -30,6 +27,9 @@ class FurnaceMenu(BlockMenu):
         self.crafted_quantities = elements.ItemList(self._ui_manager, anchor='left', x='85%', width='5%', height='50%', childs_classes_names=['item-lists-childs'])
         self._elements.append(self.crafted_quantities)
         self._elements.append(elements.Button(self._ui_manager, 'Craft', self.craft_item, anchor='center', x='45%'))
+        if 'inventory' not in self.block_data:
+            self.block_data['inventory'] = FurnaceInventory(500, 500, 5, self.window)
+        self.block_inventory = self.block_data['inventory']
         self.add_crafts()
     
     def add_crafts(self) -> None:

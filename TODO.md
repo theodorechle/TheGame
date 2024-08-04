@@ -6,6 +6,8 @@ Sometimes, the chunks and players directories are created in saves/, not in save
 
 Allow renaming saves
 
+Allow switching items in inventory
+
 ## GENERATION:
 
 - [ ] vertical chunks

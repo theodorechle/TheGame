@@ -57,3 +57,4 @@ class WorkbenchMenu(BlockMenu):
         for item in crafted_items:
             self.crafted_items.add_element(item[0].name)
             self.crafted_quantities.add_element(str(item[1]))
+        

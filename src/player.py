@@ -42,7 +42,7 @@ class Player(Entity, PlayerInterface):
                     .render(info, True, "#000000"), (50, 20 * i))
 
     def update(self, delta_t: float) -> bool:
-        need_update = super().update(delta_t) or self.inventory.have_clicked_item()
+        need_update = super().update(delta_t) or self.inventory.clicked_item()
         self.chunk_manager.update(self.x)
         return need_update
 

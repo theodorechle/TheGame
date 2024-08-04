@@ -18,6 +18,7 @@ class Inventory:
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
         self.selected = 0
         self._is_opened = False
+        self.nb_cells_main_bar = 10
         self.main_bar_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] - self.cell_size)
         self.complete_inventory_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] // 2 - self.cell_size * (self._nb_cells // self.nb_cells_by_line - 1) // 2)
         # item, quantity
@@ -119,11 +120,13 @@ class Inventory:
         ...
 
     def display(self) -> None:
-        self.display_main_bar()
+        if self.nb_cells_main_bar != 0:
+            self.display_main_bar()
         if self._is_opened:
-            for index in range(self.nb_cells_by_line, len(self.cells)):
+            for index in range(0, len(self.cells) - self.nb_cells_main_bar):
                 x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line - 1) * self.cell_size
                 self._display_cell(x, y, False)
+                index += self.nb_cells_main_bar
                 block, qty = self.cells[index]
                 if block is None: continue
                 self._display_item(x, y, block, qty)
@@ -133,7 +136,7 @@ class Inventory:
     def display_main_bar(self) -> None:
         start_x = self.main_bar_start_pos[0]
         start_y = self.main_bar_start_pos[1]
-        for index in range(self.nb_cells_by_line):
+        for index in range(self.nb_cells_main_bar):
             x = start_x + index * self.cell_size
             self._display_cell(x, start_y, self.selected == index)
             if index >= len(self.cells): continue
@@ -166,17 +169,22 @@ class Inventory:
     def is_inventory_opened(self) -> bool:
         return self._is_opened
 
-    def have_clicked_item(self) -> bool:
+    def clicked_item(self) -> bool:
+        """Return whether an item was clicked"""
         return self._clicked_item_init_pos != -1
 
-    def click_cell(self, x: int, y: int) -> bool:
-        if self._last_time_clicked > monotonic() - self.time_before_click: return False
+    def get_clicked_cell(self, x: int, y: int) -> int:
+        """
+        Take the position of the mouse
+        and return the index of the clicked cell in the inventory if clicked, else -1
+        """
+        if self._last_time_clicked > monotonic() - self.time_before_click: return -1
         if self.main_bar_start_pos[1] <= y <= self.main_bar_start_pos[1] + self.cell_size: # main bar
             if self.main_bar_start_pos[0] <= x <= self.main_bar_start_pos[0] + self.cell_size * 10:
                 x -= self.main_bar_start_pos[0]
                 x //= self.cell_size
                 index = x
-            else: return False
+            else: return -1
         elif self._is_opened and self.complete_inventory_start_pos[1] <= y <= self.complete_inventory_start_pos[1] + self.cell_size * (self._nb_cells // self.nb_cells_by_line + 1): # all inventory
             if self.complete_inventory_start_pos[0] <= x <= self.complete_inventory_start_pos[0] + self.cell_size * self.nb_cells_by_line:
                 x -= self.complete_inventory_start_pos[0]
@@ -185,10 +193,14 @@ class Inventory:
                 y //= self.cell_size
                 y += 1
                 index = y * self.nb_cells_by_line + x
-            else: return False
+            else: return -1
         else:
-            return False
-        if index >= self._nb_cells: return False
+            return -1
+        if index >= self._nb_cells: return -1
+        return index
+
+    def click_cell(self, x: int, y: int) -> bool:
+        index = self.get_clicked_cell(x, y)
         if self._current_clicked_item[0] is None:
             item, qty = self.empty_cell(index)
             if item is not items.NOTHING:
