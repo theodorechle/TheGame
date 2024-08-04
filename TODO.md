@@ -8,6 +8,8 @@ Allow renaming saves
 
 Allow switching items in inventory
 
+Add touch number on top of main bar
+
 ## GENERATION:
 
 - [ ] vertical chunks
