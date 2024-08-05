@@ -84,9 +84,9 @@ class Menu:
 class MainMenu(Menu):
     def __init__(self, window: pygame.Surface) -> None:
         super().__init__(window)
-        self._elements.append(elements.Button(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y="-15%", anchor='center'))
-        self._elements.append(elements.Button(self.ui_manager, 'Load save', on_click_function=self.load_save, anchor='center'))
-        self._elements.append(elements.Button(self.ui_manager, 'QUIT', on_click_function=self.exit_game, y="15%", anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y="-15%", anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Load save', on_click_function=self.load_save, anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_game, y="15%", anchor='center'))
     
     def exit_game(self, _: UIElement) -> None:
         self.exit(EXIT)
@@ -109,8 +109,8 @@ class CreateWorldMenu(Menu):
         self._elements.append(self.world_name_text_box)
         self.seed_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Seed', anchor='top', y=600)
         self._elements.append(self.seed_text_box)
-        self._elements.append(elements.Button(self.ui_manager, 'Create', on_click_function=self.start_game, anchor='top', y=800))
-        self._elements.append(elements.Button(self.ui_manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Create', on_click_function=self.start_game, anchor='top', y=800))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
     
     def start_game(self, _: UIElement) -> None:
         text = self.world_name_text_box.get_text()
@@ -120,9 +120,9 @@ class CreateWorldMenu(Menu):
 class EscapeMenu(Menu):
     def __init__(self, window: pygame.Surface) -> None:
         super().__init__(window)
-        self._elements.append(elements.Button(self.ui_manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
-        self._elements.append(elements.Button(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
-        self._elements.append(elements.Button(self.ui_manager, 'SETTINGS', on_click_function=self.to_settings, x='2%', y='-25%', anchor='left'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'SETTINGS', on_click_function=self.to_settings, x='2%', y='-25%', anchor='left'))
     
     def exit_to_main_menu(self, _: UIElement) -> None:
         self.exit(TO_MAIN_MENU)
@@ -147,7 +147,7 @@ class SettingsMenu(Menu):
         self._elements.append(self.slider_nb_chunks)
         self.label_zoom = elements.Label(self.ui_manager, y="25%", anchor='center', width=30)
         self._elements.append(self.label_nb_chunks)
-        self._elements.append(elements.Button(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
 
     def run_functions_end_loop(self) -> None:
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
@@ -157,17 +157,17 @@ class LoadSaveMenu(Menu):
     def __init__(self, window: pygame.Surface) -> None:
         super().__init__(window)
         self.ui_manager.update_theme(os.path.join(self.THEMES_PATH, 'load_save_menu_theme.json'))
-        self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='top', y='2%', width='50%', childs_classes_names=['item-list-childs'])
+        self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='top', y='2%', width='50%', items_classes_names=['item-list-childs'])
         self._elements.append(self.saves_list)
         options_container = elements.Container(self.ui_manager, x='-15%', anchor='right', height='8%', classes_names=['options-container'])
         self._elements.append(options_container)
-        load_button = elements.Button(self.ui_manager, 'Load', self.load_save, anchor='top')
+        load_button = elements.TextButton(self.ui_manager, 'Load', self.load_save, anchor='top')
         self._elements.append(load_button)
-        delete_button = elements.Button(self.ui_manager, 'Delete save', self.delete_save, anchor='bottom', classes_names=['delete-save-button'])
+        delete_button = elements.TextButton(self.ui_manager, 'Delete save', self.delete_save, anchor='bottom', classes_names=['delete-save-button'])
         self._elements.append(delete_button)
         options_container.add_element(load_button)
         options_container.add_element(delete_button)
-        self._elements.append(elements.Button(self.ui_manager, 'QUIT', self.exit_menu, anchor='bottom', y='-10%'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', self.exit_menu, anchor='bottom', y='-10%'))
         self.add_saves()
     
     def add_saves(self) -> None:
@@ -182,6 +182,7 @@ class LoadSaveMenu(Menu):
         selected = self.saves_list.child_selected
         if selected is None: return
         path = os.path.join(SAVES_PATH, selected.get_text())
+        selected.clear_elements_list()
         self.saves_list.remove_element(selected)
         if not os.path.exists(path): return
         self.delete_folder(path)

@@ -83,7 +83,7 @@ class Game:
                         for block in blocks_to_update:
                             entity.chunk_manager.replace_block(*block)
                     blocks_to_update.clear()
-                    self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
+                    # self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
                     player.chunk_manager.display_chunks(player.x, player.y)
                     player.display()
                     for entity in entities:

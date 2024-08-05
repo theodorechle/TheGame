@@ -1,13 +1,14 @@
 {
-    ":item-list-childs": {
+    "item-list:child": {
         "border-width": 3,
         "selected-border-color": "#555555",
-        "selected-text-color": "#999999"
+        "selected-text-color": "#999999",
+        "vertical-center": true
     },
     ":options-container": {
         "border-width": -1
     },
-    ":delete-save-button": {
+    ":delete-save-button:child": {
         "border-color": "#dd1111",
         "text-color": "#cccccc",
         "hovered-border-color": "#ff0000",

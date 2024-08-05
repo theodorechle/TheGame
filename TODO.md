@@ -10,6 +10,8 @@ Allow switching items in inventory
 
 Add touch number on top of main bar
 
+Saves don't want to be deleted !!!
+
 ## GENERATION:
 
 - [ ] vertical chunks
