@@ -1,15 +1,18 @@
 import pygame
 import items
 from time import monotonic
+from gui.elements import Table, Label
+from gui.ui_element import UIElement
+from gui.ui_manager import UIManager
 
 class Inventory:
-    def __init__(self, nb_cells: int, window: pygame.Surface, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         self._nb_cells = nb_cells
         if cells:
             self.cells: list[tuple[items.Item|None, int]] = cells.copy()
         else:
             self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
-        self.window = window
+        self._ui_manager = ui_manager
         self.cell_size = 40
         self.nb_cells_by_line = 10
         self.cells_borders_size = 2
@@ -18,8 +21,6 @@ class Inventory:
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
         self.selected = 0
         self._is_opened = False
-        self.main_bar_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] - self.cell_size)
-        self.complete_inventory_start_pos = (self.window.get_size()[0] // 2 - self.cell_size * self.nb_cells_by_line // 2, self.window.get_size()[1] // 2 - self.cell_size * (self._nb_cells // self.nb_cells_by_line - 1) // 2)
         # item, quantity
         self._current_clicked_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
         self._clicked_item_init_pos = -1
@@ -27,7 +28,20 @@ class Inventory:
         self._last_time_toggled = 0
         self.time_before_toggle = 0.2
         self.time_before_click = 0.2
-    
+        self.table_main_bar = Table(self._ui_manager, self.nb_cells_by_line, 1, self.cell_size, self.cell_size, anchor='bottom', cells_classes_names=['inventory-cell'])
+        self.table_complete_inventory = Table(self._ui_manager, self.nb_cells_by_line, self._nb_cells // self.nb_cells_by_line - 1, self.cell_size, self.cell_size, anchor='center', cells_classes_names=['inventory-cell'])
+        for index, cell in enumerate(self.cells[:self.nb_cells_by_line]):
+            element = self.table_main_bar.add_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
+            element_child = element.add_element(UIElement(self._ui_manager, width="80%", height="80%", anchor="center", parent=element))
+            if cell[0] is None: continue
+            element_child.set_background_image(cell[0].image)
+        
+        for index, cell in enumerate(self.cells[self.nb_cells_by_line:]):
+            element = self.table_complete_inventory.add_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
+            element_child = element.add_element(UIElement(self._ui_manager, width="80%", height="80%", anchor="center", parent=element))
+            if cell[0] is None: continue
+            element_child.set_background_image(cell[0].image)
+
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
         Tries to add the quantity of the given element in the inventory at pos.
@@ -38,6 +52,9 @@ class Inventory:
         elif self.cells[pos][0] != element: return 0
         added_quantity = min(quantity, element.stack_size - self.cells[pos][1])
         self.cells[pos] = (element, self.cells[pos][1] + added_quantity)
+        if pos < self.nb_cells_by_line:
+            element = self.table_main_bar.get_element(pos % self.nb_cells_by_line, pos // self.nb_cells_by_line)
+            element
         return added_quantity
     
     def add_element(self, element: items.Item, quantity: int) -> int:
@@ -119,40 +136,10 @@ class Inventory:
         ...
 
     def display(self) -> None:
-        self.display_main_bar()
-        if self._is_opened:
-            for index in range(self.nb_cells_by_line, len(self.cells)):
-                x, y = self.complete_inventory_start_pos[0] + (index % self.nb_cells_by_line) * self.cell_size, self.complete_inventory_start_pos[1] + (index // self.nb_cells_by_line - 1) * self.cell_size
-                self._display_cell(x, y, False)
-                block, qty = self.cells[index]
-                if block is None: continue
-                self._display_item(x, y, block, qty)
-        if self._current_clicked_item[0] is not None:
-            self._display_item(*pygame.mouse.get_pos(), self._current_clicked_item[0], self._current_clicked_item[1])
-    
-    def display_main_bar(self) -> None:
-        start_x = self.main_bar_start_pos[0]
-        start_y = self.main_bar_start_pos[1]
-        for index in range(self.nb_cells_by_line):
-            x = start_x + index * self.cell_size
-            self._display_cell(x, start_y, self.selected == index)
-            if index >= len(self.cells): continue
-            block, qty = self.cells[index]
-            if block is None: continue
-            self._display_item(x, start_y, block, qty)
-
-    def _display_cell(self, x: int, y: int, selected: bool) -> None:
-        border_size = self.cells_borders_size * (1 + selected)
-        pygame.draw.rect(self.window, "#dddddd", pygame.Rect(x, y, self.cell_size, self.cell_size))
-        pygame.draw.rect(self.window, "#aaaaaa", pygame.Rect(x, y, self.cell_size, self.cell_size), border_size)
-
-    def _display_item(self, x: int, y: int, item: items.Item, qty: int) -> None:
-        item_img_start = (self.cell_size - items.Item.ITEM_SIZE) // 2
-        self.window.blit(item.image, (x + item_img_start, y + item_img_start))
-        str_qty = str(qty)
-        qty_render_size = self.block_qty_font.size(str_qty)
-        self.window.blit(self.block_qty_font
-                            .render(str_qty, True, "#000000"), (x + self.cell_size - qty_render_size[0], y + self.cell_size - qty_render_size[1]))
+        if self.is_inventory_opened():
+            self._ui_manager.ask_refresh(self.table_complete_inventory)
+        self._ui_manager.ask_refresh(self.table_main_bar)
+        self._ui_manager.display(False)
 
     def toggle_inventory(self) -> bool:
         """
@@ -175,6 +162,7 @@ class Inventory:
         Take the position of the mouse
         and return the index of the clicked cell in the inventory if clicked, else -1
         """
+        return -1
         if self._last_time_clicked > monotonic() - self.time_before_click: return -1
         if self.main_bar_start_pos[1] <= y <= self.main_bar_start_pos[1] + self.cell_size: # main bar
             if self.main_bar_start_pos[0] <= x <= self.main_bar_start_pos[0] + self.cell_size * 10:

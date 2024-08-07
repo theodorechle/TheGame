@@ -8,20 +8,21 @@ from inventory import Inventory
 from player_interface import PlayerInterface
 from items import Item
 from blocks_menus.block_menu import BlockMenu
+from gui.ui_manager import UIManager
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, map_generator: MapGenerator, save_manager: SaveManagerInterface, inventory_cells: list[tuple[Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, map_generator: MapGenerator, save_manager: SaveManagerInterface, inventory_cells: list[tuple[Item|None, int]]|None=None) -> None:
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
         self.save_manager: SaveManagerInterface = save_manager
-
+        self.window = ui_manager.get_window()
         self.infos_font_name: str = ""
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        super().__init__(name, x, y, speed_x, speed_y, direction, window, 1, 2, map_generator, save_manager, 'persos', True)
+        super().__init__(name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, map_generator, save_manager, 'persos', True)
         self.inventory_size: int = 50
-        self.inventory: Inventory = Inventory(self.inventory_size, window, inventory_cells)
+        self.inventory: Inventory = Inventory(self.inventory_size, ui_manager, inventory_cells)
         self.set_player_edges_pos()
 
     
@@ -127,9 +128,9 @@ class Player(Entity, PlayerInterface):
             return {'changed_block': (block_x, block_y, blocks.AIR)}
 
     def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
-        if self.inventory.is_inventory_opened(): return
+        if self.inventory.is_inventory_opened(): return None, None
         x, y = self._get_relative_pos(*pos)
-        if not self._is_interactable(x, y): return None
+        if not self._is_interactable(x, y): return None, None
         x, y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(x, y)
         menu = blocks.INTERACTABLE_BLOCKS.get(block, None)

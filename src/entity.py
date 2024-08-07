@@ -6,16 +6,17 @@ from entity_interface import EntityInterface
 from map_chunk import Chunk
 from map_generation import MapGenerator
 from save_manager_interface import SaveManagerInterface
+from gui.ui_manager import UIManager
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity(EntityInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, window: pygame.Surface, image_length: int, image_height: int, map_generator: MapGenerator, save_manager: SaveManagerInterface, add_path: str='', collisions: bool=True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, image_length: int, image_height: int, map_generator: MapGenerator, save_manager: SaveManagerInterface, add_path: str='', collisions: bool=True) -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
         If no chunk manager is given, collisions are disabled, because we can't check if they collide with blocks.
         """
-        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH), window, map_generator, save_manager)
+        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH), ui_manager.get_window(), map_generator, save_manager)
         self.collisions = collisions
         self.name: str = name
         self.x: int = x
@@ -23,7 +24,7 @@ class Entity(EntityInterface):
         self.speed_x: int = speed_x
         self.speed_y: int = speed_y
         self.direction: bool = direction # False if right, True if left
-        self.window: pygame.Surface = window
+        self._ui_manager = ui_manager
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
         self.path = ENTITIES_IMAGES_PATH
@@ -47,10 +48,10 @@ class Entity(EntityInterface):
             """
             rel_x and rel_y are the coords of the block in the center of the image
             """
-            window_size = self.window.get_size()
+            window_size = self._ui_manager.get_window().get_size()
             x = window_size[0] // 2 - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2 + (self.x - rel_x) * blocks.Block.BLOCK_SIZE
             y = window_size[1] // 2 - self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE
-            self.window.blit(
+            self._ui_manager.get_window().blit(
                 self.image_reversed if self.direction else self.image,
                 (x, y)
             )

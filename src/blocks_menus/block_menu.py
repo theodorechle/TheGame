@@ -37,3 +37,6 @@ class BlockMenu():
         need_update = self._ui_manager.update() or self.need_update
         self.need_update = False
         return need_update
+    
+    def display(self, clear: bool=True) -> None:
+        self._ui_manager.display(clear)

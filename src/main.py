@@ -16,6 +16,7 @@ from chunk_manager import Chunk
 from save_manager import SaveManager
 from entity import Entity
 from blocks_menus.block_menu import BlockMenu
+from gui.ui_manager import UIManager
 from typing import Any
 
 from time import monotonic
@@ -83,12 +84,13 @@ class Game:
                         for block in blocks_to_update:
                             entity.chunk_manager.replace_block(*block)
                     blocks_to_update.clear()
-                    # self.window.fill("#000000", pygame.Rect(0, 0, self.WIDTH, self.HEIGHT))
                     player.chunk_manager.display_chunks(player.x, player.y)
                     player.display()
                     for entity in entities:
                         entity.display(rel_x=player.x, rel_y=player.y)
                     player.display_hud()
+                else:
+                    menu_opened.display()
                 pygame.display.update()
                 need_update = False
             for event in pygame.event.get():
@@ -206,6 +208,8 @@ class Game:
                 need_update = entity.update(time_last_update) or need_update
             if menu_opened is not None:
                 need_update = menu_opened.update() or need_update
+            else:
+                need_update = self._ui_manager.update() or need_update
             clock.tick(self.FPS)
         player.save()
         save_manager.save_players([player])
@@ -213,6 +217,8 @@ class Game:
         return exit_code
 
     def run(self) -> None:
+        self._ui_manager = UIManager(self.window)
+        self._ui_manager.update_theme(os.path.join('src', 'resources', 'gui_themes', 'inventory.json'))
         while True:
             save_name = ''
             main_menu = menus.MainMenu(self.window)
@@ -231,7 +237,7 @@ class Game:
                 map_generator = MapGenerator(seed)
                 save_manager = SaveManager(save_name)
                 map_generator.create_seeds()
-                player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self.window, map_generator, save_manager)
+                player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, map_generator, save_manager)
                 player.inventory.add_element(items.WORKBENCH, 5)
                 player.inventory.add_element(items.FURNACE, 5)
             elif exit_code == menus.LOAD_SAVE:
@@ -255,7 +261,7 @@ class Game:
                         values['speed_x'],
                         values['speed_y'],
                         values['direction'],
-                        self.window,
+                        self._ui_manager,
                         map_generator,
                         save_manager,
                         values['inventory']

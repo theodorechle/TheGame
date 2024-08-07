@@ -76,6 +76,7 @@ class Menu:
                 self.ui_manager.process_event(event)
             self.run_functions_end_loop()
             self.ui_manager.update()
+            self.ui_manager.display()
             pygame.display.update()
             clock.tick(self.FPS)
         pygame.event.clear()

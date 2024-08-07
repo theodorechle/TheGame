@@ -1,0 +1,10 @@
+{
+    ":inventory-cell": {
+        "background-color": "#dddddd",
+        "border-color": "#aaaaaa"
+    },
+    ":inventory-cell:child": {
+        "background-color": "#dddddd",
+        "border-width": -1
+    }
+}

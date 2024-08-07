@@ -3,7 +3,7 @@ from blocks import BLOCKS_IMAGES_PATH
 
 ITEMS_IMAGES_PATH = 'src/resources/images/items'
 class Item:
-    ITEM_SIZE = 20
+    ITEM_SIZE = 40
     def __init__(self, path: str, stack_size: int=99) -> None:
         self.path = path
         self.name = path.replace('_', ' ')
