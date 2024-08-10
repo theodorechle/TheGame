@@ -2,7 +2,7 @@ from pygame import image as pgimg, transform, Surface
 
 UNKNOWN_IMAGE_PATH = 'src/resources/images/unknown.png'
 
-def load_image(paths: list[str], size: tuple[int, int]) -> Surface:
+def load_image(paths: list[str], size: tuple[int, int]|None) -> Surface:
     image = None
     for path in paths:
         try:
@@ -12,5 +12,6 @@ def load_image(paths: list[str], size: tuple[int, int]) -> Surface:
             pass
     if image is None:
         image = pgimg.load(UNKNOWN_IMAGE_PATH)
-
+    if size is None:
+        return image.convert_alpha()
     return transform.scale(image.convert_alpha(), size)

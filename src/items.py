@@ -7,7 +7,7 @@ class Item:
     def __init__(self, path: str, stack_size: int=99) -> None:
         self.path = path
         self.name = path.replace('_', ' ')
-        self.image = load_image([f'{ITEMS_IMAGES_PATH}/{self.path}.png', f'{BLOCKS_IMAGES_PATH}/{self.path}.png'], (self.ITEM_SIZE, self.ITEM_SIZE))
+        self.image = load_image([f'{ITEMS_IMAGES_PATH}/{self.path}.png', f'{BLOCKS_IMAGES_PATH}/{self.path}.png'], None)
         self.stack_size = stack_size
     
     def __repr__(self) -> str:

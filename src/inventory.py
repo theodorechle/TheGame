@@ -15,7 +15,6 @@ class Inventory:
         self._ui_manager = ui_manager
         self.cell_size = 40
         self.nb_cells_by_line = 10
-        self.cells_borders_size = 2
         self.blocks_qty_font_name = ""
         self.blocks_qty_font_size = 20
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)

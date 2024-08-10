@@ -70,8 +70,8 @@ class Game:
         loop = True
         need_update: bool = True
         entities: list[Entity] = []
-        # for i in range(5):
-            # entities.append(Entity('base_character', i, Chunk.HEIGHT, 0, 0, False, self.window, 1, 2, map_generator, save_manager, 'persos', True))
+        for i in range(5):
+            entities.append(Entity('base_character', i, Chunk.HEIGHT, 0, 0, False, self._ui_manager, 1, 2, map_generator, save_manager, 'persos', True))
         blocks_to_update: list[tuple[int, int, blocks.Block]] = []
         blocks_data: dict[tuple[int, int], dict[str, Any]] = {}
         menu_opened: BlockMenu|type[BlockMenu]|None = None
