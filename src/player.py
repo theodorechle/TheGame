@@ -11,7 +11,7 @@ from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, map_generator: MapGenerator, save_manager: SaveManagerInterface, inventory_cells: list[tuple[Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, map_generator: MapGenerator, save_manager: SaveManagerInterface, main_inventory_cells: list[tuple[Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[Item|None, int]]|None=None) -> None:
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
         self.save_manager: SaveManagerInterface = save_manager
@@ -22,12 +22,16 @@ class Player(Entity, PlayerInterface):
 
         super().__init__(name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, map_generator, save_manager, 'persos', True)
         self.inventory_size: int = 50
-        self.inventory: Inventory = Inventory(self.inventory_size, ui_manager, inventory_cells)
+        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, gui_table_params={'anchor': 'center'})
+        self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, gui_table_params={'anchor': 'bottom'})
+        self.hot_bar_inventory.toggle_inventory()
+        self.hot_bar_inventory.set_selected_cell(0, 0)
         self.set_player_edges_pos()
 
     
     def display_hud(self) -> None:
-        self.inventory.display()
+        self.main_inventory.display()
+        self.hot_bar_inventory.display()
         self._display_infos()
 
     def _display_infos(self) -> None:
@@ -43,7 +47,9 @@ class Player(Entity, PlayerInterface):
                     .render(info, True, "#000000"), (50, 20 * i))
 
     def update(self, delta_t: float) -> bool:
-        need_update = super().update(delta_t) or self.inventory.clicked_item()
+        need_update = super().update(delta_t) \
+            or self.main_inventory.clicked_item() \
+            or self.hot_bar_inventory.clicked_item()
         self.chunk_manager.update(self.x)
         return need_update
 
@@ -85,8 +91,9 @@ class Player(Entity, PlayerInterface):
                 or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
     def place_block(self, pos: tuple[int, int]) -> dict|None:
-        if self.inventory.click_cell(*pos): return {} # temp
-        if self.inventory.is_inventory_opened(): return
+        if self.hot_bar_inventory.click_cell(*pos): return {} # temp
+        if self.main_inventory.click_cell(*pos): return {} # temp
+        if self.main_inventory.is_opened(): return
         x, y = self._get_relative_pos(*pos)
         # place block under player
         if self.left_player_pos <= x <= self.right_player_pos and self.bottom_player_pos <= y < self.top_player_pos:
@@ -106,17 +113,17 @@ class Player(Entity, PlayerInterface):
         block_x, block_y = self.x + x, self.y + y
         block = self.chunk_manager.get_block(block_x, block_y)
         if block in blocks.TRAVERSABLE_BLOCKS and self._is_surrounded_by_block(block_x, block_y):
-            item, _ = self.inventory.remove_element_at_pos(1, self.inventory.selected)
+            item, _ = self.hot_bar_inventory.remove_element_at_pos(1, self.hot_bar_inventory.get_selected_index())
             if item is None: return None
             block = convert_item_to_block(item)
             if block is not None:
                 self.chunk_manager.replace_block(block_x, block_y, block)
                 return {'changed_block': (block_x, block_y, block)}
             else:
-                self.inventory.add_element_at_pos(item, 1, self.inventory.selected)
+                self.hot_bar_inventory.add_element_at_pos(item, 1, self.hot_bar_inventory.get_selected_index())
 
     def remove_block(self, pos: tuple[int, int]) -> dict|None:
-        if self.inventory.is_inventory_opened(): return
+        if self.main_inventory.is_opened(): return
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None
         block_x, block_y = self.x + x, self.y + y
@@ -124,11 +131,13 @@ class Player(Entity, PlayerInterface):
         if block is not None and block not in blocks.TRAVERSABLE_BLOCKS:
             self.chunk_manager.replace_block(block_x, block_y, blocks.AIR)
             for item, quantity in convert_block_to_items(block, 1).items():
-                self.inventory.add_element(item, quantity)
+                qty = self.hot_bar_inventory.add_element(item, quantity)
+                if qty:
+                    self.main_inventory.add_element(item, quantity - qty)
             return {'changed_block': (block_x, block_y, blocks.AIR)}
 
     def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
-        if self.inventory.is_inventory_opened(): return None, None
+        if self.main_inventory.is_opened(): return None, None
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None, None
         x, y = self.x + x, self.y + y

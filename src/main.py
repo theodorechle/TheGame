@@ -62,6 +62,8 @@ class Game:
         self.run()
 
     def game_loop(self, map_generator: MapGenerator, save_manager: SaveManager, player: Player) -> int:
+        # reload theme on each game
+        self._ui_manager.update_theme(os.path.join('src', 'resources', 'gui_themes', 'inventory.json'))
         exit_code = menus.EXIT
         clock = pygame.time.Clock()
         pygame.key.set_repeat(100, 100)
@@ -70,8 +72,8 @@ class Game:
         loop = True
         need_update: bool = True
         entities: list[Entity] = []
-        for i in range(5):
-            entities.append(Entity('base_character', i, Chunk.HEIGHT, 0, 0, False, self._ui_manager, 1, 2, map_generator, save_manager, 'persos', True))
+        for i in range(10):
+            entities.append(Entity('stone', i, Chunk.HEIGHT, 0, 0, False, self._ui_manager, 1, 1, map_generator, save_manager, 'persos', True))
         blocks_to_update: list[tuple[int, int, blocks.Block]] = []
         blocks_data: dict[tuple[int, int], dict[str, Any]] = {}
         menu_opened: BlockMenu|type[BlockMenu]|None = None
@@ -84,6 +86,7 @@ class Game:
                         for block in blocks_to_update:
                             entity.chunk_manager.replace_block(*block)
                     blocks_to_update.clear()
+                    self._ui_manager.get_window().fill("#000000")
                     player.chunk_manager.display_chunks(player.x, player.y)
                     player.display()
                     for entity in entities:
@@ -108,7 +111,7 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if self.last_time_in_menu < monotonic() - self.time_before_menu:
-                            player.inventory.place_back_clicked_item()
+                            player.hot_bar_inventory.place_back_clicked_item()
                             exit_code = menus.EscapeMenu(self.window).run()
                             self.last_time_in_menu = monotonic()
                             need_update = True
@@ -159,10 +162,10 @@ class Game:
             if self.pressed_keys['mv_up']:
                 player.speed_y = 1
             if self.pressed_keys['open_inv']:
-                need_update = player.inventory.toggle_inventory()
+                need_update = player.main_inventory.toggle_inventory()
             for i in range(10):
                 if self.pressed_keys[f'inv_{i}']:
-                    player.inventory.selected = i
+                    player.hot_bar_inventory.set_selected_cell(i, 0)
                     need_update = True
 
             if self.pressed_keys['place_block']:
@@ -196,7 +199,7 @@ class Game:
                             block_data = blocks_data.get(block_interacting, None)
                             if block_data is None:
                                 block_data = {}
-                            menu_opened = menu_opened(block_data, player.inventory, self.window)
+                            menu_opened = menu_opened(block_data, player.hot_bar_inventory, self.window)
                             last_time_toggled_menu = monotonic()
                             for key in self.pressed_keys.keys():
                                 self.pressed_keys[key] = False
@@ -218,7 +221,6 @@ class Game:
 
     def run(self) -> None:
         self._ui_manager = UIManager(self.window)
-        self._ui_manager.update_theme(os.path.join('src', 'resources', 'gui_themes', 'inventory.json'))
         while True:
             save_name = ''
             main_menu = menus.MainMenu(self.window)
@@ -238,8 +240,8 @@ class Game:
                 save_manager = SaveManager(save_name)
                 map_generator.create_seeds()
                 player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, map_generator, save_manager)
-                player.inventory.add_element(items.WORKBENCH, 5)
-                player.inventory.add_element(items.FURNACE, 5)
+                player.hot_bar_inventory.add_element(items.WORKBENCH, 5)
+                player.hot_bar_inventory.add_element(items.FURNACE, 5)
             elif exit_code == menus.LOAD_SAVE:
                 load_save_menu = menus.LoadSaveMenu(self.window)
                 exit_code = load_save_menu.run()
@@ -264,7 +266,8 @@ class Game:
                         self._ui_manager,
                         map_generator,
                         save_manager,
-                        values['inventory']
+                        values['main_inventory'],
+                        values['hot_bar_inventory']
                         )
                     )
                 player = players[0]

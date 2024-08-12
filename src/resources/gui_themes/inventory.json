@@ -1,11 +1,18 @@
 {
     ":inventory-cell": {
         "border-width": 2,
-        "background-color": "#dddddd",
-        "border-color": "#aaaaaa"
+        "background-color": "#bbbbbb",
+        "border-color": "#888888",
+        "selected-border-color": "#000000"
     },
     ":inventory-cell:child": {
-        "background-color": "#dddddd",
+        "background-color": "#bbbbbb",
+        "border-width": -1
+    },
+    ":inventory-cell-label": {
+        "font-size": 25,
+        "text-color": "#ffffff",
+        "background-color": null,
         "border-width": -1
     }
 }

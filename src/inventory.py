@@ -4,9 +4,11 @@ from time import monotonic
 from gui.elements import Table, Label
 from gui.ui_element import UIElement
 from gui.ui_manager import UIManager
+from typing import Any
+from math import ceil
 
 class Inventory:
-    def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None, gui_table_params: dict[str, Any]|None=None) -> None:
         self._nb_cells = nb_cells
         if cells:
             self.cells: list[tuple[items.Item|None, int]] = cells.copy()
@@ -18,7 +20,7 @@ class Inventory:
         self.blocks_qty_font_name = ""
         self.blocks_qty_font_size = 20
         self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
-        self.selected = 0
+        self._selected = 0
         self._is_opened = False
         # item, quantity
         self._current_clicked_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
@@ -27,19 +29,26 @@ class Inventory:
         self._last_time_toggled = 0
         self.time_before_toggle = 0.2
         self.time_before_click = 0.2
-        self.table_main_bar = Table(self._ui_manager, self.nb_cells_by_line, 1, self.cell_size, self.cell_size, anchor='bottom', cells_classes_names=['inventory-cell'])
-        self.table_complete_inventory = Table(self._ui_manager, self.nb_cells_by_line, self._nb_cells // self.nb_cells_by_line - 1, self.cell_size, self.cell_size, anchor='center', cells_classes_names=['inventory-cell'])
-        for index, cell in enumerate(self.cells[:self.nb_cells_by_line]):
-            element = self.table_main_bar.add_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
-            element_child = element.add_element(UIElement(self._ui_manager, width="80%", height="80%", anchor="center", parent=element))
+        if gui_table_params is None:
+            gui_table_params = {}
+        self.inventory_table = Table(self._ui_manager, self.nb_cells_by_line, ceil(self._nb_cells / self.nb_cells_by_line), self.cell_size, self.cell_size, cells_classes_names=['inventory-cell'], **gui_table_params, visible=self._is_opened)
+        for index, cell in enumerate(self.cells):
+            element = self.inventory_table.add_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
+            element_child = element.add_element(UIElement(self._ui_manager, width="80%", height="80%", anchor="center"))
             if cell[0] is None: continue
             element_child.set_background_image(cell[0].image)
-        
-        for index, cell in enumerate(self.cells[self.nb_cells_by_line:]):
-            element = self.table_complete_inventory.add_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
-            element_child = element.add_element(UIElement(self._ui_manager, width="80%", height="80%", anchor="center", parent=element))
-            if cell[0] is None: continue
-            element_child.set_background_image(cell[0].image)
+            element.add_element(Label(self._ui_manager, str(cell[1]), anchor="bottom-right", x="-4%", y="-2%", classes_names=['inventory-cell-label']))
+
+    def update_cell_display_element(self, index: int) -> None:
+        if index >= self.nb_cells_by_line: return
+        cell = self.cells[index]
+        if cell[0] is None: return
+        element = self.inventory_table.get_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
+        element.set_background_image(cell[0].image)
+        # change to have a better way to do this
+        # maybe get with class name
+        element._elements[1].set_text(str(cell[1]))
+        self._ui_manager.ask_refresh(element)
 
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -51,9 +60,7 @@ class Inventory:
         elif self.cells[pos][0] != element: return 0
         added_quantity = min(quantity, element.stack_size - self.cells[pos][1])
         self.cells[pos] = (element, self.cells[pos][1] + added_quantity)
-        if pos < self.nb_cells_by_line:
-            element = self.table_main_bar.get_element(pos % self.nb_cells_by_line, pos // self.nb_cells_by_line)
-            element
+        self.update_cell_display_element(pos)
         return added_quantity
     
     def add_element(self, element: items.Item, quantity: int) -> int:
@@ -79,6 +86,7 @@ class Inventory:
         self.cells[pos] = (self.cells[pos][0], self.cells[pos][1] - removed_quantity)
         if self.cells[pos][1] == 0:
             self.cells[pos] = (items.NOTHING, 0)
+        self.update_cell_display_element(pos)
         return cell
 
     def remove_element(self, element: items.Item) -> int:
@@ -129,15 +137,14 @@ class Inventory:
         if 0 > pos or pos >= len(self.cells): return (items.NOTHING, 0)
         cell = self.cells[pos]
         self.cells[pos] = (items.NOTHING, 0)
+        self.update_cell_display_element(pos)
         return cell
 
     def sort(self) -> None:
         ...
 
     def display(self) -> None:
-        if self.is_inventory_opened():
-            self._ui_manager.ask_refresh(self.table_complete_inventory)
-        self._ui_manager.ask_refresh(self.table_main_bar)
+        self._ui_manager.ask_refresh(self.inventory_table)
         self._ui_manager.display(False)
 
     def toggle_inventory(self) -> bool:
@@ -147,9 +154,10 @@ class Inventory:
         if self._last_time_toggled > monotonic() - self.time_before_toggle: return False
         self._is_opened = not self._is_opened 
         self._last_time_toggled = monotonic()
+        self.inventory_table.set_visibility(self._is_opened)
         return True
     
-    def is_inventory_opened(self) -> bool:
+    def is_opened(self) -> bool:
         return self._is_opened
 
     def clicked_item(self) -> bool:
@@ -211,6 +219,16 @@ class Inventory:
         if self._current_clicked_item[1] == 0:
             self._current_clicked_item = (items.NOTHING, 0)
             self._clicked_item_init_pos = -1
+
+    def set_selected_cell(self, x: int, y: int) -> None:
+        self.inventory_table.set_selected_child(self.inventory_table.get_element(x, y))
+        self._selected = x + y*self.nb_cells_by_line
+
+    def get_selected_cell(self) -> UIElement|None:
+        return self.inventory_table.get_selected_element()
+    
+    def get_selected_index(self) -> int:
+        return self._selected
 
 def inventory_cells_to_ints(cells: list[tuple[items.Item|None, int]]) -> list[tuple[int, int]]:
     return [(items.ITEMS_DICT[cell[0]], cell[1]) if cell[0] is not None else cell for cell in cells]

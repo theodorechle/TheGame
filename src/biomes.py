@@ -108,7 +108,7 @@ HIGH_MOUNTAIN = Biome(
     min_height=100,
     max_height=115,
     max_height_difference=3,
-    blocks_by_zone=[(blocks.SNOW, 100, 3)],
+    blocks_by_zone=[(blocks.SNOW, 100, 10)],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
         (0.6, blocks.COAL, 30, 102, 0.4),

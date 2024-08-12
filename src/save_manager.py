@@ -49,7 +49,8 @@ class SaveManager(SaveManagerInterface):
             try:
                 with open(os.path.join(self.players_path, player_file)) as f:
                     player_infos = json.load(f)
-                    player_infos['inventory'] = ints_to_inventory_cells(player_infos['inventory'])
+                    player_infos['hot_bar_inventory'] = ints_to_inventory_cells(player_infos['hot_bar_inventory'])
+                    player_infos['main_inventory'] = ints_to_inventory_cells(player_infos['main_inventory'])
                     players[player_file.removesuffix('.json')] = player_infos
             except FileNotFoundError:
                 pass
@@ -63,7 +64,8 @@ class SaveManager(SaveManagerInterface):
                 'y': player.y,
                 'speed_x': player.speed_x,
                 'speed_y': player.speed_y,
-                'inventory': inventory_cells_to_ints(player.inventory.cells)
+                'hot_bar_inventory': inventory_cells_to_ints(player.hot_bar_inventory.cells),
+                'main_inventory': inventory_cells_to_ints(player.main_inventory.cells)
             }
             with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:
                 json.dump(player_dict, f)
