@@ -104,12 +104,11 @@ class Player(Entity, PlayerInterface):
                 or self.chunk_manager.get_block(x - 1, y) not in blocks.TRAVERSABLE_BLOCKS
                 or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
-    def drag_item_in_inventory(self, inventory: Inventory) -> bool:
+    def drag_item_in_inventory(self, inventory: Inventory, index: int=-1) -> bool:
         if self._last_time_clicked + self.min_time_before_click > monotonic(): return
-        index = inventory.get_clicked_cell()
-        print(index)
+        if index == -1:
+            index = inventory.get_clicked_cell()
         if index != -1:
-            print(self._current_dragged_item)
             if self._current_dragged_item[0] == items.NOTHING:
                 if inventory.cells[index][0] is not items.NOTHING:
                     self._dragged_item_element = inventory.inventory_table.get_element_by_index(index).__copy__()
@@ -121,8 +120,16 @@ class Player(Entity, PlayerInterface):
                     self._last_time_clicked = monotonic()
                     return True
             else:
-                removed_qty = inventory.add_element_at_pos(self._current_dragged_item[0], self._current_dragged_item[1], index)
+                removed_qty = inventory.add_element_at_pos(*self._current_dragged_item, index)
                 self._current_dragged_item = (self._current_dragged_item[0], self._current_dragged_item[1] - removed_qty)
+                if removed_qty == 0:
+                    dragged_item = self._current_dragged_item
+                    self._current_dragged_item = (items.NOTHING, 0)
+                    self._last_time_clicked = 0
+                    self._dragged_item_element = self._dragged_item_element.delete()
+                    self.drag_item_in_inventory(inventory, index)
+                    inventory.add_element_at_pos(*dragged_item, index)
+
                 if self._current_dragged_item[1] == 0:
                     self._current_dragged_item = (items.NOTHING, 0)
                     self._dragged_item_index = -1
