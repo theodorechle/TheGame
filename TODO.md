@@ -6,13 +6,11 @@ Sometimes, the chunks and players directories are created in saves/, not in save
 
 Allow renaming saves
 
-Allow switching items in inventory
-
 Add key number on top of main bar
 
 Maybe go to C or C++ with SDL2
 
-MODIFY INVENTORY TO HAVE SEPARATION BETWEEN ITEM SELECTION WITH KEYBOARD AND MOUSE SELECTION (MAYBE SELECTED AND FOCUSED)
+Add save versionning and handle these versions (like the actual sh script)
 
 ## GENERATION:
 
@@ -58,7 +56,7 @@ MODIFY INVENTORY TO HAVE SEPARATION BETWEEN ITEM SELECTION WITH KEYBOARD AND MOU
 
 ## INTERACTIONS WITH BLOCKS:
 
-- [ ] workbench (display required components, need quantity and actual quantity)
+- [x] workbench (display required components, need quantity and actual quantity)
 - [ ] furnace
 - [ ] chest
 
