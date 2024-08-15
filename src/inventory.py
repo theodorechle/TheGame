@@ -1,53 +1,68 @@
-import pygame
 import items
 from time import monotonic
 from gui.elements import Table, Label
 from gui.ui_element import UIElement
 from gui.ui_manager import UIManager
-from typing import Any
 from math import ceil
 
 class Inventory:
-    def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None, gui_table_params: dict[str, Any]|None=None) -> None:
+    def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
+        self._is_opened = False
         self._nb_cells = nb_cells
         if cells:
             self.cells: list[tuple[items.Item|None, int]] = cells.copy()
         else:
             self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
         self._ui_manager = ui_manager
-        self.cell_size = 40
         self.nb_cells_by_line = 10
-        self.blocks_qty_font_name = ""
-        self.blocks_qty_font_size = 20
-        self.block_qty_font = pygame.font.SysFont(self.blocks_qty_font_name, self.blocks_qty_font_size)
-        self._selected = 0
-        self._is_opened = False
-        # item, quantity
-        self._current_clicked_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
-        self._clicked_item_init_pos = -1
-        self._last_time_clicked = 0
-        self._last_time_toggled = 0
-        self.time_before_toggle = 0.2
-        self.time_before_click = 0.2
-        if gui_table_params is None:
-            gui_table_params = {}
-        self.inventory_table = Table(self._ui_manager, self.nb_cells_by_line, ceil(self._nb_cells / self.nb_cells_by_line), self.cell_size, self.cell_size, cells_classes_names=['inventory-cell'], **gui_table_params, visible=self._is_opened)
+        # ui elements initialization
+        self.cell_size = 40
+        if classes_names is None:
+            classes_names = []
+        self.inventory_table = Table(
+            self._ui_manager,
+            self.nb_cells_by_line,
+            ceil(self._nb_cells / self.nb_cells_by_line),
+            self.cell_size,
+            self.cell_size,
+            cells_classes_names=classes_names+['inventory-cell'],
+            anchor=anchor,
+            visible=self._is_opened)
+        # creating every cells
         for index, cell in enumerate(self.cells):
             element = self.inventory_table.add_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
+            element.clickable = False
+            # the element with the item image
             element_child = element.add_element(UIElement(self._ui_manager, width="80%", height="80%", anchor="center"))
-            if cell[0] is None: continue
-            element_child.set_background_image(cell[0].image)
-            element.add_element(Label(self._ui_manager, str(cell[1]), anchor="bottom-right", x="-4%", y="-2%", classes_names=['inventory-cell-label']))
-
+            element_child._can_have_focus = False
+            text = str(cell[1])
+            if text == '0':
+                text = ''
+            label = Label(self._ui_manager, text, anchor="bottom-right", x="-4%", y="-2%", classes_names=['inventory-cell-label'])
+            label._can_have_focus = False
+            element.add_element(label)
+            if cell[0] is not None:
+                element_child.set_background_image(cell[0].image)
+        # item, quantity
+        self._current_clicked_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
+        self._selected = -1
+        # timers
+        self._last_time_toggled = 0
+        self.time_before_toggle = 0.2
+    
     def update_cell_display_element(self, index: int) -> None:
-        if index >= self.nb_cells_by_line: return
+        if index >= self._nb_cells: return
         cell = self.cells[index]
-        if cell[0] is None: return
-        element = self.inventory_table.get_element(index % self.nb_cells_by_line, index // self.nb_cells_by_line)
-        element.set_background_image(cell[0].image)
-        # change to have a better way to do this
-        # maybe get with class name
-        element._elements[1].set_text(str(cell[1]))
+        element = self.inventory_table.get_element_by_index(index)
+        if cell[0] is None:
+            element._elements[0].set_background_image(None)
+            element._elements[1].set_text('')
+        else:
+            element._elements[0].set_background_image(cell[0].image)
+            # change to have a better way to do this
+            # maybe get with class name
+            element._elements[1].set_text(str(cell[1]))
+        element.update_element()
         self._ui_manager.ask_refresh(element)
 
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
@@ -145,7 +160,6 @@ class Inventory:
 
     def display(self) -> None:
         self._ui_manager.ask_refresh(self.inventory_table)
-        self._ui_manager.display(False)
 
     def toggle_inventory(self) -> bool:
         """
@@ -160,65 +174,11 @@ class Inventory:
     def is_opened(self) -> bool:
         return self._is_opened
 
-    def clicked_item(self) -> bool:
-        """Return whether an item was clicked"""
-        return self._clicked_item_init_pos != -1
-
-    def get_clicked_cell(self, x: int, y: int) -> int:
-        """
-        Take the position of the mouse
-        and return the index of the clicked cell in the inventory if clicked, else -1
-        """
+    def get_clicked_cell(self) -> int:
+        for index in range(self._nb_cells):
+            if self.inventory_table.get_element_by_index(index)._clicked:
+                return index
         return -1
-        if self._last_time_clicked > monotonic() - self.time_before_click: return -1
-        if self.main_bar_start_pos[1] <= y <= self.main_bar_start_pos[1] + self.cell_size: # main bar
-            if self.main_bar_start_pos[0] <= x <= self.main_bar_start_pos[0] + self.cell_size * 10:
-                x -= self.main_bar_start_pos[0]
-                x //= self.cell_size
-                index = x
-            else: return -1
-        elif self._is_opened and self.complete_inventory_start_pos[1] <= y <= self.complete_inventory_start_pos[1] + self.cell_size * (self._nb_cells // self.nb_cells_by_line + 1): # all inventory
-            if self.complete_inventory_start_pos[0] <= x <= self.complete_inventory_start_pos[0] + self.cell_size * self.nb_cells_by_line:
-                x -= self.complete_inventory_start_pos[0]
-                x //= self.cell_size
-                y -= self.complete_inventory_start_pos[1]
-                y //= self.cell_size
-                y += 1
-                index = y * self.nb_cells_by_line + x
-            else: return -1
-        else:
-            return -1
-        if index >= self._nb_cells: return -1
-        return index
-
-    def click_cell(self, x: int, y: int) -> bool:
-        index = self.get_clicked_cell(x, y)
-        if index == -1: return False
-        if self._current_clicked_item[0] is None:
-            item, qty = self.empty_cell(index)
-            if item is not items.NOTHING:
-                self._clicked_item_init_pos = index
-                self._current_clicked_item = (item, qty)
-        else:
-            self.place_clicked_item(index)
-        self._last_time_clicked = monotonic()
-        return True
-
-    def place_clicked_item(self, pos: int) -> None:
-        removed_qty = self.add_element_at_pos(self._current_clicked_item[0], self._current_clicked_item[1], pos)
-        self._current_clicked_item = (self._current_clicked_item[0], self._current_clicked_item[1] - removed_qty)
-        if self._current_clicked_item[1] == 0:
-            self._current_clicked_item = (items.NOTHING, 0)
-            self._clicked_item_init_pos = -1
-
-    def place_back_clicked_item(self) -> None:
-        self.place_clicked_item(self._clicked_item_init_pos)
-        if self._clicked_item_init_pos == -1: return
-        removed_qty = self.add_element(*self._current_clicked_item)
-        self._current_clicked_item = (self._current_clicked_item[0], self._current_clicked_item[1] - removed_qty)
-        if self._current_clicked_item[1] == 0:
-            self._current_clicked_item = (items.NOTHING, 0)
-            self._clicked_item_init_pos = -1
 
     def set_selected_cell(self, x: int, y: int) -> None:
         self.inventory_table.set_selected_child(self.inventory_table.get_element(x, y))

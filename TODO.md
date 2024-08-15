@@ -8,13 +8,11 @@ Allow renaming saves
 
 Allow switching items in inventory
 
-Add touch number on top of main bar
+Add key number on top of main bar
 
 Maybe go to C or C++ with SDL2
 
-Bug with text in top left (multiple times writed each in the others)
-
-Bug when going down too much (world also go down with you)
+MODIFY INVENTORY TO HAVE SEPARATION BETWEEN ITEM SELECTION WITH KEYBOARD AND MOUSE SELECTION (MAYBE SELECTED AND FOCUSED)
 
 ## GENERATION:
 

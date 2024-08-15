@@ -92,6 +92,7 @@ class Game:
                     for entity in entities:
                         entity.display(rel_x=player.x, rel_y=player.y)
                     player.display_hud()
+                    self._ui_manager.display(False)
                 else:
                     menu_opened.display()
                 pygame.display.update()
@@ -108,10 +109,12 @@ class Game:
                         exit_key = self.mouse_buttons['interact']
                     if menu_opened.process_event(event, exit_key):
                         self.pressed_keys['interact'] = True
-                elif event.type == pygame.KEYDOWN:
+                    continue
+                self._ui_manager.process_event(event)
+                if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         if self.last_time_in_menu < monotonic() - self.time_before_menu:
-                            player.hot_bar_inventory.place_back_clicked_item()
+                            player.place_back_dragged_item()
                             exit_code = menus.EscapeMenu(self.window).run()
                             self.last_time_in_menu = monotonic()
                             need_update = True

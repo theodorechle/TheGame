@@ -2,7 +2,9 @@
     ":inventory-cell": {
         "border-width": 2,
         "background-color": "#bbbbbb",
-        "border-color": "#888888",
+        "border-color": "#888888"
+    },
+    ":hot-bar-inventory": {
         "selected-border-color": "#000000"
     },
     ":inventory-cell:child": {
