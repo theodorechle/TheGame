@@ -112,6 +112,9 @@ class Player(Entity, PlayerInterface):
             if self._current_dragged_item[0] == items.NOTHING:
                 if inventory.cells[index][0] is not items.NOTHING:
                     self._dragged_item_element = inventory.inventory_table.get_element_by_index(index).__copy__()
+                    self._dragged_item_element.classes_names.append('dragged-item')
+                    self._ui_manager.update_element_theme(self._dragged_item_element)
+                    self._dragged_item_element.update_element()
                     item = inventory.empty_cell(index)
                     self._current_dragged_item = item
                     self._dragged_item_index = index

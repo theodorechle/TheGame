@@ -38,7 +38,7 @@ class Inventory:
             text = str(cell[1])
             if text == '0':
                 text = ''
-            label = Label(self._ui_manager, text, anchor="bottom-right", x="-4%", y="-2%", classes_names=['inventory-cell-label'])
+            label = Label(self._ui_manager, text, anchor="bottom-right", x="-10%", y="-2%", classes_names=['inventory-cell-label'])
             label._can_have_focus = False
             element.add_element(label)
             if cell[0] is not None:

@@ -16,5 +16,9 @@
         "text-color": "#ffffff",
         "background-color": null,
         "border-width": -1
+    },
+    ":dragged-item": {
+        "background-color": null,
+        "border-width": -1
     }
 }
