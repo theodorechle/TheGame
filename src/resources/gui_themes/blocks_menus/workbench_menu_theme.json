@@ -1,10 +1,10 @@
 {
-    ":craft-list-childs": {
+    ":craft-list:child": {
         "border-width": 3,
         "selected-border-color": "#555555",
         "selected-text-color": "#999999"
     },
-    ":item-lists-childs": {
+    "item-list:child": {
         "vertical-center": true,
         "horizontal-center": true
     },
