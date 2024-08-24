@@ -1,7 +1,7 @@
 import os, sys
+
 gui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'gui')
 sys.path.append(gui_path)
-
 
 import pygame
 pygame.init()
@@ -18,6 +18,7 @@ from entity import Entity
 from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 from typing import Any
+from module_infos import SRC_PATH
 
 from time import monotonic
 import menus
@@ -63,7 +64,7 @@ class Game:
 
     def game_loop(self, map_generator: MapGenerator, save_manager: SaveManager, player: Player) -> int:
         # reload theme on each game
-        self._ui_manager.update_theme(os.path.join('src', 'resources', 'gui_themes', 'inventory.json'))
+        self._ui_manager.update_theme(os.path.join(SRC_PATH, 'resources', 'gui_themes', 'inventory.json'))
         exit_code = menus.EXIT
         clock = pygame.time.Clock()
         pygame.key.set_repeat(100, 100)

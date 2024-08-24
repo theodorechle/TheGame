@@ -6,6 +6,7 @@ import pygame
 from time import monotonic
 import os
 from save_manager import SAVES_PATH
+from module_infos import SRC_PATH
 
 EXIT = 0
 CREATE_GAME = 1
@@ -17,7 +18,7 @@ LOAD_SAVE = 6
 
 class Menu:
     FPS = 20
-    THEMES_PATH = os.path.join('src', 'resources', 'gui_themes', 'menus_themes')
+    THEMES_PATH = os.path.join(SRC_PATH, 'resources', 'gui_themes', 'menus_themes')
     def __init__(self, window: pygame.Surface) -> None:
         self.ui_manager = UIManager(window)
         self._loop = True

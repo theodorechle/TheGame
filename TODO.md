@@ -10,8 +10,6 @@ Add key number on top of main bar
 
 Maybe go to C or C++ with SDL2
 
-Add save versionning and handle these versions (like the actual sh script)
-
 ## GENERATION:
 
 - [ ] vertical chunks

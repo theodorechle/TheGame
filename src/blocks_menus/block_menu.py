@@ -5,8 +5,9 @@ from time import monotonic
 import os
 from typing import Any
 from inventory import Inventory
+from module_infos import SRC_PATH
 
-BLOCKS_MENUS_THEMES_PATH = os.path.join('src', 'resources', 'gui_themes', 'blocks_menus')
+BLOCKS_MENUS_THEMES_PATH = os.path.join(SRC_PATH, 'resources', 'gui_themes', 'blocks_menus')
 
 class BlockMenu():
     def __init__(self, block_data: dict[str, Any], player_inventory: Inventory, window: pygame.Surface, *ui_manager_parameters) -> None:
