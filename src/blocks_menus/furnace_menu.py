@@ -28,7 +28,7 @@ class FurnaceMenu(BlockMenu):
         self._elements.append(self.crafted_quantities)
         self._elements.append(elements.TextButton(self._ui_manager, 'Craft', self.craft_item, anchor='center', x='45%'))
         if 'inventory' not in self.block_data:
-            self.block_data['inventory'] = FurnaceInventory(500, 500, 5, self.window)
+            self.block_data['inventory'] = FurnaceInventory(5, self._ui_manager)
         self.block_inventory = self.block_data['inventory']
         self.add_crafts()
     

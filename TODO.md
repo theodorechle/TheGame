@@ -10,6 +10,8 @@ Add key number on top of main bar
 
 Maybe go to C or C++ with SDL2
 
+Rename window
+
 ## GENERATION:
 
 - [ ] vertical chunks
