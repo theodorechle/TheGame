@@ -174,9 +174,13 @@ class LoadSaveMenu(Menu):
         self.add_saves()
     
     def add_saves(self) -> None:
-        self.server.send_json({'method': 'GET', 'wanted-data': 'saves-list'})
-        saves = self.server.receive_msg()
-        if not saves:
+        saves = self.server.send_json({
+            'method': 'GET',
+            'data': {
+                'type': 'saves-list'
+            }
+        })
+        if saves is None:
             return
         self.saves_list.add_elements(saves['data'])
 
@@ -186,20 +190,14 @@ class LoadSaveMenu(Menu):
         self.exit(START_GAME)
     
     def delete_save(self, _: UIElement) -> None:
-        return
         selected = self.saves_list.child_selected
         if selected is None: return
-        path = os.path.join(SAVES_PATH, selected.get_text())
-        selected.clear_elements_list()
+        data = self.server.send_json({
+            'method': 'DELETE',
+            'data': {
+                'type': 'save',
+                'value': selected.get_text()
+            }
+        })
+        if data['status'] != self.server.VALID_REQUEST: return
         self.saves_list.remove_element(selected)
-        if not os.path.exists(path): return
-        self.delete_folder(path)
-
-    def delete_folder(self, path) -> None:
-        for file in os.listdir(path):
-            file_path = os.path.join(path, file)
-            if os.path.isdir(file_path):
-                self.delete_folder(file_path)
-            else:
-                os.remove(file_path)
-        os.rmdir(path)

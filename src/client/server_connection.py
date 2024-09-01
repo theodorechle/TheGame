@@ -7,6 +7,8 @@ import os
 from module_infos import SERVER_PATH
 
 class ServerConnection:
+    VALID_REQUEST = 0
+    WRONG_REQUEST = 1
     def __init__(self, host: str, port: int) -> None:
         self.host = host
         self.port = port
@@ -25,16 +27,17 @@ class ServerConnection:
         client_socket.connect((self.host, self.port))
         return client_socket
 
-    def send_json(self, request: dict) -> None:
+    def send_json(self, request: dict) -> dict|None:
         request = json.dumps(request).encode()
         message = struct.pack('>I', len(request)) + request
         self.server_socket.sendall(message)
+        return self.receive_msg()
     
-    def receive_msg(self) -> dict:
+    def receive_msg(self) -> dict|None:
         msglen = struct.unpack('>I', self.recvall(4))[0]
         message = self.recvall(msglen)
         if not message:
-            return {}
+            return
         return json.loads(message)
     
     def recvall(self, size: int) -> bytes:

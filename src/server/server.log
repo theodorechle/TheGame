@@ -66,3 +66,45 @@ launched server at Sun Sep  1 18:52:43 2024
 Bad request: missing 'method' in {}
 launched server at Sun Sep  1 18:55:29 2024
 Bad request: missing 'method' in {}
+launched server at Sun Sep  1 21:01:41 2024
+launched server at Sun Sep  1 21:02:58 2024
+launched server at Sun Sep  1 21:03:39 2024
+launched server at Sun Sep  1 21:04:42 2024
+launched server at Sun Sep  1 21:05:19 2024
+launched server at Sun Sep  1 21:06:50 2024
+launched server at Sun Sep  1 21:11:34 2024
+Client '('127.0.0.1', 63081)' sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+launched server at Sun Sep  1 21:12:07 2024
+Client ('127.0.0.1', 63104) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+launched server at Sun Sep  1 21:12:39 2024
+Client ('127.0.0.1', 63128) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+launched server at Sun Sep  1 21:14:30 2024
+launched server at Sun Sep  1 21:14:53 2024
+launched server at Sun Sep  1 21:15:17 2024
+launched server at Sun Sep  1 21:15:52 2024
+Client ('127.0.0.1', 63210) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 63211) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 63212) sent request {}
+Bad request: missing 'method' in {}
+Client ('127.0.0.1', 63214) sent request {}
+Bad request: missing 'method' in {}
+Client ('127.0.0.1', 63216) sent request {}
+Bad request: missing 'method' in {}
+Client ('127.0.0.1', 63217) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+launched server at Sun Sep  1 21:18:45 2024
+Client ('127.0.0.1', 63235) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+launched server at Sun Sep  1 21:21:01 2024
+Client ('127.0.0.1', 63266) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+launched server at Sun Sep  1 21:30:31 2024
+Client ('127.0.0.1', 63378) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 63378) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 63378) sent request {'method': 'DELETE', 'data': {'type': 'save', 'value': 'chunks'}}
+Client ('127.0.0.1', 63378) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 63378) sent request {'method': 'DELETE', 'data': {'type': 'save', 'value': 'players'}}
+Client ('127.0.0.1', 63378) disconnected
+Connection closed for client ('127.0.0.1', 63378)
+launched server at Sun Sep  1 21:33:03 2024
+Client ('127.0.0.1', 63410) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 63410) sent request {'method': 'DELETE', 'data': {'type': 'save', 'value': '^poiuytdrsdr'}}
+Client ('127.0.0.1', 63410) disconnected
+Connection closed for client ('127.0.0.1', 63410)
