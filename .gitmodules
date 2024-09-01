@@ -1,3 +1,3 @@
-[submodule "src/gui"]
-	path = src/gui
+[submodule "src/client/gui"]
+	path = src/client/gui
 	url = https://github.com/theodorechle/python_gui
