@@ -14,6 +14,7 @@ from time import monotonic
 
 class Player(Entity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, map_generator: MapGenerator, save_manager: SaveManagerInterface, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+        PlayerInterface.__init__(self)
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
         self.save_manager: SaveManagerInterface = save_manager
@@ -22,7 +23,7 @@ class Player(Entity, PlayerInterface):
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        super().__init__(name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, map_generator, save_manager, 'persos', True)
+        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, map_generator, save_manager, 'persos', True)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')

@@ -203,7 +203,7 @@ class Game:
                             block_data = blocks_data.get(block_interacting, None)
                             if block_data is None:
                                 block_data = {}
-                            menu_opened = menu_opened(block_data, player.hot_bar_inventory, self.window)
+                            menu_opened = menu_opened(block_data, player, self.window)
                             last_time_toggled_menu = monotonic()
                             for key in self.pressed_keys.keys():
                                 self.pressed_keys[key] = False

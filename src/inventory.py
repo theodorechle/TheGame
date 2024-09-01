@@ -4,17 +4,14 @@ from gui.elements import Table, Label
 from gui.ui_element import UIElement
 from gui.ui_manager import UIManager
 from math import ceil
+from inventory_interface import InventoryInterface
 
-class Inventory:
+class Inventory(InventoryInterface):
     def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
+        super().__init__(nb_cells, cells)
         self._is_opened = False
-        self._nb_cells = nb_cells
-        if cells:
-            self.cells: list[tuple[items.Item|None, int]] = cells.copy()
-        else:
-            self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
         self._ui_manager = ui_manager
-        self.nb_cells_by_line = 10
+        self.nb_cells_by_line = min(10, self._nb_cells)
         # ui elements initialization
         self.cell_size = 40
         if classes_names is None:

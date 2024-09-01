@@ -72,5 +72,5 @@ SWIMMABLE_BLOCKS = [
 
 INTERACTABLE_BLOCKS = {
     WORKBENCH: WorkbenchMenu,
-    FURNACE: FurnaceMenu
+    # FURNACE: FurnaceMenu
 }

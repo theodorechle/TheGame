@@ -2,14 +2,14 @@ from pygame import Surface
 from gui import elements
 from gui.ui_element import UIElement
 from recipes import WORKBENCH_RECIPES, craft
-from inventory import Inventory
+from player_interface import PlayerInterface
 from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
 import os
 from typing import Any
 
 class WorkbenchMenu(BlockMenu):
-    def __init__(self, block_data: dict[str, Any], player_inventory: Inventory, window: Surface) -> None:
-        super().__init__(block_data, player_inventory, window)
+    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface) -> None:
+        super().__init__(block_data, player, window)
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'workbench_menu_theme.json'))
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', classes_names=['craft-list'], on_select_item_function=self.select_craft)
         self._elements.append(self.crafts_list)
@@ -34,7 +34,7 @@ class WorkbenchMenu(BlockMenu):
     def craft_item(self, _: UIElement) -> None:
         selected_craft = self.crafts_list.child_selected
         if selected_craft is None: return
-        if craft(selected_craft.get_text(), WORKBENCH_RECIPES, self.player_inventory):
+        if craft(selected_craft.get_text(), WORKBENCH_RECIPES, self.player.hot_bar_inventory, self.player.main_inventory):
             self.need_update = True
             self.select_craft(self.crafts_list.child_selected)
     
@@ -47,10 +47,11 @@ class WorkbenchMenu(BlockMenu):
         self.actual_quantities.remove_all_elements()
         self.crafted_items.remove_all_elements()
         self.crafted_quantities.remove_all_elements()
+        inventories = self.player.hot_bar_inventory, self.player.main_inventory
         for item in needed_items:
             self.needed_items.add_element(item[0].name)
             self.needed_quantities.add_element(str(item[1]))
-            qty = self.player_inventory.get_element_quantity(item[0])
+            qty = sum(inventory.get_element_quantity(item[0]) for inventory in inventories)
             self.actual_quantities.add_element(str(qty))
             if qty < item[1]:
                 self.actual_quantities._elements[-1].label._theme['text-color'] = "#ff0000"

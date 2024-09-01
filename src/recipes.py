@@ -22,18 +22,22 @@ COMBURANTS = {
     items.WOODEN_STICK: 3
 }
 
-def craft(craft_name, recipes, inventory: Inventory) -> bool:
+def craft(craft_name, recipes, *inventories: Inventory) -> bool:
     """
     Try to craft the given item and return True if crafted else False
     """
     if craft_name not in recipes: return False
     needed_items, crafted_items = recipes[craft_name]
     for item, qty in needed_items:
-        if not inventory.is_present_in_quantity(item, qty): return False
+        if sum(inventory.get_element_quantity(item) for inventory in inventories) < qty: return False
     for item, qty in needed_items:
-        inventory.remove_quantity(item, qty)
+        for inventory in inventories:
+            qty -= inventory.remove_quantity(item, qty)
+            if qty == 0: break
     for item, qty in crafted_items:
-        inventory.add_element(item, qty)
+        for inventory in inventories:
+            qty -= inventory.add_element(item, qty)
+            if qty == 0: break
     return True
 
 def get_energy_quantity(inventory: Inventory) -> int:
@@ -67,16 +71,20 @@ def remove_energy(inventory: FurnaceInventory, energy_qty: int) -> None:
             inventory.cells[index] = (items.NOTHING, 0)
             energy_qty -= removed_energy
 
-def smelt(craft_name, recipes, inventory: Inventory, furnace_inventory: FurnaceInventory) -> bool:
+def smelt(craft_name, recipes, furnace_inventory: FurnaceInventory, *user_inventories: Inventory) -> bool:
     if craft_name not in recipes: return False
     needed_items, crafted_items, energy_needed = recipes[craft_name]
     available_energy = get_energy_quantity(furnace_inventory)
     if available_energy < energy_needed: return False
     for item, qty in needed_items:
-        if not inventory.is_present_in_quantity(item, qty): return False
+        if sum(inventory.get_quantity(item) for inventory in user_inventories) < qty: return False
     for item, qty in needed_items:
-        inventory.remove_quantity(item, qty)
+        for inventory in user_inventories:
+            qty -= inventory.remove_quantity(item, qty)
+            if qty == 0: break
     remove_energy(furnace_inventory, energy_needed)
     for item, qty in crafted_items:
-        inventory.add_element(item, qty)
+        for inventory in user_inventories:
+            qty -= inventory.add_element(item, qty)
+            if qty == 0: break
     return True

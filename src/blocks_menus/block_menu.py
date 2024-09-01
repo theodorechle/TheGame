@@ -4,15 +4,15 @@ from gui.ui_element import UIElement
 from time import monotonic
 import os
 from typing import Any
-from inventory import Inventory
-from module_infos import SRC_PATH
+from player_interface import PlayerInterface
+from module_infos import RESOURCES_PATH
 
-BLOCKS_MENUS_THEMES_PATH = os.path.join(SRC_PATH, 'resources', 'gui_themes', 'blocks_menus')
+BLOCKS_MENUS_THEMES_PATH = os.path.join(RESOURCES_PATH, 'gui_themes', 'blocks_menus')
 
 class BlockMenu():
-    def __init__(self, block_data: dict[str, Any], player_inventory: Inventory, window: pygame.Surface, *ui_manager_parameters) -> None:
+    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: pygame.Surface, *ui_manager_parameters) -> None:
         self.block_data = block_data
-        self.player_inventory = player_inventory
+        self.player = player
         self.window = window
         self._ui_manager = UIManager(window, *ui_manager_parameters)
         self._elements: list[UIElement] = []

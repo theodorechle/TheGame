@@ -2,16 +2,21 @@ from pygame import Surface
 from gui import elements
 from gui.ui_element import UIElement
 from recipes import FURNACE_RECIPES, smelt
-from inventory import Inventory
+from player_interface import PlayerInterface
 from furnace_inventory import FurnaceInventory
+from inventory import Inventory
 from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
+from module_infos import RESOURCES_PATH
 import os
 from typing import Any
 
 class FurnaceMenu(BlockMenu):
-    def __init__(self, block_data: dict[str, Any], player_inventory: Inventory, window: Surface) -> None:
-        super().__init__(block_data, player_inventory, window)
+    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface) -> None:
+        super().__init__(block_data, player, window)
+        self.temp_player_inventory = Inventory(player.main_inventory._nb_cells + player.hot_bar_inventory._nb_cells, self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
+        self.temp_player_inventory.toggle_inventory()
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'furnace_menu_theme.json'))
+        self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', items_classes_names=['craft-list-childs'], on_select_item_function=self.select_craft)
         self._elements.append(self.crafts_list)
         self.needed_items = elements.ItemList(self._ui_manager, anchor='left', x='40%', width='15%', height='50%', items_classes_names=['item-lists-childs'])
@@ -38,7 +43,7 @@ class FurnaceMenu(BlockMenu):
     def craft_item(self, _: UIElement) -> None:
         selected_craft = self.crafts_list.child_selected
         if selected_craft is None: return
-        if smelt(selected_craft.get_text(), FURNACE_RECIPES, self.player_inventory, self.block_inventory):
+        if smelt(selected_craft.get_text(), FURNACE_RECIPES, self.block_inventory, self.player.hot_bar_inventory, self.player.main_inventory):
             self.need_update = True
             self.select_craft(self.crafts_list.child_selected)
     
@@ -51,13 +56,14 @@ class FurnaceMenu(BlockMenu):
         self.actual_quantities.remove_all_elements()
         self.crafted_items.remove_all_elements()
         self.crafted_quantities.remove_all_elements()
+        inventories = self.player.hot_bar_inventory, self.player.main_inventory
         for item in needed_items:
             self.needed_items.add_element(item[0].name)
             self.needed_quantities.add_element(str(item[1]))
-            qty = self.player_inventory.get_element_quantity(item[0])
+            qty = sum(inventory.get_element_quantity(item[0]) for inventory in inventories)
             self.actual_quantities.add_element(str(qty))
             if qty < item[1]:
-                self.actual_quantities._elements[-1]._theme['text-color'] = "#ff0000"
+                self.actual_quantities._elements[-1].label._theme['text-color'] = "#ff0000"
         for item in crafted_items:
             self.crafted_items.add_element(item[0].name)
             self.crafted_quantities.add_element(str(item[1]))
