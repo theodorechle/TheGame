@@ -6,7 +6,7 @@ from player_interface import PlayerInterface
 from save_manager_interface import SaveManagerInterface
 from typing import Any
 from inventory import inventory_cells_to_ints, ints_to_inventory_cells
-from module_infos import MODULE_PATH
+from client.module_infos import MODULE_PATH
 
 SAVES_PATH: str = os.path.join(MODULE_PATH, 'saves')
 

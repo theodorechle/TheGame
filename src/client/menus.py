@@ -5,8 +5,8 @@ from gui.ui_element import UIElement
 import pygame
 from time import monotonic
 import os
-from save_manager import SAVES_PATH
-from module_infos import SRC_PATH
+from module_infos import RESOURCES_PATH
+from server_connection import ServerConnection
 
 EXIT = 0
 CREATE_GAME = 1
@@ -18,9 +18,10 @@ LOAD_SAVE = 6
 
 class Menu:
     FPS = 20
-    THEMES_PATH = os.path.join(SRC_PATH, 'resources', 'gui_themes', 'menus_themes')
-    def __init__(self, window: pygame.Surface) -> None:
+    THEMES_PATH = os.path.join(RESOURCES_PATH, 'gui_themes', 'menus_themes')
+    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
         self.ui_manager = UIManager(window)
+        self.server = server
         self._loop = True
         self._exit_code = EXIT
         self.time_menu_creation = monotonic()
@@ -84,8 +85,8 @@ class Menu:
         return self._exit_code
 
 class MainMenu(Menu):
-    def __init__(self, window: pygame.Surface) -> None:
-        super().__init__(window)
+    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+        super().__init__(window, server)
         self._elements.append(elements.TextButton(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y="-15%", anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'Load save', on_click_function=self.load_save, anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_game, y="15%", anchor='center'))
@@ -105,8 +106,8 @@ class MainMenu(Menu):
         return event
 
 class CreateWorldMenu(Menu):
-    def __init__(self, window: pygame.Surface) -> None:
-        super().__init__(window)
+    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+        super().__init__(window, server)
         self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y=400)
         self._elements.append(self.world_name_text_box)
         self.seed_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Seed', anchor='top', y=600)
@@ -120,8 +121,8 @@ class CreateWorldMenu(Menu):
             self.exit(START_GAME)
 
 class EscapeMenu(Menu):
-    def __init__(self, window: pygame.Surface) -> None:
-        super().__init__(window)
+    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+        super().__init__(window, server)
         self._elements.append(elements.TextButton(self.ui_manager, 'Exit to main menu', on_click_function=self.exit_to_main_menu, anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
         self._elements.append(elements.TextButton(self.ui_manager, 'SETTINGS', on_click_function=self.to_settings, x='2%', y='-25%', anchor='left'))
@@ -133,8 +134,8 @@ class EscapeMenu(Menu):
         self.exit(SETTINGS)
 
 class SettingsMenu(Menu):
-    def __init__(self, window: pygame.Surface, nb_chunks_loaded: int=0, zoom: int=30) -> None:
-        super().__init__(window)
+    def __init__(self, window: pygame.Surface, server: ServerConnection, nb_chunks_loaded: int=0, zoom: int=30) -> None:
+        super().__init__(window, server)
         # loaded chunks
         self._elements.append(elements.Label(self.ui_manager, 'Nb chunks loaded on each side', y="-30%", anchor='center'))
         self.slider_nb_chunks = elements.Slider(self.ui_manager, 1, 25, 1, y="-20%", anchor='center')
@@ -156,8 +157,8 @@ class SettingsMenu(Menu):
         self.label_zoom.set_text(str(self.slider_zoom.get_value()))
 
 class LoadSaveMenu(Menu):
-    def __init__(self, window: pygame.Surface) -> None:
-        super().__init__(window)
+    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+        super().__init__(window, server)
         self.ui_manager.update_theme(os.path.join(self.THEMES_PATH, 'load_save_menu_theme.json'))
         self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='top', y='2%', width='50%', items_classes_names=['item-list-childs'])
         self._elements.append(self.saves_list)
@@ -173,7 +174,11 @@ class LoadSaveMenu(Menu):
         self.add_saves()
     
     def add_saves(self) -> None:
-        self.saves_list.add_elements(os.listdir(SAVES_PATH))
+        self.server.send_json({'method': 'GET', 'wanted-data': 'saves-list'})
+        saves = self.server.receive_msg()
+        if not saves:
+            return
+        self.saves_list.add_elements(saves['data'])
 
     def load_save(self, _: UIElement) -> None:
         selected = self.saves_list.child_selected
@@ -181,6 +186,7 @@ class LoadSaveMenu(Menu):
         self.exit(START_GAME)
     
     def delete_save(self, _: UIElement) -> None:
+        return
         selected = self.saves_list.child_selected
         if selected is None: return
         path = os.path.join(SAVES_PATH, selected.get_text())

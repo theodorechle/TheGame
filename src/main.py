@@ -18,10 +18,10 @@ from entity import Entity
 from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 from typing import Any
-from module_infos import SRC_PATH
+from client.module_infos import SRC_PATH
 
 from time import monotonic
-import menus
+import client.menus as menus
 import blocks
 import random
 import items

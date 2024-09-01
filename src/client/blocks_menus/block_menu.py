@@ -5,7 +5,7 @@ from time import monotonic
 import os
 from typing import Any
 from player_interface import PlayerInterface
-from module_infos import RESOURCES_PATH
+from client.module_infos import RESOURCES_PATH
 
 BLOCKS_MENUS_THEMES_PATH = os.path.join(RESOURCES_PATH, 'gui_themes', 'blocks_menus')
 

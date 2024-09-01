@@ -1,0 +1,63 @@
+Error: TypeError("Server.__init__() missing 2 required positional arguments: 'host' and 'port'")
+stop server
+launched server at Sun Sep  1 14:10:11 2024
+running server
+launched server at Sun Sep  1 14:10:41 2024
+running server
+stop server
+launched server at Sun Sep  1 14:12:08 2024
+running server
+stop server
+launched server at Sun Sep  1 14:12:24 2024
+running server
+stop server
+launched server at Sun Sep  1 14:13:40 2024
+running server
+Error: UnboundLocalError("local variable 'message' referenced before assignment")
+stop server
+launched server at Sun Sep  1 14:14:23 2024
+running server
+stop server
+launched server at Sun Sep  1 16:01:42 2024
+Client connected: ('127.0.0.1', 51535)
+launched server at Sun Sep  1 16:09:02 2024
+stop server
+Error: TypeError("start_server() missing 1 required positional argument: 'client_connected_cb'")
+Error: TypeError("start_server() missing 1 required positional argument: 'client_connected_cb'")
+launched server at Sun Sep  1 16:33:47 2024
+Error: AttributeError("'Server' object has no attribute 'run'")
+stop server
+launched server at Sun Sep  1 16:34:05 2024
+stop server
+launched server at Sun Sep  1 16:34:18 2024
+launched server at Sun Sep  1 16:34:48 2024
+launched server at Sun Sep  1 17:46:12 2024
+launched server at Sun Sep  1 17:46:24 2024
+launched server at Sun Sep  1 17:47:50 2024
+Error: TypeError("__init__() should return None, not 'coroutine'")
+launched server at Sun Sep  1 17:50:30 2024
+launched server at Sun Sep  1 17:50:41 2024
+Error: TypeError("__init__() should return None, not 'coroutine'")
+Error: TypeError("__init__() should return None, not 'coroutine'")
+Error: TypeError("__init__() should return None, not 'coroutine'")
+Error: TypeError("__init__() should return None, not 'coroutine'")
+launched server at Sun Sep  1 17:54:31 2024
+launched server at Sun Sep  1 17:54:38 2024
+launched server at Sun Sep  1 17:55:12 2024
+launched server at Sun Sep  1 17:55:19 2024
+launched server at Sun Sep  1 17:56:38 2024
+launched server at Sun Sep  1 17:58:34 2024
+launched server at Sun Sep  1 17:58:39 2024
+launched server at Sun Sep  1 18:02:12 2024
+launched server at Sun Sep  1 18:02:58 2024
+launched server at Sun Sep  1 18:05:13 2024
+launched server at Sun Sep  1 18:07:12 2024
+launched server at Sun Sep  1 18:08:28 2024
+launched server at Sun Sep  1 18:12:06 2024
+launched server at Sun Sep  1 18:13:10 2024
+launched server at Sun Sep  1 18:13:55 2024
+launched server at Sun Sep  1 18:14:13 2024
+launched server at Sun Sep  1 18:42:21 2024
+launched server at Sun Sep  1 18:43:04 2024
+launched server at Sun Sep  1 18:44:17 2024
+launched server at Sun Sep  1 18:44:35 2024
