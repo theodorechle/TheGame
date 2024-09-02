@@ -1,8 +1,8 @@
 from pygame import image as pgimg, transform, Surface
 import os
-from client.module_infos import MODULE_PATH
+from module_infos import MODULE_PATH, RESOURCES_PATH
 
-UNKNOWN_IMAGE_PATH = 'src/resources/images/unknown.png'
+UNKNOWN_IMAGE_PATH = os.path.join(RESOURCES_PATH, 'images/unknown.png')
 
 def load_image(paths: list[str], size: tuple[int, int]|None) -> Surface:
     image = None

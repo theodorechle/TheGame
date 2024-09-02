@@ -4,11 +4,10 @@ from blocks import BLOCKS_IMAGES_PATH
 ITEMS_IMAGES_PATH = 'src/resources/images/items'
 class Item:
     ITEM_SIZE = 40
-    def __init__(self, path: str, stack_size: int=99) -> None:
+    def __init__(self, path: str) -> None:
         self.path = path
         self.name = path.replace('_', ' ')
         self.image = load_image([f'{ITEMS_IMAGES_PATH}/{self.path}.png', f'{BLOCKS_IMAGES_PATH}/{self.path}.png'], None)
-        self.stack_size = stack_size
     
     def __repr__(self) -> str:
         return self.name
@@ -24,7 +23,7 @@ WOOD = Item('wood')
 SAND = Item('sand')
 STONE = Item('stone')
 COAL = Item('coal')
-IRON_NUGGET = Item('iron')
+IRON_NUGGET = Item('iron_nugget')
 PLANK = Item('plank')
 TORCH = Item('torch')
 FURNACE = Item('furnace')
@@ -32,7 +31,7 @@ WORKBENCH = Item('workbench')
 SNOW = Item('snow')
 WOODEN_STICK = Item('wooden_stick')
 
-# new items must be added to the end in order to not break the exisiting saves
+# new items must be added to the end in order to not break the existing saves
 ITEMS_DICT: dict[Item, int] = {
     IRON_INGOT: 0,
     WOODEN_STICK: 1,

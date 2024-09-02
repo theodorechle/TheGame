@@ -11,10 +11,10 @@ HEIGHT = 980
 window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 
 from player import Player
-from map_generation import MapGenerator
+from server.map_generation import MapGenerator
 from chunk_manager import Chunk
 from save_manager import SaveManager
-from entity import Entity
+from client.entity import Entity
 from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 from typing import Any

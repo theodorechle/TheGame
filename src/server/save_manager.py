@@ -1,4 +1,4 @@
-from map_chunk import Chunk, blocks_to_int, int_to_blocks
+from server.map_chunk import Chunk, blocks_to_int, int_to_blocks
 import json
 import os
 from biomes import BIOMES, get_biome_environment_values

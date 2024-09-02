@@ -17,6 +17,7 @@ Messages sent by the server must follow this template:
     },
     ...
 }
+In server sent messages, data is optionnal
 """
 
 import asyncio.subprocess
@@ -25,8 +26,10 @@ from time import asctime
 import json
 import struct
 import os
-from module_infos import SERVER_PATH, SAVES_PATH
 import asyncio
+from typing import Any
+from module_infos import SERVER_PATH, SAVES_PATH
+from game import Game
 
 LOG_FILE = os.path.join(SERVER_PATH, 'server.log')
 
@@ -43,7 +46,8 @@ class Server:
         self.running = True
         self.host = host
         self.port = port
-        self.clients: dict[socket.socket, tuple[str, int]] = {}
+        self.clients: dict[tuple[str, int], tuple[asyncio.StreamReader, asyncio.StreamWriter]] = {}
+        self.games: dict[Game, list[tuple[str, int]]] = {}
         write_log(f"launched server at {asctime()}")
 
     async def run(self) -> None:
@@ -82,11 +86,13 @@ class Server:
 
     async def handle_client_request(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
+        self.clients[addr] = (reader, writer)
         try:
             while True:
                 request = await self.receive_msg(reader)
                 if not request:
                     write_log(f"Client {addr} disconnected")
+                    self.clients.pop(addr)
                     break
                 write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
@@ -120,12 +126,28 @@ class Server:
             return
         return data
 
+    async def get_values(self, data: dict, values: list[Any], writer: asyncio.StreamWriter) -> tuple[bool, list[Any]]:
+        result_values: list[Any] = []
+        for value in values:
+            if value not in data:
+                write_log(f"Bad request: missing '{value}' in data {data}")
+                await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                return (False,)
+            result_values.append(data[value])
+        return (True, result_values)
+
+
     async def handle_get(self, request: dict, writer: asyncio.StreamWriter) -> None:
         data: dict|None = await self.get_data(request, writer)
         if data is None: return
-        match request['data']['type']:
+        match data['type']:
             case 'saves-list':
                 await self.send_json(writer, {'status': self.VALID_REQUEST, 'data': os.listdir(SAVES_PATH)})
+            case 'create-world':
+                success, seed, save = await self.get_values(data, ['seed', 'save'], writer)
+                if not success: return
+                self.games[Game(seed, save)] = [writer.get_extra_info('peername')]
+                await self.send_json(writer, {'status': self.VALID_REQUEST})
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
                 await self.send_json(writer, {'status': self.WRONG_REQUEST})
@@ -133,7 +155,7 @@ class Server:
     async def handle_delete(self, request: dict, writer: asyncio.StreamWriter) -> None:
         data: dict|None = await self.get_data(request, writer)
         if data is None: return
-        match request['data']['type']:
+        match data['type']:
             case 'save':
                 dir_name = request['data'].get('value', None)
                 if dir_name is None:

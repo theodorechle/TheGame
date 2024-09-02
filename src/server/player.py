@@ -1,66 +1,22 @@
-import pygame
 import blocks
 from conversions_items_blocks import convert_block_to_items, convert_item_to_block
-from server.map_generation import MapGenerator
-from save_manager_interface import SaveManagerInterface
-from client.entity import Entity
+from entity import Entity
 from inventory import Inventory
 from player_interface import PlayerInterface
 import items
-from blocks_menus.block_menu import BlockMenu
-from gui.ui_manager import UIManager
-from gui.ui_element import UIElement
 from time import monotonic
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, map_generator: MapGenerator, save_manager: SaveManagerInterface, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         PlayerInterface.__init__(self)
-        self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
-        self.save_manager: SaveManagerInterface = save_manager
-        self.window = ui_manager.get_window()
-        self.infos_font_name: str = ""
-        self.infos_font_size: int = 20
-        self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, map_generator, save_manager, 'persos', True)
+        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, 'persos', True)
         self.inventory_size: int = 50
-        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
-        self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
-        self.hot_bar_inventory.toggle_inventory()
+        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
+        self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
         self.hot_bar_inventory.set_selected_cell(0, 0)
-        self._current_dragged_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
-        self._dragged_item_index: int = -1
-        self._dragged_item_inventory: Inventory|None = None
-        self._dragged_item_element: UIElement|None = None
-        self._last_time_clicked = 0
-        self.min_time_before_click = 0.2
         self.set_player_edges_pos()
-
-    
-    def display_hud(self) -> None:
-        self.main_inventory.display()
-        self.hot_bar_inventory.display()
-        self._display_infos()
-        self.display_item_dragged_pos()
-
-    def display_item_dragged_pos(self) -> None:
-        if self._current_dragged_item[0] is not None:
-            self._dragged_item_element._first_coords = pygame.mouse.get_pos()
-            self._dragged_item_element.update_element()
-            self._ui_manager.ask_refresh(self._dragged_item_element)
-
-    def _display_infos(self) -> None:
-        infos: list[str] = []
-        infos.append(f'coords: x: {self.x}, y: {self.y}')
-        chunk = self.chunk_manager.get_chunk_and_coordinates(self.x, self.y)[0]
-        infos.append(f'chunk: {chunk.id if chunk is not None else ""}')
-        infos.append(f'biome: {chunk.biome.name if chunk is not None else ""}')
-        infos.append(f'forest: {chunk.is_forest if chunk is not None else ""}')
-
-        for i, info in enumerate(infos, start=1):
-            self.window.blit(self.infos_font
-                    .render(info, True, "#000000"), (50, 20 * i))
 
     def update(self, delta_t: float) -> bool:
         self.item_clicked_last_frame = False

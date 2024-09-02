@@ -36,7 +36,7 @@ WORKBENCH = Block('workbench')
 WATER = Block('water')
 SNOW = Block('snow')
 
-# new blocks must be added to the end in order to not break the exisiting saves
+# new blocks must be added to the end in order to not break the existing saves
 BLOCKS_DICT: dict[Block, int] = {
     AIR: 0,
     EARTH: 1,

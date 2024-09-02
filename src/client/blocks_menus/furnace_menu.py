@@ -6,7 +6,7 @@ from player_interface import PlayerInterface
 from furnace_inventory import FurnaceInventory
 from inventory import Inventory
 from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
-from client.module_infos import RESOURCES_PATH
+from module_infos import RESOURCES_PATH
 import os
 from typing import Any
 

@@ -3,20 +3,18 @@ import pygame
 import blocks
 from chunk_manager import ChunkManager
 from entity_interface import EntityInterface
-from map_chunk import Chunk
-from map_generation import MapGenerator
-from save_manager_interface import SaveManagerInterface
+from server.map_chunk import Chunk
 from gui.ui_manager import UIManager
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity(EntityInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, image_length: int, image_height: int, map_generator: MapGenerator, save_manager: SaveManagerInterface, add_path: str='', collisions: bool=True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, image_length: int, image_height: int, add_path: str='', collisions: bool=True) -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
         If no chunk manager is given, collisions are disabled, because we can't check if they collide with blocks.
         """
-        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH), ui_manager.get_window(), map_generator, save_manager)
+        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH), ui_manager.get_window())
         self.collisions = collisions
         self.name: str = name
         self.x: int = x

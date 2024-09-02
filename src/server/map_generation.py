@@ -1,7 +1,7 @@
 import biomes
 import blocks
 import random
-from map_chunk import Chunk
+from server.map_chunk import Chunk
 from tree import Tree
 from typing import Any
 

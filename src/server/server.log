@@ -108,3 +108,8 @@ Client ('127.0.0.1', 63410) sent request {'method': 'GET', 'data': {'type': 'sav
 Client ('127.0.0.1', 63410) sent request {'method': 'DELETE', 'data': {'type': 'save', 'value': '^poiuytdrsdr'}}
 Client ('127.0.0.1', 63410) disconnected
 Connection closed for client ('127.0.0.1', 63410)
+launched server at Sun Sep  1 23:07:45 2024
+Client ('127.0.0.1', 64193) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 64193) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 64193) disconnected
+Connection closed for client ('127.0.0.1', 64193)
