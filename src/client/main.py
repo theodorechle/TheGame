@@ -50,7 +50,7 @@ class Client:
                         'save': save_name
                     }
                 })
-                player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager)
+                player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server)
                 # nexts lines are for testing purpose only
                 player.hot_bar_inventory.add_element(items.WORKBENCH, 5)
                 player.hot_bar_inventory.add_element(items.FURNACE, 5)

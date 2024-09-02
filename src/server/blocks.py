@@ -1,4 +1,6 @@
-NOTHING = None
+Block = int
+
+NOTHING = -1
 AIR = 0
 EARTH = 1
 GRASS = 2

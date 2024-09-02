@@ -33,12 +33,16 @@ class ServerConnection:
         self.server_socket.sendall(message)
         return self.receive_msg()
     
-    def receive_msg(self) -> dict|None:
-        msglen = struct.unpack('>I', self.recvall(4))[0]
+    def receive_msg(self, ) -> dict:
+        raw_msglen = self.recvall(4)
+        if not raw_msglen:
+            return {}
+        msglen = struct.unpack('>I', raw_msglen)[0]
         message = self.recvall(msglen)
         if not message:
-            return
+            return {}
         return json.loads(message)
+    
     
     def recvall(self, size: int) -> bytes:
         msg = b''

@@ -1,7 +1,7 @@
 import biomes
 import blocks
 import random
-from server.map_chunk import Chunk
+from map_chunk import Chunk
 from tree import Tree
 from typing import Any
 
@@ -298,9 +298,9 @@ class MapGenerator:
         self.last_caves_pos_and_sizes[chunk.direction] = caves_pos_and_sizes
 
 
-    def generate_chunk(self, direction: bool, id: int) -> Chunk:
-        """direction: 0 -> left, 1 -> right"""
+    def generate_chunk(self, id: int) -> Chunk:
         # TODO: add use for temperature and humidity values
+        # Don't use direction
         rand_state = random.getstate()
         random.seed(f'{self.seed}{id}')
 

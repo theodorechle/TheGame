@@ -1,18 +1,19 @@
 import blocks
 import pygame
 from math import ceil
-from server.map_chunk import Chunk
+from map_chunk import Chunk
 from typing import cast
+from server_connection import ServerConnection
 
 class ChunkManager:
-    def __init__(self, nb_chunks_by_side: int, chunk_x_position: int, window: pygame.Surface) -> None:
+    def __init__(self, nb_chunks_by_side: int, chunk_x_position: int, window: pygame.Surface, server: ServerConnection) -> None:
         self.nb_chunks_by_side: int = 0
         self.chunk_x_position: int = chunk_x_position
         self.window: pygame.Surface = window
-        central_chunk = save_manager.load_chunk(chunk_x_position)
+        self.server = server
+        central_chunk = self.load_chunk(chunk_x_position)
         if central_chunk is None:
             central_chunk = self.map_generator.generate_chunk(False, chunk_x_position)
-            self.save_manager.save_chunk(central_chunk)
         self.chunks: list[Chunk] = [central_chunk]
         self.change_nb_chunks(nb_chunks_by_side)
     
@@ -47,16 +48,14 @@ class ChunkManager:
 
     def change_chunks(self, added_x: int) -> None:
         if added_x == 1:
-            self.save_manager.save_chunk(self.chunks.pop(0))
             id = self.chunk_x_position + self.nb_chunks_by_side + 1
-            chunk = self.save_manager.load_chunk(id)
+            chunk = self.load_chunk(id)
             if chunk is None:
                 chunk = self.map_generator.generate_chunk(True, id)
             self.chunks.append(chunk)
         else:
-            self.save_manager.save_chunk(self.chunks.pop(-1))
             id = self.chunk_x_position - self.nb_chunks_by_side - 1
-            chunk = self.save_manager.load_chunk(id)
+            chunk = self.load_chunk(id)
             if chunk is None:
                 chunk = self.map_generator.generate_chunk(False, id)
             self.chunks.insert(0, chunk)
@@ -70,20 +69,15 @@ class ChunkManager:
             for i in range(self.nb_chunks_by_side*2 + 1):
                 new_chunks[difference + i] = self.chunks[i]
             for i in range(difference):
-                chunk = self.save_manager.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
+                chunk = self.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
                 if chunk is None:
                     chunk = self.map_generator.generate_chunk(False, self.chunk_x_position - self.nb_chunks_by_side - i - 1)
-                    self.save_manager.save_chunk(chunk)
                 new_chunks[difference - i - 1] = chunk
-                chunk = self.save_manager.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
+                chunk = self.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
                 if chunk is None:
                     chunk = self.map_generator.generate_chunk(True, self.chunk_x_position + self.nb_chunks_by_side + i + 1)
-                    self.save_manager.save_chunk(chunk)
                 new_chunks[difference + self.nb_chunks_by_side*2 + 1 + i] = chunk
         else:
-            for i in range(new_nb_chunks, self.nb_chunks_by_side):
-                self.save_manager.save_chunk(self.chunks[self.nb_chunks_by_side - i - 1])
-                self.save_manager.save_chunk(self.chunks[self.nb_chunks_by_side + i + 1])
             for i in range(new_nb_chunks*2 + 1):
                 new_chunks[i] = self.chunks[self.nb_chunks_by_side - new_nb_chunks + i]
         
@@ -114,4 +108,16 @@ class ChunkManager:
 
     def save(self) -> None:
         for chunk in self.chunks:
-            self.save_manager.save_chunk(chunk)
+            self.save_chunk(chunk)
+    
+    def load_chunk(self, chunk_id: int) -> Chunk:
+        response = self.server.send_json({
+            'method': 'GET',
+            'data': {
+                'type': 'chunk',
+                'value': chunk_id
+            }
+        })
+        if not response or response['status'] != ServerConnection.VALID_REQUEST:
+            return
+        return response['data']['chunk']

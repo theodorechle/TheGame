@@ -1,12 +1,11 @@
-from server.map_chunk import Chunk, blocks_to_int, int_to_blocks
+from map_chunk import Chunk
 import json
 import os
 from biomes import BIOMES, get_biome_environment_values
 from player_interface import PlayerInterface
 from save_manager_interface import SaveManagerInterface
 from typing import Any
-from inventory import inventory_cells_to_ints, ints_to_inventory_cells
-from client.module_infos import MODULE_PATH
+from module_infos import MODULE_PATH
 
 SAVES_PATH: str = os.path.join(MODULE_PATH, 'saves')
 
@@ -35,7 +34,7 @@ class SaveManager(SaveManagerInterface):
         # handle different versions
         chunk: Chunk = Chunk(id, chunk_dict['direction'], BIOMES[tuple(chunk_dict['biome'])])
         chunk.is_forest = chunk_dict['is_forest']
-        chunk.blocks = int_to_blocks(chunk_dict['blocks'])
+        chunk.blocks = chunk_dict['blocks']
         return chunk
 
     def save_chunk(self, chunk: Chunk|None) -> None:
@@ -44,7 +43,7 @@ class SaveManager(SaveManagerInterface):
             'direction': chunk.direction,
             'biome': get_biome_environment_values(chunk.biome),
             'is_forest': chunk.is_forest,
-            'blocks': blocks_to_int(chunk.blocks),
+            'blocks': chunk.blocks,
             'version': VERSION
         }
         with open(os.path.join(self.chunks_path, str(chunk.id) + '.json'), 'w') as f:
@@ -63,8 +62,8 @@ class SaveManager(SaveManagerInterface):
                     player_infos['main_inventory'] = player_infos['inventory'][10:]
                     player_infos.pop('inventory')
 
-                player_infos['hot_bar_inventory'] = ints_to_inventory_cells(player_infos['hot_bar_inventory'])
-                player_infos['main_inventory'] = ints_to_inventory_cells(player_infos['main_inventory'])
+                player_infos['hot_bar_inventory'] = player_infos['hot_bar_inventory']
+                player_infos['main_inventory'] = player_infos['main_inventory']
                 players[player_file.removesuffix('.json')] = player_infos
             except FileNotFoundError:
                 pass
@@ -78,8 +77,8 @@ class SaveManager(SaveManagerInterface):
                 'y': player.y,
                 'speed_x': player.speed_x,
                 'speed_y': player.speed_y,
-                'hot_bar_inventory': inventory_cells_to_ints(player.hot_bar_inventory.cells),
-                'main_inventory': inventory_cells_to_ints(player.main_inventory.cells),
+                'hot_bar_inventory': player.hot_bar_inventory.cells,
+                'main_inventory': player.main_inventory.cells,
                 'version': VERSION
             }
             with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:

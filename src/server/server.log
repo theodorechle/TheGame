@@ -113,3 +113,34 @@ Client ('127.0.0.1', 64193) sent request {'method': 'GET', 'data': {'type': 'sav
 Client ('127.0.0.1', 64193) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
 Client ('127.0.0.1', 64193) disconnected
 Connection closed for client ('127.0.0.1', 64193)
+launched server at Mon Sep  2 22:57:54 2024
+Client ('127.0.0.1', 51346) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 51346) disconnected
+Connection closed for client ('127.0.0.1', 51346)
+launched server at Mon Sep  2 22:58:06 2024
+Client ('127.0.0.1', 51367) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Error: Error handling client ('127.0.0.1', 51367): ValueError('not enough values to unpack (expected 3, got 2)')
+Connection closed for client ('127.0.0.1', 51367)
+launched server at Mon Sep  2 23:00:11 2024
+Client ('127.0.0.1', 51404) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Error: Error handling client ('127.0.0.1', 51404): ValueError('not enough values to unpack (expected 3, got 2)')
+Connection closed for client ('127.0.0.1', 51404)
+launched server at Mon Sep  2 23:03:27 2024
+Client ('127.0.0.1', 51445) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Error: Error handling client ('127.0.0.1', 51445): ValueError('not enough values to unpack (expected 3, got 2)')
+Connection closed for client ('127.0.0.1', 51445)
+launched server at Mon Sep  2 23:04:49 2024
+Client ('127.0.0.1', 51477) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Error: Error handling client ('127.0.0.1', 51477): ValueError('not enough values to unpack (expected 3, got 2)')
+Connection closed for client ('127.0.0.1', 51477)
+launched server at Mon Sep  2 23:09:20 2024
+Client ('127.0.0.1', 51522) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 51522) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Error: Error handling client ('127.0.0.1', 51522): ValueError('not enough values to unpack (expected 3, got 2)')
+launched server at Mon Sep  2 23:10:20 2024
+Client ('127.0.0.1', 51549) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Error: Error handling client ('127.0.0.1', 51549): TypeError("ChunkManager.__init__() missing 2 required positional arguments: 'map_generator' and 'save_manager'")
+launched server at Mon Sep  2 23:11:15 2024
+Client ('127.0.0.1', 51578) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Client ('127.0.0.1', 51578) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Error handling client ('127.0.0.1', 51578): NameError("name 'direction' is not defined")

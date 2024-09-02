@@ -1,6 +1,5 @@
 import pygame
 import blocks
-from conversions_items_blocks import convert_block_to_items, convert_item_to_block
 from entity import Entity
 from inventory import Inventory
 from player_interface import PlayerInterface
@@ -9,18 +8,20 @@ from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 from gui.ui_element import UIElement
 from time import monotonic
+from server_connection import ServerConnection
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         PlayerInterface.__init__(self)
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
         self.window = ui_manager.get_window()
         self.infos_font_name: str = ""
         self.infos_font_size: int = 20
+        self.server = server
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, 'persos', True)
+        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, server, 'persos', True)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
