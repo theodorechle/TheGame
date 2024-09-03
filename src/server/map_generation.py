@@ -19,6 +19,7 @@ class MapGenerator:
         self.temperature_values: list[int] = []
         self.humidity_values: list[int] = []
         self.last_caves_pos_and_sizes: list[list[tuple[int, int]]] = []
+        self.last_chunks: list[int] = [0, 0]
 
     def get_infos_to_save(self) -> dict[str, Any]:
         return {
@@ -298,18 +299,25 @@ class MapGenerator:
         self.last_caves_pos_and_sizes[chunk.direction] = caves_pos_and_sizes
 
 
-    def generate_chunk(self, id: int) -> Chunk:
+    def generate_chunk(self, chunk_id: int) -> Chunk|None:
         # TODO: add use for temperature and humidity values
         # Don't use direction
         rand_state = random.getstate()
-        random.seed(f'{self.seed}{id}')
+        random.seed(f'{self.seed}{chunk_id}')
+
+        if chunk_id == 0 or chunk_id == self.last_chunks[0] - 1:
+            direction = False
+        elif chunk_id == self.last_chunks[1] + 1:
+            direction = True
+        else:
+            return None
 
         height = self.biome_height_values[direction]
         temperature = self.temperature_values[direction]
         humidity = self.humidity_values[direction]
         biome = biomes.BIOMES[(height, temperature, humidity)]
 
-        chunk = Chunk(id, direction, biome)
+        chunk = Chunk(chunk_id, direction, biome)
         self.generate_land_shape(chunk)
         self.create_caves(chunk)
         self.place_ore_veins(chunk)
@@ -328,9 +336,10 @@ class MapGenerator:
 
         self.biome_height_values[direction] = self.generate_number(self.biome_height_values[direction], 1, -1, 3, keep_same=0.4)
         self.temperature_values[direction], self.humidity_values[direction] = self.create_new_biome_values()
-
+        self.last_chunks[direction] = chunk_id
         # updates states and values
         random.setstate(rand_state)
         if chunk.id == 0:
             self.biome_height_values[not direction] = self.biome_height_values[direction]
+            self.last_chunks[not direction] = self.last_chunks[direction]
         return chunk

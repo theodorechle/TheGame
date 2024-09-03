@@ -35,7 +35,6 @@ class Player(Entity, PlayerInterface):
         self.min_time_before_click = 0.2
         self.set_player_edges_pos()
 
-    
     def display_hud(self) -> None:
         self.main_inventory.display()
         self.hot_bar_inventory.display()
@@ -53,7 +52,7 @@ class Player(Entity, PlayerInterface):
         infos.append(f'coords: x: {self.x}, y: {self.y}')
         chunk = self.chunk_manager.get_chunk_and_coordinates(self.x, self.y)[0]
         infos.append(f'chunk: {chunk.id if chunk is not None else ""}')
-        infos.append(f'biome: {chunk.biome.name if chunk is not None else ""}')
+        infos.append(f'biome: {chunk.biome if chunk is not None else ""}')
         infos.append(f'forest: {chunk.is_forest if chunk is not None else ""}')
 
         for i, info in enumerate(infos, start=1):
@@ -215,4 +214,5 @@ class Player(Entity, PlayerInterface):
         return None, None
 
     def display(self) -> None:
+        self.chunk_manager.display_chunks(self.x, self.y)
         super().display(self.x, self.y)

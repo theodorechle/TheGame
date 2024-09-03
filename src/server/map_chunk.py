@@ -1,5 +1,5 @@
 import blocks
-from biomes import Biome
+from biomes import Biome, get_biome_environment_values
 
 class Chunk:
     LENGTH: int = 32
@@ -11,7 +11,13 @@ class Chunk:
         self.biome: Biome = biome
         self.is_forest: bool = False
         self.blocks: list[list[blocks.Block]] = []
-    
+
+    def get_infos_dict(self) -> dict:
+        return {
+            'biome': self.biome.name,
+            'is-forest': self.is_forest,
+            'blocks': self.blocks,
+        }
+        
     def __repr__(self) -> str:
         return f'id: {self.id}, direction: {self.direction}, biome: {self.biome.name}, is_forest: {self.is_forest}'
-

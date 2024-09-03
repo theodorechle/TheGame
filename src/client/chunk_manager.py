@@ -1,7 +1,7 @@
 import blocks
 import pygame
 from math import ceil
-from map_chunk import Chunk
+from map_chunk import Chunk, int_to_blocks
 from typing import cast
 from server_connection import ServerConnection
 
@@ -50,14 +50,10 @@ class ChunkManager:
         if added_x == 1:
             id = self.chunk_x_position + self.nb_chunks_by_side + 1
             chunk = self.load_chunk(id)
-            if chunk is None:
-                chunk = self.map_generator.generate_chunk(True, id)
             self.chunks.append(chunk)
         else:
             id = self.chunk_x_position - self.nb_chunks_by_side - 1
             chunk = self.load_chunk(id)
-            if chunk is None:
-                chunk = self.map_generator.generate_chunk(False, id)
             self.chunks.insert(0, chunk)
         self.chunk_x_position += added_x
 
@@ -70,12 +66,8 @@ class ChunkManager:
                 new_chunks[difference + i] = self.chunks[i]
             for i in range(difference):
                 chunk = self.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
-                if chunk is None:
-                    chunk = self.map_generator.generate_chunk(False, self.chunk_x_position - self.nb_chunks_by_side - i - 1)
                 new_chunks[difference - i - 1] = chunk
                 chunk = self.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
-                if chunk is None:
-                    chunk = self.map_generator.generate_chunk(True, self.chunk_x_position + self.nb_chunks_by_side + i + 1)
                 new_chunks[difference + self.nb_chunks_by_side*2 + 1 + i] = chunk
         else:
             for i in range(new_nb_chunks*2 + 1):
@@ -118,6 +110,8 @@ class ChunkManager:
                 'value': chunk_id
             }
         })
-        if not response or response['status'] != ServerConnection.VALID_REQUEST:
+        if not response or response['status'] == ServerConnection.WRONG_REQUEST:
             return
-        return response['data']['chunk']
+        chunk_infos = response['data']['chunk']
+        return Chunk(chunk_id, chunk_infos['biome'], chunk_infos['is-forest'], int_to_blocks(chunk_infos['blocks']))
+    

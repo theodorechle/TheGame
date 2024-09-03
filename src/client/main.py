@@ -12,22 +12,24 @@ window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 from server_connection import ServerConnection
 from gui.ui_manager import UIManager
 from gui import elements
-from map_chunk import Chunk
-import items
 from player import Player
 
 class Client:
     def __init__(self, window) -> None:
         self.exit = False
         self.server = ServerConnection('127.0.0.1', 12345)
+        self.MAX_FPS = 20
+
+        self.player_name = 'base_character'
 
         # UI
         self.window = window
         self._ui_manager = UIManager(self.window)
 
-        self.run_menus()
-
-    def run_menus(self) -> None:
+    def run_menus(self) -> bool:
+        """
+        Returns True if a game is started else False
+        """
         while True:
             exit_code = menus.MainMenu(self.window, self.server).run()
             if exit_code == menus.EXIT:
@@ -42,30 +44,48 @@ class Client:
                 seed = create_world_menu.seed_text_box.get_text()
                 if not seed:
                     seed = None
-                self.server.send_json({
+                response = self.server.send_json({
                     'method': 'GET',
                     'data': {
                         'type': 'create-world',
                         'seed': seed,
-                        'save': save_name
+                        'save': save_name,
+                        'player-name': self.player_name
                     }
                 })
-                player = Player('base_character', 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server)
-                # nexts lines are for testing purpose only
-                player.hot_bar_inventory.add_element(items.WORKBENCH, 5)
-                player.hot_bar_inventory.add_element(items.FURNACE, 5)
+                if response['status'] == ServerConnection.WRONG_REQUEST:
+                    continue
+                return True
             elif exit_code == menus.LOAD_SAVE:
                 exit_code = menus.LoadSaveMenu(self.window, self.server).run()
                 if exit_code == menus.BACK:
                     continue
+        return False
 
     def stop_client(self, _: elements.TextButton) -> None:
         self.exit = True
 
     def run(self) -> None:
+        response = self.server.send_json({
+            'method': 'GET',
+            'data': {
+                'type': 'player-infos'
+            }
+        })
+        if response['status'] == ServerConnection.WRONG_REQUEST:
+            return
+        
+        player = Player(self.player_name, response['data']['x'], response['data']['y'], 0, 0, False, self._ui_manager, self.server)
+
+        clock = pygame.time.Clock()
         while not self.exit:
+            time_last_update: float = clock.get_rawtime()
             self.update()
+            player.update(time_last_update)
             self.display()
+            player.display()
+            player.display_hud()
+            clock.tick(self.MAX_FPS)
 
     def update(self) -> None:
         for event in pygame.event.get():
@@ -75,5 +95,7 @@ class Client:
     def display(self) -> None:
         self._ui_manager.display()
         pygame.display.update()
+
 client = Client(window)
-client.run()
+if client.run_menus():
+    client.run()

@@ -144,3 +144,150 @@ launched server at Mon Sep  2 23:11:15 2024
 Client ('127.0.0.1', 51578) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
 Client ('127.0.0.1', 51578) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
 Error: Error handling client ('127.0.0.1', 51578): NameError("name 'direction' is not defined")
+launched server at Tue Sep  3 17:23:10 2024
+Client ('127.0.0.1', 49388) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Client ('127.0.0.1', 49388) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Chunk [0] was not generated
+Error: Error handling client ('127.0.0.1', 49388): TypeError('list indices must be integers or slices, not list')
+launched server at Tue Sep  3 17:25:12 2024
+Client ('127.0.0.1', 49426) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Client ('127.0.0.1', 49426) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Chunk [0] was not generated
+Error: Error handling client ('127.0.0.1', 49426): TypeError('list indices must be integers or slices, not list')
+launched server at Tue Sep  3 17:25:59 2024
+Client ('127.0.0.1', 49449) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Client ('127.0.0.1', 49449) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Chunk [0] was not generated
+Error: Error handling client ('127.0.0.1', 49449): TypeError('list indices must be integers or slices, not list')
+launched server at Tue Sep  3 17:27:03 2024
+Client ('127.0.0.1', 49481) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 49481) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'aazzeerrttyy'}}
+Client ('127.0.0.1', 49481) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Error handling client ('127.0.0.1', 49481): IndexError('list assignment index out of range')
+launched server at Tue Sep  3 17:28:04 2024
+Client ('127.0.0.1', 49509) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'pppppppp'}}
+Client ('127.0.0.1', 49509) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Error handling client ('127.0.0.1', 49509): IndexError('list assignment index out of range')
+launched server at Tue Sep  3 17:28:27 2024
+Client ('127.0.0.1', 49530) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'pppppppp'}}
+Client ('127.0.0.1', 49530) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Error handling client ('127.0.0.1', 49530): IndexError('list assignment index out of range')
+launched server at Tue Sep  3 17:29:54 2024
+Client ('127.0.0.1', 49565) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'pppppp'}}
+Client ('127.0.0.1', 49565) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Error: Error handling client ('127.0.0.1', 49565): TypeError('Object of type Chunk is not JSON serializable')
+launched server at Tue Sep  3 17:35:26 2024
+Client ('127.0.0.1', 49652) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'ppppppp'}}
+Client ('127.0.0.1', 49652) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 49652) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 49652) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 17:39:58 2024
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azerty', 'save': 'pppppp'}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'aaaa', 'save': 'aaaaaa'}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 49707) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:04:41 2024
+Client ('127.0.0.1', 50067) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zertyu', 'save': 'ppppp', 'player-name': 'base_character'}}
+Error: Error handling client ('127.0.0.1', 50067): TypeError("Can't instantiate abstract class Player with abstract methods _display_infos, display_hud, scale_image")
+launched server at Tue Sep  3 18:05:44 2024
+Client ('127.0.0.1', 50108) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'ézaeyui', 'save': 'oiuyjgtrefzdfsdgrhj&', 'player-name': 'base_character'}}
+Error: Error handling client ('127.0.0.1', 50108): TypeError("Can't instantiate abstract class Player with abstract method scale_image")
+launched server at Tue Sep  3 18:06:57 2024
+Client ('127.0.0.1', 50137) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'yj;', 'save': "re('tyevé", 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50137) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Error: Error handling client ('127.0.0.1', 50137): TypeError('Object of type Player is not JSON serializable')
+launched server at Tue Sep  3 18:08:11 2024
+Client ('127.0.0.1', 50169) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zerfg', 'save': 'etnéb tzeyhj r-(etaryutrz', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50169) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+launched server at Tue Sep  3 18:08:52 2024
+Client ('127.0.0.1', 50199) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'ezertjka', 'save': 'aegtrkyulom!pL%z', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50199) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50199) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50199) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50199) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:11:25 2024
+launched server at Tue Sep  3 18:11:47 2024
+Client ('127.0.0.1', 50272) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zer', 'save': 'oiuytra', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50272) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50272) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50272) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50272) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:13:17 2024
+Client ('127.0.0.1', 50301) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'ezaryjk;', 'save': 'egtrthyjtuzaz', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50301) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50301) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50301) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50301) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:14:33 2024
+Client ('127.0.0.1', 50333) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'herzdS', 'save': 'fgrht,yjhtde', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50333) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50333) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50333) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50333) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:15:33 2024
+Client ('127.0.0.1', 50363) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azer', 'save': 'iuytre', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50363) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50363) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50363) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50363) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:23:27 2024
+Client ('127.0.0.1', 50484) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'aézerty', 'save': 'rte(ytiyil!mùa', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50484) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50484) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+launched server at Tue Sep  3 18:23:48 2024
+launched server at Tue Sep  3 18:24:17 2024
+Client ('127.0.0.1', 50537) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azertghj,;', 'save': 'ae', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50537) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50537) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+launched server at Tue Sep  3 18:24:32 2024
+Client ('127.0.0.1', 50558) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zertgh', 'save': 'oiuytrhgdfscvx cb', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50558) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50558) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+launched server at Tue Sep  3 18:25:10 2024
+Client ('127.0.0.1', 50583) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zrtyjkle', 'save': 'ytrea', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50583) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50583) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50583) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50583) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:27:13 2024
+Client ('127.0.0.1', 50634) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zerthj', 'save': 'iyutdrga', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50634) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50634) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+launched server at Tue Sep  3 18:28:16 2024
+Client ('127.0.0.1', 50659) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': '"rzt\'', 'save': "art'k", 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50659) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50659) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50659) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50659) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:29:32 2024
+Client ('127.0.0.1', 50684) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'a"ztykr', 'save': "uyt'zertgjk;", 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50684) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50684) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50684) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50684) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:30:20 2024
+Client ('127.0.0.1', 50710) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zertgyhjklkjhygt', 'save': "aert'", 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50710) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50710) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50710) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50710) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:30:55 2024
+Client ('127.0.0.1', 50741) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'ertyuk', 'save': "rt'(hyjuky;iulz", 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50741) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50741) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50741) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50741) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}
+launched server at Tue Sep  3 18:31:16 2024
+Client ('127.0.0.1', 50763) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'zerthj', 'save': 'iuytreza', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50763) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+launched server at Tue Sep  3 18:31:52 2024
+Client ('127.0.0.1', 50788) sent request {'method': 'GET', 'data': {'type': 'saves-list'}}
+Client ('127.0.0.1', 50788) sent request {'method': 'GET', 'data': {'type': 'create-world', 'seed': 'azertghj', 'save': 'tytyzetghryfre', 'player-name': 'base_character'}}
+Client ('127.0.0.1', 50788) sent request {'method': 'GET', 'data': {'type': 'player-infos'}}
+Client ('127.0.0.1', 50788) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 0}}
+Client ('127.0.0.1', 50788) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': -1}}
+Client ('127.0.0.1', 50788) sent request {'method': 'GET', 'data': {'type': 'chunk', 'value': 1}}

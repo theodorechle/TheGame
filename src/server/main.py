@@ -26,16 +26,9 @@ import struct
 import os
 import asyncio
 from typing import Any
-from module_infos import SERVER_PATH, SAVES_PATH
+from module_infos import SAVES_PATH
 from game import Game
-
-LOG_FILE = os.path.join(SERVER_PATH, 'server.log')
-
-def write_log(message: str, is_err: bool=False) -> None:
-    if is_err:
-        message = 'Error: ' + message
-    with open(LOG_FILE, 'a') as f:
-        f.write(message + '\n')
+from logs import write_log
 
 class Server:
     VALID_REQUEST = 0
@@ -48,7 +41,8 @@ class Server:
         self.clients: dict[tuple[str, int], tuple[asyncio.StreamReader, asyncio.StreamWriter]] = {}
         # game, players addresses
         self.games: dict[Game, list[tuple[str, int]]] = {}
-        self.players: dict[tuple[str, int], Game] = {}
+        # player address, player name and game
+        self.players: dict[tuple[str, int], tuple[str, Game]] = {}
         write_log(f"launched server at {asctime()}")
 
     async def run(self) -> None:
@@ -64,6 +58,11 @@ class Server:
         message = struct.pack('>I', len(request)) + request
         writer.write(message)
         await writer.drain()
+
+    async def send_invalid_request(self, writer: asyncio.StreamWriter) -> None:
+        await self.send_json(writer, {
+            'status': self.WRONG_REQUEST
+        })
 
     async def receive_msg(self, reader: asyncio.StreamReader) -> dict:
         raw_msglen = await self.recvall(reader, 4)
@@ -98,7 +97,7 @@ class Server:
                 write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
                     write_log(f"Bad request: missing 'method' in {request}")
-                    await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                    await self.send_invalid_request()
                     return
                 match request['method'].upper():
                     case 'GET':
@@ -107,7 +106,7 @@ class Server:
                         await self.handle_delete(request, writer)
                     case value: # treat as an error
                         write_log(f"Bad request: wrong value for 'method': {value}")
-                        await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                        await self.send_invalid_request()
             except Exception as e:
                 write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
         writer.close()
@@ -117,12 +116,12 @@ class Server:
     async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
         if not isinstance(request.get('data', None), dict):
             write_log(f"Bad request: missing 'data' in {request}")
-            await self.send_json(writer, {'status': self.WRONG_REQUEST})
+            await self.send_invalid_request()
             return
         data = request['data']
         if 'type' not in data:
             write_log(f"Bad request: missing 'type' in data {data}")
-            await self.send_json(writer, {'status': self.WRONG_REQUEST})
+            await self.send_invalid_request()
             return
         return data
 
@@ -131,49 +130,54 @@ class Server:
         for value in values:
             if value not in data:
                 write_log(f"Bad request: missing '{value}' in data {data}")
-                await self.send_json(writer, {'status': self.WRONG_REQUEST})
-                return (False,)
+                await self.send_invalid_request()
+                return (False, result_values)
             result_values.append(data[value])
         return (True, result_values)
 
 
     async def handle_get(self, request: dict, writer: asyncio.StreamWriter) -> None:
+        addr = writer.get_extra_info('peername')
         data: dict|None = await self.get_data(request, writer)
         if data is None: return
         match data['type']:
             case 'saves-list':
                 await self.send_json(writer, {'status': self.VALID_REQUEST, 'data': os.listdir(SAVES_PATH)})
             case 'create-world':
-                success, values = await self.get_values(data, ['seed', 'save'], writer)
+                success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
                 if not success:
                     write_log(f"Client {addr} tried to create game but send partial data {data}")
-                    await self.send_json(writer, {
-                        'status': self.WRONG_REQUEST
-                    })
+                    self.send_invalid_request()
                     return
-                seed, save = values
+                seed, save, player_name = values
                 game = Game(seed, save)
-                addr = writer.get_extra_info('peername')
+                game.create_player(player_name)
                 self.games[game] = [addr]
-                self.players[addr] = game
+                self.players[addr] = (player_name, game)
                 await self.send_json(writer, {'status': self.VALID_REQUEST})
             case 'chunk':
                 success, values = await self.get_values(data, ['value'], writer)
-                addr = writer.get_extra_info('peername')
                 if addr not in self.players:
                     write_log(f"Client {addr} tried to get chunk {values[0]} while not playing")
-                    await self.send_json(writer, {
-                        'status': self.VALID_REQUEST,
-                        'data': {
-                            'chunk': None
-                        }
-                    })
+                    await self.send_invalid_request(writer)
+                    return
+                chunk = self.players[addr][1].chunk_manager.load_chunk(values[0])
+                if chunk is None:
+                    await self.send_invalid_request()
                     return
                 await self.send_json(writer, {
                     'status': self.VALID_REQUEST,
                     'data': {
-                        'chunk': self.players[addr].chunk_manager.load_chunk(values)
+                        'chunk': chunk.get_infos_dict()
                     }
+                })
+            case 'player-infos':
+                infos = self.players[addr][1].get_player_infos(self.players[addr][0])
+                if infos is None:
+                    await self.send_invalid_request()
+                await self.send_json(writer, {
+                    'status': self.VALID_REQUEST,
+                    'data': infos
                 })
             case values:
                 write_log(f"Bad request: wrong value for data type: '{values}'")

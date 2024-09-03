@@ -97,3 +97,16 @@ class Inventory(InventoryInterface):
 
     def sort(self) -> None:
         ...
+
+    def set_selected_cell(self, x: int, y: int) -> None:
+        return
+        self.inventory_table.set_selected_child(self.inventory_table.get_element(x, y))
+        self._selected = x + y*self.nb_cells_by_line
+
+    def get_selected_cell(self) -> None:
+        return
+        return self.inventory_table.get_selected_element()
+    
+    def get_selected_index(self) -> int:
+        return
+        return self._selected

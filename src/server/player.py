@@ -1,5 +1,4 @@
 import blocks
-from conversions_items_blocks import convert_block_to_items, convert_item_to_block
 from entity import Entity
 from inventory import Inventory
 from player_interface import PlayerInterface
@@ -161,7 +160,7 @@ class Player(Entity, PlayerInterface):
                     self.main_inventory.add_element(item, quantity)
             return {'changed_block': (block_x, block_y, blocks.AIR)}
 
-    def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
+    def interact_with_block(self, pos: tuple[int, int]):# -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
         if self.main_inventory.is_opened(): return None, None
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None, None
@@ -172,5 +171,8 @@ class Player(Entity, PlayerInterface):
             return menu, (x, y)
         return None, None
 
-    def display(self) -> None:
-        super().display(self.x, self.y)
+    def get_infos(self) -> dict:
+        return {
+            'x': self.x,
+            'y': self.y
+        }

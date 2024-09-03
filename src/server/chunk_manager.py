@@ -1,6 +1,6 @@
 import blocks
 from map_chunk import Chunk
-from typing import cast
+from logs import write_log
 from map_generation import MapGenerator
 from save_manager import SaveManager
 
@@ -8,7 +8,7 @@ class ChunkManager:
     def __init__(self, map_generator: MapGenerator, save_manager: SaveManager) -> None:
         self.map_generator = map_generator
         self.save_manager = save_manager
-        self.chunks: dict[int, Chunk] = []
+        self.chunks: dict[int, Chunk] = {}
     
     def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
@@ -41,11 +41,14 @@ class ChunkManager:
         for chunk in self.chunks:
             self.save_manager.save_chunk(chunk)
     
-    def load_chunk(self, chunk_id: int) -> Chunk:
+    def load_chunk(self, chunk_id: int) -> Chunk|None:
         if chunk_id in self.chunks:
             return self.chunks[chunk_id]
         chunk = self.save_manager.load_chunk(chunk_id)
         if chunk is None:
             chunk = self.map_generator.generate_chunk(chunk_id)
+            if chunk is None:
+                write_log(f'Chunk {chunk_id} was not generated', True)
+                return None
         self.chunks[chunk_id] = chunk
         return chunk

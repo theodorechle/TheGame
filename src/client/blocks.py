@@ -1,4 +1,5 @@
-BLOCKS_IMAGES_PATH = 'src/resources/images/blocks'
+from module_infos import RESOURCES_PATH
+BLOCKS_IMAGES_PATH = f'{RESOURCES_PATH}/images/blocks'
 
 from load_image import load_image
 from pygame import Surface

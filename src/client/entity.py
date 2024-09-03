@@ -6,8 +6,9 @@ from entity_interface import EntityInterface
 from map_chunk import Chunk
 from gui.ui_manager import UIManager
 from server_connection import ServerConnection
+from module_infos import RESOURCES_PATH
 
-ENTITIES_IMAGES_PATH: str = 'src/resources/images'
+ENTITIES_IMAGES_PATH: str = f'{RESOURCES_PATH}/images'
 class Entity(EntityInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, image_length: int, image_height: int, server: ServerConnection, add_path: str='', collisions: bool=True) -> None:
         """
@@ -61,6 +62,7 @@ class Entity(EntityInterface):
         Move the player if needed
         Return whether the player has moved or not
         """
+        return
         need_update = False
         can_fall: bool = True
         if self.speed_y > 0: # Go up

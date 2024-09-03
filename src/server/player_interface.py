@@ -8,14 +8,6 @@ class PlayerInterface(EntityInterface, metaclass=ABCMeta):
         self.hot_bar_inventory: InventoryInterface = None
     
     @abstractmethod
-    def display_hud(self) -> None:
-        pass
-
-    @abstractmethod
-    def _display_infos(self) -> None:
-        pass
-
-    @abstractmethod
     def update(self, delta_t: float) -> bool:
         pass
 
