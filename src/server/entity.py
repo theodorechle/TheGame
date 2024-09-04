@@ -5,13 +5,13 @@ from map_chunk import Chunk
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity(EntityInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, add_path: str='', collisions: bool=True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, chunk_manager: ChunkManager, add_path: str='', collisions: bool=True) -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
         If no chunk manager is given, collisions are disabled, because we can't check if they collide with blocks.
         """
-        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH))
+        self.chunk_manager: ChunkManager = chunk_manager
         self.collisions = collisions
         self.name: str = name
         self.x: int = x

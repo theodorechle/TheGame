@@ -9,6 +9,7 @@ from gui.ui_manager import UIManager
 from gui.ui_element import UIElement
 from time import monotonic
 from server_connection import ServerConnection
+from typing import Any
 
 class Player(Entity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
@@ -58,13 +59,6 @@ class Player(Entity, PlayerInterface):
         for i, info in enumerate(infos, start=1):
             self.window.blit(self.infos_font
                     .render(info, True, "#000000"), (50, 20 * i))
-
-    def update(self, delta_t: float) -> bool:
-        self.item_clicked_last_frame = False
-        need_update = super().update(delta_t) \
-            or self._dragged_item_index != -1
-        self.chunk_manager.update(self.x)
-        return need_update
 
     def save(self) -> None:
         self.chunk_manager.save()
@@ -216,3 +210,6 @@ class Player(Entity, PlayerInterface):
     def display(self) -> None:
         self.chunk_manager.display_chunks(self.x, self.y)
         super().display(self.x, self.y)
+    
+    def update(self, update_dict: dict[str, Any]) -> None:
+        Entity.update(self, update_dict)

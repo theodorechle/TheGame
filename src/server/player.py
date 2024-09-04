@@ -4,13 +4,14 @@ from inventory import Inventory
 from player_interface import PlayerInterface
 import items
 from time import monotonic
+from chunk_manager import ChunkManager
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, chunk_manager: ChunkManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         PlayerInterface.__init__(self)
         self.interaction_range: int = 1 # doesn't work
 
-        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, 'persos', True)
+        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, chunk_manager, 'persos', True)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
@@ -21,7 +22,7 @@ class Player(Entity, PlayerInterface):
         self.item_clicked_last_frame = False
         need_update = super().update(delta_t) \
             or self._dragged_item_index != -1
-        self.chunk_manager.update(self.x)
+        # self.chunk_manager.update(self.x)
         return need_update
 
     def save(self) -> None:

@@ -12,6 +12,8 @@ Maybe go to C or C++ with SDL2
 
 Rename window
 
+Save only changed blocks (regenerate them on load)
+
 ## GENERATION:
 
 - [ ] vertical chunks
