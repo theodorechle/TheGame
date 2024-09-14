@@ -19,6 +19,7 @@ Messages sent by the server must follow this template:
 }
 In server sent messages, data is optionnal
 """
+from multiprocessing import Queue
 
 from time import asctime
 import json
@@ -31,8 +32,8 @@ from game import Game
 from logs import write_log
 
 class Server:
-    VALID_REQUEST = 0
-    WRONG_REQUEST = 1
+    WRONG_REQUEST = 0
+    VALID_REQUEST = 1
     def __init__(self, host: str, port: int) -> None:
         self.running = True
         self.host = host
@@ -41,19 +42,27 @@ class Server:
         self.clients: dict[tuple[str, int], tuple[asyncio.StreamReader, asyncio.StreamWriter]] = {}
         # game, players addresses
         self.games: dict[Game, list[tuple[str, int]]] = {}
-        # player address, (player name, game, data updated)
-        self.players: dict[tuple[str, int], tuple[str, Game, dict]] = {}
+        # actions queue
+        self.games_queues: dict[Game, tuple[Queue]] = {}
+        # player address, (player name, game)
+        self.players: dict[tuple[str, int], tuple[str, Game]] = {}
+        self.players_names: dict[str, tuple[str, int]] = {}
+        self.updates_queue = Queue()
         write_log(f"launched server at {asctime()}")
 
     async def run(self) -> None:
         self.server = await asyncio.start_server(self.handle_client_request, self.host, self.port)
         async with self.server:
-            await self.server.serve_forever()
-
+            await asyncio.gather(
+                self.process_updates(),
+                self.server.serve_forever(),
+            )
+            
     def close(self) -> None:
         self.server.close()
 
     async def send_json(self, writer: asyncio.StreamWriter, request: dict) -> None:
+        write_log(f"Sent {request}")
         request = json.dumps(request).encode()
         message = struct.pack('>I', len(request)) + request
         writer.write(message)
@@ -63,6 +72,13 @@ class Server:
         await self.send_json(writer, {
             'status': self.WRONG_REQUEST
         })
+
+    async def send_data(self, writer: asyncio.StreamWriter, data: dict[Any, Any], status: int=VALID_REQUEST) -> None:
+        message = {
+            'status': status,
+            'data': data
+        }
+        await self.send_json(writer, message)
 
     async def receive_msg(self, reader: asyncio.StreamReader) -> dict:
         raw_msglen = await self.recvall(reader, 4)
@@ -77,7 +93,7 @@ class Server:
     async def recvall(self, reader: asyncio.StreamReader, size: int) -> bytes:
         msg = b''
         while size:
-            new_msg = await reader.read(size)
+            new_msg = await reader.readexactly(size)
             if not new_msg:
                 return b''
             msg += new_msg
@@ -87,14 +103,15 @@ class Server:
     async def handle_client_request(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
         self.clients[addr] = (reader, writer)
-        while True:
-            try:
+        write_log(f"Client with address {addr} connected")
+        try:
+            while True:
                 request = await self.receive_msg(reader)
                 if not request:
                     write_log(f"Client {addr} disconnected")
                     self.clients.pop(addr)
                     break
-                # write_log(f"Client {addr} sent request {request}")
+                write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
                     write_log(f"Bad request: missing 'method' in {request}")
                     await self.send_invalid_request()
@@ -109,11 +126,12 @@ class Server:
                     case value: # treat as an error
                         write_log(f"Bad request: wrong value for 'method': {value}")
                         await self.send_invalid_request()
-            except Exception as e:
-                write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
-        writer.close()
-        await writer.wait_closed()
-        write_log(f"Connection closed for client {addr}")
+        except Exception as e:
+            write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
+        finally:
+            writer.close()
+            await writer.wait_closed()
+            write_log(f"Connection closed for client {addr}")
 
     async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
         if not isinstance(request.get('data', None), dict):
@@ -137,28 +155,21 @@ class Server:
             result_values.append(data[value])
         return (True, result_values)
 
-
     async def handle_get(self, request: dict, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
         data: dict|None = await self.get_data(request, writer)
         if data is None: return
         match data['type']:
             case 'saves-list':
-                await self.send_json(writer, {'status': self.VALID_REQUEST, 'data': os.listdir(SAVES_PATH)})
+                await self.send_data(writer, {'saves': os.listdir(SAVES_PATH)})
             case 'create-world':
-                success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
-                if not success:
-                    write_log(f"Client {addr} tried to create game but send partial data {data}")
-                    self.send_invalid_request()
-                    return
-                seed, save, player_name = values
-                game = Game(seed, save)
-                game.create_player(player_name)
-                self.games[game] = [addr]
-                self.players[addr] = (player_name, game, {'players': {}, 'blocks-updates': {}})
-                await self.send_json(writer, {'status': self.VALID_REQUEST})
+                await self.create_world(data, addr, writer)
             case 'chunk':
-                success, values = await self.get_values(data, ['value'], writer)
+                success, values = await self.get_values(data, ['id'], writer)
+                if not success:
+                    write_log(f"Bad request: missing value 'value'")
+                    await self.send_invalid_request(writer)
+                    return
                 if addr not in self.players:
                     write_log(f"Client {addr} tried to get chunk {values[0]} while not playing")
                     await self.send_invalid_request(writer)
@@ -167,23 +178,20 @@ class Server:
                 if chunk is None:
                     await self.send_invalid_request()
                     return
-                await self.send_json(writer, {
-                    'status': self.VALID_REQUEST,
-                    'data': {
+                await self.send_data(writer, {
+                        'type': 'chunk',
                         'chunk': chunk.get_infos_dict()
-                    }
                 })
-            case 'player-infos':
-                infos = self.players[addr][1].get_player_infos(self.players[addr][0])
-                if infos is None:
-                    await self.send_invalid_request()
-                await self.send_json(writer, {
-                    'status': self.VALID_REQUEST,
-                    'data': infos
-                })
+            # case 'player-infos':
+            #     infos = self.players[addr][1].get_player_infos(self.players[addr][0])
+            #     if infos is None:
+            #         await self.send_invalid_request()
+            #     await self.send_data(writer, {'infos': infos})
+            case 'player-update':
+                await self.send_data(writer, {self.players[addr][1].get_player_update_dict(self.players[addr][0])})
             case values:
                 write_log(f"Bad request: wrong value for data type: '{values}'")
-                await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                await self.send_invalid_request(writer)
 
     async def handle_delete(self, request: dict, writer: asyncio.StreamWriter) -> None:
         data: dict|None = await self.get_data(request, writer)
@@ -199,7 +207,7 @@ class Server:
                     await self.send_json(writer, {'status': self.VALID_REQUEST})
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
-                await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                await self.send_invalid_request(writer)
 
     async def handle_post(self, request: dict, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
@@ -209,17 +217,46 @@ class Server:
             case 'update':
                 success, values = await self.get_values(data, ['actions'], writer)
                 if not success:
-                    await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                    await self.send_invalid_request(writer)
                     return
-                name, game, update_dict = self.players[addr]
-                update_dict = game.update(name, values[0], update_dict)
-                await self.send_json(writer, {
-                    'status': self.VALID_REQUEST,
-                    'data': update_dict
-                })
+                name, game = self.players[addr]
+                actions_queue = self.games_queues[game][0]
+                actions_queue.put({'name': name, 'actions': values[0]})
+                await self.send_json(writer, {'status': self.VALID_REQUEST})
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
-                await self.send_json(writer, {'status': self.WRONG_REQUEST})
+                await self.send_invalid_request(writer)
+
+    async def process_updates(self) -> None:
+        while True:
+            player_name, update_dict = await asyncio.get_event_loop().run_in_executor(None, self.updates_queue.get)
+            player_addr: tuple[str, int]|None = self.players_names.get(player_name, None)
+            if player_addr is None:
+                continue
+            update_dict['type'] = 'player-update'
+            await self.send_json(self.clients[player_addr][1], {
+                'status': self.VALID_REQUEST,
+                'data': update_dict
+            })
+            # TODO: remove player from game
+
+    async def create_world(self, data: dict, addr: tuple[str, int], writer: asyncio.StreamWriter) -> None:
+        success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
+        if not success:
+            write_log(f"Client {addr} tried to create game but send partial data {data}")
+            self.send_invalid_request()
+            return
+        seed, save, player_name = values
+        actions_queue = Queue()
+        game = Game(seed, save, actions_queue, self.updates_queue)
+        asyncio.create_task(game.run())
+        game.create_player(player_name)
+        self.games[game] = [addr]
+        self.games_queues[game] = (actions_queue, self.updates_queue)
+        self.players[addr] = (player_name, game)
+        self.players_names[player_name] = addr
+        await self.send_json(writer, {'status': self.VALID_REQUEST})
+        
 
 def delete_folder(path) -> None:
     for file in os.listdir(path):

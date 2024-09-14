@@ -15,6 +15,9 @@ from gui.ui_manager import UIManager
 from gui import elements
 from player import Player
 import blocks
+from typing import Any
+import asyncio
+from map_chunk import Chunk
 
 class Client:
     def __init__(self, window) -> None:
@@ -66,7 +69,10 @@ class Client:
         for key in self.mouse_buttons.keys():
             self.server_actions_pressed_keys[key] = False
 
-    def run_menus(self) -> bool:
+    async def start(self) -> None:
+        await self.server.connect_to_server()
+
+    async def run_menus(self) -> bool:
         """
         Returns True if a game is started else False
         """
@@ -84,7 +90,7 @@ class Client:
                 seed = create_world_menu.seed_text_box.get_text()
                 if not seed:
                     seed = None
-                response = self.server.send_json({
+                await self.server.send_json({
                     'method': 'GET',
                     'data': {
                         'type': 'create-world',
@@ -93,6 +99,7 @@ class Client:
                         'player-name': self.player_name
                     }
                 })
+                response = await self.server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
                     continue
                 return True
@@ -105,28 +112,21 @@ class Client:
     def stop_client(self, _: elements.TextButton) -> None:
         self.exit = True
 
-    def run(self) -> None:
-        response = self.server.send_json({
-            'method': 'GET',
-            'data': {
-                'type': 'player-infos'
-            }
-        })
-        if response['status'] == ServerConnection.WRONG_REQUEST:
-            return
-        
-        self.player = Player(self.player_name, response['data']['x'], response['data']['y'], 0, 0, False, self._ui_manager, self.server)
+    async def run(self) -> None:
+        self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server)
+        await self.player.initialize_chunks()
+        await asyncio.gather(self.loop(), self.process_socket_messages())
 
+    async def loop(self) -> None:
         clock = pygame.time.Clock()
         while not self.exit:
-            if self.update():
+            if await self.update():
                 break # exit
             self.display()
-            self.player.display()
-            self.player.display_hud()
             clock.tick(self.MAX_FPS)
+            await asyncio.sleep(0.2)
 
-    def update(self) -> bool:
+    async def update(self) -> bool:
         for event in pygame.event.get():
             self._ui_manager.process_event(event)
             if event.type == pygame.KEYDOWN:
@@ -181,22 +181,44 @@ class Client:
                         break
     
         self._ui_manager.update()
-        response = self.server.send_json({
+        await self.server.send_json({
             'method': 'POST',
             'data': {
                 'type': 'update',
                 'actions': [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
             }
         })
-        if response['status'] == ServerConnection.WRONG_REQUEST:
-            return False
-        self.player.update(response['data'])
         return False
 
+    async def process_socket_messages(self) -> None:
+        while True:
+            message_dict = await self.server.receive_msg()
+            if not message_dict: return
+            if 'data' not in message_dict:
+                continue
+            data = message_dict['data']
+            if data['type'] == 'player-update':
+                self.update_player(data)
+            elif data['type'] == 'chunk':
+                self.player.chunk_manager.set_chunk(message_dict)
+        
+    
+    def update_player(self, data: dict[str, Any]) -> None:
+        self.player.x = data['players'][self.player_name]['x']
+        self.player.y = data['players'][self.player_name]['y']
+        self.display()
+
     def display(self) -> None:
+        self.player.display()
+        self.player.display_hud()
         self._ui_manager.display()
         pygame.display.update()
 
-client = Client(window)
-if client.run_menus():
-    client.run()
+async def start() -> None:
+    client = Client(window)
+    await client.start()
+    do_run_main: bool = await client.run_menus()
+    if do_run_main:
+        await client.run()
+
+asyncio.run(start())

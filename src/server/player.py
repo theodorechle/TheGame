@@ -5,6 +5,7 @@ from player_interface import PlayerInterface
 import items
 from time import monotonic
 from chunk_manager import ChunkManager
+from typing import Any
 
 class Player(Entity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, chunk_manager: ChunkManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
@@ -20,8 +21,7 @@ class Player(Entity, PlayerInterface):
 
     def update(self, delta_t: float) -> bool:
         self.item_clicked_last_frame = False
-        need_update = super().update(delta_t) \
-            or self._dragged_item_index != -1
+        need_update = super().update(delta_t)
         # self.chunk_manager.update(self.x)
         return need_update
 
@@ -172,7 +172,7 @@ class Player(Entity, PlayerInterface):
             return menu, (x, y)
         return None, None
 
-    def get_infos(self) -> dict:
+    def get_infos(self) -> dict[str, Any]:
         return {
             'x': self.x,
             'y': self.y

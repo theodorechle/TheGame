@@ -19,7 +19,6 @@ class Player(Entity, PlayerInterface):
         self.window = ui_manager.get_window()
         self.infos_font_name: str = ""
         self.infos_font_size: int = 20
-        self.server = server
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
         Entity.__init__(self, name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, server, 'persos', True)

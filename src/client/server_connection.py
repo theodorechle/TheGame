@@ -1,5 +1,5 @@
 import subprocess
-import socket
+import asyncio
 import struct
 import json
 import sys
@@ -7,47 +7,46 @@ import os
 from module_infos import SERVER_PATH
 
 class ServerConnection:
-    VALID_REQUEST = 0
-    WRONG_REQUEST = 1
+    VALID_REQUEST = 1
+    WRONG_REQUEST = 0
     def __init__(self, host: str, port: int) -> None:
         self.host = host
         self.port = port
-        self.server_process = subprocess.Popen(
-            [sys.executable, os.path.join(SERVER_PATH, 'main.py')],
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-            start_new_session=True)
-        self.server_socket = self.connect_to_server()
+        self.reader = None
+        self.writer = None
+        # self.server_process = subprocess.Popen(
+        #     [sys.executable, os.path.join(SERVER_PATH, 'main.py')],
+        #     stdout=sys.stdout,
+        #     stderr=sys.stderr,
+        #     start_new_session=True)
 
     def stop(self) -> None:
         self.server_process.kill()
 
-    def connect_to_server(self) -> socket.socket:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((self.host, self.port))
-        return client_socket
+    async def connect_to_server(self) -> None:
+        self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
 
-    def send_json(self, request: dict) -> dict|None:
+    async def send_json(self, request: dict) -> None:
         request = json.dumps(request).encode()
         message = struct.pack('>I', len(request)) + request
-        self.server_socket.sendall(message)
-        return self.receive_msg()
+        self.writer.write(message)
+        await self.writer.drain()
     
-    def receive_msg(self, ) -> dict:
-        raw_msglen = self.recvall(4)
+    async def receive_msg(self, ) -> dict:
+        raw_msglen = await self.recvall(4)
         if not raw_msglen:
             return {}
         msglen = struct.unpack('>I', raw_msglen)[0]
-        message = self.recvall(msglen)
+        message = await self.recvall(msglen)
         if not message:
             return {}
         return json.loads(message)
     
     
-    def recvall(self, size: int) -> bytes:
+    async def recvall(self, size: int) -> bytes:
         msg = b''
         while size:
-            new_msg = self.server_socket.recv(size)
+            new_msg = await self.reader.readexactly(size)
             if not new_msg:
                 return b''
             msg += new_msg

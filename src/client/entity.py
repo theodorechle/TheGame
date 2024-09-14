@@ -18,7 +18,7 @@ class Entity(EntityInterface):
         If no chunk manager is given, collisions are disabled, because we can't check if they collide with blocks.
         """
         self.server = server
-        self.chunk_manager: ChunkManager = ChunkManager(1, round(x / Chunk.LENGTH), ui_manager.get_window(), self.server)
+        self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), ui_manager.get_window(), self.server)
         self.collisions = collisions
         self.name: str = name
         self.x: int = x
@@ -39,7 +39,9 @@ class Entity(EntityInterface):
         self.image: pygame.Surface = load_image([f'{self.path}/{self.name}.png'], self.image_size)
         self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.name}_reversed.png'], self.image_size)
 
-
+    async def initialize_chunks(self) -> None:
+        await self.chunk_manager.initialize_chunks(1)
+    
     def set_player_edges_pos(self) -> None:
         self.top_player_pos: int = self.entity_size[1]
         self.bottom_player_pos: int = 0

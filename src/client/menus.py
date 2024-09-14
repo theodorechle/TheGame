@@ -7,6 +7,7 @@ from time import monotonic
 import os
 from module_infos import RESOURCES_PATH
 from server_connection import ServerConnection
+import asyncio
 
 EXIT = 0
 CREATE_GAME = 1
@@ -171,18 +172,18 @@ class LoadSaveMenu(Menu):
         options_container.add_element(load_button)
         options_container.add_element(delete_button)
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', self.exit_menu, anchor='bottom', y='-10%'))
-        self.add_saves()
+        asyncio.run(self.add_saves())
     
-    def add_saves(self) -> None:
-        saves = self.server.send_json({
+    async def add_saves(self) -> None:
+        await self.server.send_json({
             'method': 'GET',
             'data': {
                 'type': 'saves-list'
             }
         })
-        if saves is None:
-            return
-        self.saves_list.add_elements(saves['data'])
+        saves = await self.server.receive_msg()
+        if not saves or saves['status'] == self.server.WRONG_REQUEST: return
+        self.saves_list.add_elements(saves['data']['saves'])
 
     def load_save(self, _: UIElement) -> None:
         selected = self.saves_list.child_selected

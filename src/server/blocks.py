@@ -18,7 +18,7 @@ FURNACE = 13
 WORKBENCH = 14
 WATER = 15
 SNOW = 16
-# new blocks must be added to the end in order to not break the existing saves
+# new blocks must be added to the end in order to not break existing saves
 
 TRAVERSABLE_BLOCKS = [
     AIR,

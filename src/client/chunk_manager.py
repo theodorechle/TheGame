@@ -4,18 +4,19 @@ from math import ceil
 from map_chunk import Chunk, int_to_blocks
 from typing import cast
 from server_connection import ServerConnection
+import asyncio
 
 class ChunkManager:
-    def __init__(self, nb_chunks_by_side: int, chunk_x_position: int, window: pygame.Surface, server: ServerConnection) -> None:
+    def __init__(self, chunk_x_position: int, window: pygame.Surface, server: ServerConnection) -> None:
         self.nb_chunks_by_side: int = 0
         self.chunk_x_position: int = chunk_x_position
         self.window: pygame.Surface = window
         self.server = server
-        central_chunk = self.load_chunk(chunk_x_position)
-        if central_chunk is None:
-            central_chunk = self.map_generator.generate_chunk(False, chunk_x_position)
-        self.chunks: list[Chunk] = [central_chunk]
-        self.change_nb_chunks(nb_chunks_by_side)
+        self.chunks: list[Chunk] = [None]
+    
+    async def initialize_chunks(self, nb_chunks_by_side: int) -> None:
+        await self.load_chunk(0)
+        await self.change_nb_chunks(nb_chunks_by_side)
     
     def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
@@ -38,26 +39,30 @@ class ChunkManager:
         chunk.blocks[y][x] = block
         return True
     
-    def update(self, x: int) -> None:
+    async def update(self, x: int) -> None:
         x += Chunk.LENGTH // 2
         x -= self.chunk_x_position * Chunk.LENGTH
         if x < 0:
-            self.change_chunks(-1)
+            await self.change_chunks(-1)
         elif x >= Chunk.LENGTH:
-            self.change_chunks(1)
+            await self.change_chunks(1)
 
-    def change_chunks(self, added_x: int) -> None:
+    async def change_chunks(self, added_x: int) -> None:
         if added_x == 1:
+            self.chunks.pop(0)
             id = self.chunk_x_position + self.nb_chunks_by_side + 1
-            chunk = self.load_chunk(id)
+            self.chunks.append(None)
+            chunk = await self.load_chunk(id)
             self.chunks.append(chunk)
         else:
+            self.chunks.pop(-1)
             id = self.chunk_x_position - self.nb_chunks_by_side - 1
-            chunk = self.load_chunk(id)
+            self.chunks.insert(0, None)
+            chunk = await self.load_chunk(id)
             self.chunks.insert(0, chunk)
         self.chunk_x_position += added_x
 
-    def change_nb_chunks(self, new_nb_chunks: int) -> None:
+    async def change_nb_chunks(self, new_nb_chunks: int) -> None:
         if new_nb_chunks == self.nb_chunks_by_side: return
         new_chunks: list[Chunk|None] = [None for _ in range(new_nb_chunks * 2 + 1)]
         difference = new_nb_chunks - self.nb_chunks_by_side
@@ -65,10 +70,8 @@ class ChunkManager:
             for i in range(self.nb_chunks_by_side*2 + 1):
                 new_chunks[difference + i] = self.chunks[i]
             for i in range(difference):
-                chunk = self.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
-                new_chunks[difference - i - 1] = chunk
-                chunk = self.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
-                new_chunks[difference + self.nb_chunks_by_side*2 + 1 + i] = chunk
+                await self.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
+                await self.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
         else:
             for i in range(new_nb_chunks*2 + 1):
                 new_chunks[i] = self.chunks[self.nb_chunks_by_side - new_nb_chunks + i]
@@ -91,7 +94,11 @@ class ChunkManager:
     
     def display_block(self, x: int, y: int, x_add: int, y_add: int) -> None:
         block_x = x + Chunk.LENGTH // 2 - self.chunk_x_position * Chunk.LENGTH
-        chunk = self.chunks[block_x // Chunk.LENGTH + self.nb_chunks_by_side]
+        index = block_x // Chunk.LENGTH + self.nb_chunks_by_side
+        if index < 0 or index >= len(self.chunks): return
+        chunk = self.chunks[index]
+        if chunk is None:
+            return
         window_size = self.window.get_size()
         coords = window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x + x_add - 0.5), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)
         self.window.blits(
@@ -102,16 +109,18 @@ class ChunkManager:
         for chunk in self.chunks:
             self.save_chunk(chunk)
     
-    def load_chunk(self, chunk_id: int) -> Chunk:
-        response = self.server.send_json({
+    async def load_chunk(self, chunk_id: int) -> None:
+        await self.server.send_json({
             'method': 'GET',
             'data': {
                 'type': 'chunk',
-                'value': chunk_id
+                'id': chunk_id
             }
         })
-        if not response or response['status'] == ServerConnection.WRONG_REQUEST:
+    
+    def set_chunk(self, message: dict) -> Chunk:
+        if not message or message['status'] == ServerConnection.WRONG_REQUEST:
             return
-        chunk_infos = response['data']['chunk']
-        return Chunk(chunk_id, chunk_infos['biome'], chunk_infos['is-forest'], int_to_blocks(chunk_infos['blocks']))
+        chunk_infos = message['data']['chunk']
+        self.chunks[chunk_infos['id'] - self.chunk_x_position + self.nb_chunks_by_side] = Chunk(chunk_infos['id'], chunk_infos['biome'], chunk_infos['is-forest'], int_to_blocks(chunk_infos['blocks']))
     
