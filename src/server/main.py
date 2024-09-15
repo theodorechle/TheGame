@@ -41,7 +41,7 @@ class Server:
         # address, sockets
         self.clients: dict[tuple[str, int], tuple[asyncio.StreamReader, asyncio.StreamWriter]] = {}
         # game, players addresses
-        self.games: dict[Game, list[tuple[str, int]]] = {}
+        self.games: dict[Game, tuple[str, int]] = {}
         # actions queue
         self.games_queues: dict[Game, tuple[Queue]] = {}
         # player address, (player name, game)
@@ -251,7 +251,7 @@ class Server:
         game = Game(seed, save, actions_queue, self.updates_queue)
         asyncio.create_task(game.run())
         game.create_player(player_name)
-        self.games[game] = [addr]
+        self.games[game] = addr
         self.games_queues[game] = (actions_queue, self.updates_queue)
         self.players[addr] = (player_name, game)
         self.players_names[player_name] = addr

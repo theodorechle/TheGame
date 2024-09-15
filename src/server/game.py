@@ -5,10 +5,10 @@ from player import Player
 from map_chunk import Chunk
 from typing import Any
 from logs import write_log
-from multiprocessing import Process, Queue
+from multiprocessing import Queue
 import asyncio
 
-class Game(Process):
+class Game:
     def __init__(self, seed, name, actions_queue: Queue, updates_queue: Queue) -> None:
         super().__init__()
         self.actions_queue: Queue = actions_queue
@@ -61,10 +61,14 @@ class Game(Process):
         while True:
             players_dict: dict[str, Any] = {}
             for player_name, player in self.players.items():
+                infos = player.get_infos()
                 player.update(0) # temp value
-                players_dict[player_name] = player.get_infos()
-            for player_name, player in self.players.items():
-                self.updates_queue.put((player_name, {'players': players_dict}))
+                new_infos = player.get_infos()
+                if infos != new_infos:
+                    players_dict[player_name] = new_infos
+            if players_dict:
+                for player_name, player in self.players.items():
+                    self.updates_queue.put((player_name, {'players': players_dict}))
             await asyncio.sleep(0.1)
     
     def get_player_update_dict(self, player_name: str) -> dict[str, Any]|None:

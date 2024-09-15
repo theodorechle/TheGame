@@ -181,13 +181,15 @@ class Client:
                         break
     
         self._ui_manager.update()
-        await self.server.send_json({
-            'method': 'POST',
-            'data': {
-                'type': 'update',
-                'actions': [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
-            }
-        })
+        actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
+        if actions:
+            await self.server.send_json({
+                'method': 'POST',
+                'data': {
+                    'type': 'update',
+                    'actions': actions
+                }
+            })
         return False
 
     async def process_socket_messages(self) -> None:
