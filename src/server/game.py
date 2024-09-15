@@ -72,7 +72,7 @@ class Game:
             if players_dict:
                 for player_name, player in self.players.items():
                     self.updates_queue.put((player_name, {'players': players_dict}))
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
     
     def get_player_update_dict(self, player_name: str) -> dict[str, Any]|None:
         if player_name not in self.players: return

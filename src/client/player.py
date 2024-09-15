@@ -1,6 +1,6 @@
 import pygame
 import blocks
-from entity import Entity
+from entity import DrawableEntity
 from inventory import Inventory
 from player_interface import PlayerInterface
 import items
@@ -9,9 +9,11 @@ from gui.ui_manager import UIManager
 from gui.ui_element import UIElement
 from time import monotonic
 from server_connection import ServerConnection
+from chunk_manager import ChunkManager
+from map_chunk import Chunk
 from typing import Any
 
-class Player(Entity, PlayerInterface):
+class Player(DrawableEntity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         PlayerInterface.__init__(self)
         self.render_distance: int = 1
@@ -20,8 +22,9 @@ class Player(Entity, PlayerInterface):
         self.infos_font_name: str = ""
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
+        self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self.window, server)
 
-        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, ui_manager, 1, 2, server, 'persos', True)
+        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, self.window, 'persos', True)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
@@ -35,6 +38,10 @@ class Player(Entity, PlayerInterface):
         self.min_time_before_click = 0.2
         self.set_player_edges_pos()
 
+    def display(self) -> None:
+        self.chunk_manager.display_chunks(self.x, self.y)
+        super().display(self.x, self.y)
+    
     def display_hud(self) -> None:
         self.main_inventory.display()
         self.hot_bar_inventory.display()
@@ -206,10 +213,6 @@ class Player(Entity, PlayerInterface):
             return menu, (x, y)
         return None, None
 
-    def display(self) -> None:
-        self.chunk_manager.display_chunks(self.x, self.y)
-        super().display(self.x, self.y)
-    
     async def update(self, update_dict: dict[str, Any]) -> None:
         await self.chunk_manager.update(self.x)
-        Entity.update(self, update_dict)
+        DrawableEntity.update(self, update_dict)

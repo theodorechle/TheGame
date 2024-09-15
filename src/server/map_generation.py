@@ -67,7 +67,7 @@ class MapGenerator:
         previous_biome_distance = 0
         if last_height is None:
             last_height = chunk.biome.min_height + (chunk.biome.max_height - chunk.biome.min_height) // 2
-        chunk.blocks = [blocks.AIR for _ in range(Chunk.LENGTH * Chunk.LENGTH)]
+        chunk.blocks = [blocks.AIR for _ in range(Chunk.HEIGHT * Chunk.LENGTH)]
         used_biome = None
         for x in range(Chunk.LENGTH):
             used_x = x if chunk.direction else (Chunk.LENGTH - 1 - x)
@@ -109,8 +109,8 @@ class MapGenerator:
             add_y = random.randint(0, 5)
             min_height = max(zone[1] + add_y, last_height - zone[2])
             for y in range(min_height, last_height + last_add_y):
-                if blocks_chunk[y][x] == blocks.STONE:
-                    blocks_chunk[y][x] = zone[0]
+                if blocks_chunk[y * Chunk.LENGTH + x] == blocks.STONE:
+                    blocks_chunk[y * Chunk.LENGTH + x] = zone[0]
             last_add_y = add_y
             last_height = min_height      
 
@@ -123,12 +123,12 @@ class MapGenerator:
                 if len(zone) == 3:
                     min_height = max(min_height, last_height - zone[2])
                 for y in range(min_height, last_height + last_add_y):
-                    if blocks_chunk[y][x] not in blocks.TRAVERSABLE_BLOCKS and (y == 0 or blocks_chunk[y-1][x] not in blocks.TRAVERSABLE_BLOCKS) and random.random() > 0.4:
-                        blocks_chunk[y][x] = zone[0]
+                    if blocks_chunk[y * Chunk.LENGTH + x] not in blocks.TRAVERSABLE_BLOCKS and (y == 0 or blocks_chunk[(y-1) * Chunk.LENGTH + x] not in blocks.TRAVERSABLE_BLOCKS) and random.random() > 0.4:
+                        blocks_chunk[y * Chunk.LENGTH + x] = zone[0]
                 last_add_y = add_y
                 last_height = min_height
         if last_height_before < self.water_height:
-            blocks_chunk[last_height_before][x] = blocks.SAND
+            blocks_chunk[last_height_before * Chunk.LENGTH + x] = blocks.SAND
 
     @staticmethod
     def get_positions_for_ore_veins(chunk: Chunk, x: int, y: int, block: blocks.Block) -> list[tuple[int, int]]:

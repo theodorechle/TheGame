@@ -14,20 +14,22 @@ from server_connection import ServerConnection
 from gui.ui_manager import UIManager
 from gui import elements
 from player import Player
+from entity import DrawableEntity
 import blocks
 from typing import Any
 import asyncio
 from map_chunk import Chunk
 
 class Client:
-    PORT = 6035
+    PORT = 12345
     def __init__(self, window) -> None:
         self.exit = False
-        self.server = ServerConnection('127.0.0.1', 12345)
+        self.server = ServerConnection('127.0.0.1', self.PORT)
         self.MAX_FPS = 20
 
         self.player_name = 'base_character'
         self.player = None
+        self.others_players: dict[str, DrawableEntity] = {}
 
         self.last_time_in_menu: float = 0
         self.min_time_before_toggling_menu: float = 0.3
@@ -111,7 +113,7 @@ class Client:
                 self.server.stop()
                 self.server = ServerConnection(host_address, self.PORT)
                 try:
-                    self.server.start()
+                    await self.server.start()
                 except asyncio.exceptions.TimeoutError:
                     continue
                 await self.server.send_json({
@@ -227,11 +229,19 @@ class Client:
         
     
     async def update_player(self, data: dict[str, Any]) -> None:
-        await self.player.update(data['players'][self.player_name])
+        for player_name, player_data in data['players'].items():
+            if player_name == self.player_name:
+                await self.player.update(player_data)
+            else:
+                if player_name not in self.others_players:
+                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self.window, 'persos', True)
+                self.others_players[player_name].update(player_data)
         self.display()
 
     def display(self) -> None:
         self.player.display()
+        for player in self.others_players.values():
+            player.display(self.player.x, self.player.y)
         self.player.display_hud()
         self._ui_manager.display()
         pygame.display.update()

@@ -4,7 +4,6 @@ from math import ceil
 from map_chunk import Chunk, ints_to_blocks
 from typing import cast
 from server_connection import ServerConnection
-import asyncio
 
 class ChunkManager:
     def __init__(self, chunk_x_position: int, window: pygame.Surface, server: ServerConnection) -> None:
