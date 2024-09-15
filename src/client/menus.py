@@ -10,12 +10,13 @@ from server_connection import ServerConnection
 import asyncio
 
 EXIT = 0
-CREATE_GAME = 1
+CREATE_WORLD = 1
 TO_MAIN_MENU = 2
 BACK = 3
 START_GAME = 4
 SETTINGS = 5
 LOAD_SAVE = 6
+JOIN_WORLD = 7
 
 class Menu:
     FPS = 20
@@ -89,7 +90,8 @@ class MainMenu(Menu):
     def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
         super().__init__(window, server)
         self._elements.append(elements.TextButton(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y="-15%", anchor='center'))
-        self._elements.append(elements.TextButton(self.ui_manager, 'Load save', on_click_function=self.load_save, anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Join multiplayer world', on_click_function=self.join_world, y='-5%', anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Load save', on_click_function=self.load_save, y='5%', anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_game, y="15%", anchor='center'))
     
     def exit_game(self, _: UIElement) -> None:
@@ -97,9 +99,12 @@ class MainMenu(Menu):
 
     def load_save(self, _: UIElement) -> None:
         self.exit(LOAD_SAVE)
+    
+    def join_world(self, _: UIElement) -> None:
+        self.exit(JOIN_WORLD)
 
     def create_new_game(self, _: UIElement) -> None:
-        self.exit(CREATE_GAME)
+        self.exit(CREATE_WORLD)
     
     def handle_special_events(self, event: Event) -> Event | None:
         if event.type == pygame.QUIT:
@@ -119,6 +124,22 @@ class CreateWorldMenu(Menu):
     def start_game(self, _: UIElement) -> None:
         text = self.world_name_text_box.get_text()
         if text and not text.isspace():
+            self.exit(START_GAME)
+
+class JoinWorldMenu(Menu):
+    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+        super().__init__(window, server)
+        self.host_address_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Host address', anchor='top', y=400)
+        self._elements.append(self.host_address_text_box)
+        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y=600)
+        self._elements.append(self.world_name_text_box)
+        self._elements.append(elements.TextButton(self.ui_manager, 'Join', on_click_function=self.join_game, anchor='top', y=800))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
+    
+    def join_game(self, _: UIElement) -> None:
+        host_addr = self.host_address_text_box.get_text()
+        world_name = self.world_name_text_box.get_text()
+        if host_addr and not host_addr.isspace() and world_name and not world_name.isspace():
             self.exit(START_GAME)
 
 class EscapeMenu(Menu):

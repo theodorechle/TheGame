@@ -20,6 +20,7 @@ import asyncio
 from map_chunk import Chunk
 
 class Client:
+    PORT = 6035
     def __init__(self, window) -> None:
         self.exit = False
         self.server = ServerConnection('127.0.0.1', 12345)
@@ -68,9 +69,9 @@ class Client:
             self.client_actions_pressed_keys[key] = False
         for key in self.mouse_buttons.keys():
             self.server_actions_pressed_keys[key] = False
-
+    
     async def start(self) -> None:
-        await self.server.connect_to_server()
+        await self.server.start()
 
     async def run_menus(self) -> bool:
         """
@@ -81,12 +82,11 @@ class Client:
             if exit_code == menus.EXIT:
                 self.exit = True
                 break
-            elif exit_code == menus.CREATE_GAME:
+            elif exit_code == menus.CREATE_WORLD:
                 create_world_menu = menus.CreateWorldMenu(self.window, self.server)
                 exit_code = create_world_menu.run()
-                if exit_code == menus.BACK:
-                    continue
-                save_name = create_world_menu.world_name_text_box.get_text().rstrip()
+                if exit_code == menus.BACK: continue
+                save_name = create_world_menu.world_name_text_box.get_text().strip()
                 seed = create_world_menu.seed_text_box.get_text()
                 if not seed:
                     seed = None
@@ -100,13 +100,34 @@ class Client:
                     }
                 })
                 response = await self.server.receive_msg()
-                if response['status'] == ServerConnection.WRONG_REQUEST:
+                if response['status'] == ServerConnection.WRONG_REQUEST: continue
+                return True
+            elif exit_code == menus.JOIN_WORLD:
+                join_world_menu = menus.JoinWorldMenu(self.window, self.server)
+                exit_code = join_world_menu.run()
+                if exit_code == menus.BACK: continue
+                host_address = join_world_menu.host_address_text_box.get_text().strip()
+                game_name = join_world_menu.world_name_text_box.get_text().strip()
+                self.server.stop()
+                self.server = ServerConnection(host_address, self.PORT)
+                try:
+                    self.server.start()
+                except asyncio.exceptions.TimeoutError:
                     continue
+                await self.server.send_json({
+                    'method': 'GET',
+                    'data': {
+                        'type': 'join',
+                        'game': game_name,
+                        'player-name': self.player_name
+                    }
+                })
+                response = await self.server.receive_msg()
+                if response['status'] == ServerConnection.WRONG_REQUEST: continue
                 return True
             elif exit_code == menus.LOAD_SAVE:
                 exit_code = menus.LoadSaveMenu(self.window, self.server).run()
-                if exit_code == menus.BACK:
-                    continue
+                if exit_code == menus.BACK: continue
         return False
 
     def stop_client(self, _: elements.TextButton) -> None:
@@ -200,14 +221,13 @@ class Client:
                 continue
             data = message_dict['data']
             if data['type'] == 'player-update':
-                self.update_player(data)
+                await self.update_player(data)
             elif data['type'] == 'chunk':
                 self.player.chunk_manager.set_chunk(message_dict)
         
     
-    def update_player(self, data: dict[str, Any]) -> None:
-        self.player.x = data['players'][self.player_name]['x']
-        self.player.y = data['players'][self.player_name]['y']
+    async def update_player(self, data: dict[str, Any]) -> None:
+        await self.player.update(data['players'][self.player_name])
         self.display()
 
     def display(self) -> None:
@@ -218,7 +238,11 @@ class Client:
 
 async def start() -> None:
     client = Client(window)
-    await client.start()
+    try:
+        await client.start()
+    except asyncio.exceptions.TimeoutError:
+        print("Can't connect to local server (no response)")
+        return
     do_run_main: bool = await client.run_menus()
     if do_run_main:
         await client.run()

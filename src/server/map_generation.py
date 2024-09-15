@@ -67,7 +67,7 @@ class MapGenerator:
         previous_biome_distance = 0
         if last_height is None:
             last_height = chunk.biome.min_height + (chunk.biome.max_height - chunk.biome.min_height) // 2
-        chunk.blocks = [[blocks.AIR for _ in range(Chunk.LENGTH)] for _ in range(Chunk.HEIGHT)]
+        chunk.blocks = [blocks.AIR for _ in range(Chunk.LENGTH * Chunk.LENGTH)]
         used_biome = None
         for x in range(Chunk.LENGTH):
             used_x = x if chunk.direction else (Chunk.LENGTH - 1 - x)
@@ -84,9 +84,9 @@ class MapGenerator:
             height = last_height + random.randint(min_, max_)
             height = min(Chunk.HEIGHT - 1, height)
             for y in range(height):
-                chunk.blocks[y][used_x] = blocks.STONE
+                chunk.blocks[y * Chunk.LENGTH + used_x] = blocks.STONE
             for y in range(height, self.water_height):
-                chunk.blocks[y][used_x] = blocks.WATER
+                chunk.blocks[y * Chunk.LENGTH + used_x] = blocks.WATER
             if 0 < previous_biome_distance < 3 and last_biome is not None:
                 used_biome = last_biome
                 biome2 = chunk.biome
@@ -133,13 +133,13 @@ class MapGenerator:
     @staticmethod
     def get_positions_for_ore_veins(chunk: Chunk, x: int, y: int, block: blocks.Block) -> list[tuple[int, int]]:
         pos: list[tuple[int, int]] = []
-        if x > 0 and chunk.blocks[y][x - 1] == block:
+        if x > 0 and chunk.blocks[y * Chunk.LENGTH + x - 1] == block:
             pos.append((x - 1, y))
-        if x < Chunk.LENGTH - 1 and chunk.blocks[y][x + 1] == block:
+        if x < Chunk.LENGTH - 1 and chunk.blocks[y * Chunk.LENGTH + x + 1] == block:
             pos.append((x + 1, y))
-        if y > 0 and chunk.blocks[y - 1][x] == block:
+        if y > 0 and chunk.blocks[(y - 1) * Chunk.LENGTH + x] == block:
             pos.append((x, y - 1))
-        if y < Chunk.HEIGHT - 1 and chunk.blocks[y + 1][x] == block:
+        if y < Chunk.HEIGHT - 1 and chunk.blocks[(y + 1) * Chunk.LENGTH + x] == block:
             pos.append((x, y + 1))
         return pos
 
@@ -151,31 +151,31 @@ class MapGenerator:
             vein_x = random.randrange(0, Chunk.LENGTH)
             vein_y = random.randrange(vein[2], vein[3])
             pos: list[tuple[int, int]] = []
-            if chunk.blocks[vein_y][vein_x] == blocks.STONE:
+            if chunk.blocks[vein_y * Chunk.LENGTH + vein_x] == blocks.STONE:
                 pos.append((vein_x, vein_y))
             while pos:
                 x, y = pos.pop(0)
                 if random.random() < vein[4]:
-                    chunk.blocks[y][x] = vein[1]
+                    chunk.blocks[y * Chunk.LENGTH + x] = vein[1]
                     pos += self.get_positions_for_ore_veins(chunk, x, y, blocks.STONE)
 
     def get_first_block_y(self, chunk: Chunk, x: int) -> int:
         y = Chunk.HEIGHT - 1
-        while y > 0 and chunk.blocks[y][x] in blocks.TRAVERSABLE_BLOCKS:
+        while y > 0 and chunk.blocks[y * Chunk.LENGTH + x] in blocks.TRAVERSABLE_BLOCKS:
             y -= 1
         return y
 
     @staticmethod
     def can_place_leave(chunk: Chunk, x: int, y: int) -> bool:
         if chunk.biome.tree is None: return False
-        if 0 > x or x >= Chunk.LENGTH - 1 or 0 > y or y >= Chunk.HEIGHT or chunk.blocks[y][x] != chunk.biome.tree.grows_in: return False
-        if x < Chunk.LENGTH - 1 and chunk.blocks[y][x + 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if 0 > x or x >= Chunk.LENGTH - 1 or 0 > y or y >= Chunk.HEIGHT or chunk.blocks[y * Chunk.LENGTH + x] != chunk.biome.tree.grows_in: return False
+        if x < Chunk.LENGTH - 1 and chunk.blocks[y * Chunk.LENGTH + x + 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
             return True
-        if x > 0 and chunk.blocks[y][x - 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if x > 0 and chunk.blocks[y * Chunk.LENGTH + x - 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
             return True
-        if y < Chunk.HEIGHT - 1 and chunk.blocks[y + 1][x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if y < Chunk.HEIGHT - 1 and chunk.blocks[(y + 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
             return True
-        if y > 0 and chunk.blocks[y - 1][x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if y > 0 and chunk.blocks[(y - 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
             return True
         return False
 
@@ -189,17 +189,17 @@ class MapGenerator:
         for start_x in range(tree.min_leaves_width + 1, Chunk.LENGTH - tree.min_leaves_width - 1):
             if random.random() <= spawn_chance:
                 y = self.get_first_block_y(chunk, start_x)
-                if chunk.blocks[y][start_x] != blocks.GRASS: continue
-                chunk.blocks[y][start_x] = blocks.EARTH
+                if chunk.blocks[y * Chunk.LENGTH + start_x] != blocks.GRASS: continue
+                chunk.blocks[y * Chunk.LENGTH + start_x] = blocks.EARTH
                 i = 0
                 for i in range(1, random.randint(tree.min_trunk_height, tree.max_trunk_height)):
-                    if y + i < Chunk.HEIGHT and chunk.blocks[y + i][start_x] == tree.grows_in:
-                        chunk.blocks[y + i][start_x] = tree.trunk_block
+                    if y + i < Chunk.HEIGHT and chunk.blocks[(y + i) * Chunk.LENGTH + start_x] == tree.grows_in:
+                        chunk.blocks[(y + i) * Chunk.LENGTH + start_x] = tree.trunk_block
                     else:
                         break
                 if i < tree.min_trunk_height:
                     for j in range(i + 1):
-                        chunk.blocks[y + j][start_x] = tree.grows_in
+                        chunk.blocks[(y + j) * Chunk.LENGTH + start_x] = tree.grows_in
                     continue
                 start_y = y + i
                 # leaves on the trunk
@@ -207,7 +207,7 @@ class MapGenerator:
                 center_max_y = random.randint(tree.min_leaves_height, tree.max_leaves_height)
                 for y in range(1, center_max_y + 1):
                     if self.can_place_leave(chunk, start_x, start_y + y):
-                        chunk.blocks[start_y + y][start_x] = tree.leave_block
+                        chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x] = tree.leave_block
                 # leaves before trunk
                 min_y = center_min_y
                 max_y = center_max_y
@@ -216,7 +216,7 @@ class MapGenerator:
                     min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
                     for y in range(min_y, max_y + 1):
                         if self.can_place_leave(chunk, start_x + x, start_y + y):
-                            chunk.blocks[start_y + y][start_x + x] = tree.leave_block
+                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leave_block
                 # leaves after trunk
                 min_y = center_min_y
                 max_y = center_max_y
@@ -225,7 +225,7 @@ class MapGenerator:
                     min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
                     for y in range(min_y, max_y + 1):
                         if self.can_place_leave(chunk, start_x + x, start_y + y):
-                            chunk.blocks[start_y + y][start_x + x] = tree.leave_block
+                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leave_block
 
     @staticmethod
     def is_valid_pos(x: int, y: int, width: int, height: int) -> bool:
@@ -239,20 +239,20 @@ class MapGenerator:
         while a >= b:
             tmp_x = x + a
             for tmp_y in range(y - b, y + b):
-                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
-                    chunk.blocks[tmp_y][tmp_x] = blocks.AIR
+                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
             tmp_x = x + b
             for tmp_y in range(y - a, y + a):
-                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
-                    chunk.blocks[tmp_y][tmp_x] = blocks.AIR
+                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
             tmp_x = x - a
             for tmp_y in range(y - b, y + b):
-                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
-                    chunk.blocks[tmp_y][tmp_x] = blocks.AIR
+                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
             tmp_x = x - b
             for tmp_y in range(y - a, y + a):
-                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y][tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
-                    chunk.blocks[tmp_y][tmp_x] = blocks.AIR
+                if self.is_valid_pos(tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT) and chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] not in blocks.TRAVERSABLE_BLOCKS:
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
             b += 1
             t1 += b
             t2 = t1 - a

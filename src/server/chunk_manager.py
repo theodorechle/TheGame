@@ -21,12 +21,12 @@ class ChunkManager:
         """Return the value at given coordinates, or blocks.NOTHING if out of map"""
         chunk, x, y = self.get_chunk_and_coordinates(x, y)
         if chunk is None: return blocks.NOTHING
-        return chunk.blocks[y][x]
+        return chunk.blocks[y * Chunk.LENGTH + x]
 
     def replace_block(self, x: int, y: int, block: int) -> bool:
         chunk, x, y = self.get_chunk_and_coordinates(x, y)
         if chunk is None: return False
-        chunk.blocks[y][x] = block
+        chunk.blocks[y * Chunk.LENGTH + x] = block
         return True
     
     # def update(self, x: int) -> None:

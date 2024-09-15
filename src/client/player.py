@@ -210,5 +210,6 @@ class Player(Entity, PlayerInterface):
         self.chunk_manager.display_chunks(self.x, self.y)
         super().display(self.x, self.y)
     
-    def update(self, update_dict: dict[str, Any]) -> None:
+    async def update(self, update_dict: dict[str, Any]) -> None:
+        await self.chunk_manager.update(self.x)
         Entity.update(self, update_dict)

@@ -1,7 +1,7 @@
 import blocks
 import pygame
 from math import ceil
-from map_chunk import Chunk, int_to_blocks
+from map_chunk import Chunk, ints_to_blocks
 from typing import cast
 from server_connection import ServerConnection
 import asyncio
@@ -102,7 +102,7 @@ class ChunkManager:
         window_size = self.window.get_size()
         coords = window_size[0] // 2 + blocks.Block.BLOCK_SIZE*(x + x_add - 0.5), window_size[1] // 2 - blocks.Block.BLOCK_SIZE*(y + 1 + y_add)
         self.window.blits(
-            ((blocks.AIR.image, coords), (chunk.blocks[y][block_x % Chunk.LENGTH].image, coords))
+            ((blocks.AIR.image, coords), (chunk.blocks[y * Chunk.LENGTH + block_x % Chunk.LENGTH].image, coords))
         )
 
     def save(self) -> None:
@@ -122,5 +122,5 @@ class ChunkManager:
         if not message or message['status'] == ServerConnection.WRONG_REQUEST:
             return
         chunk_infos = message['data']['chunk']
-        self.chunks[chunk_infos['id'] - self.chunk_x_position + self.nb_chunks_by_side] = Chunk(chunk_infos['id'], chunk_infos['biome'], chunk_infos['is-forest'], int_to_blocks(chunk_infos['blocks']))
+        self.chunks[chunk_infos['id'] - self.chunk_x_position + self.nb_chunks_by_side] = Chunk(chunk_infos['id'], chunk_infos['biome'], chunk_infos['is-forest'], ints_to_blocks(chunk_infos['blocks']))
     

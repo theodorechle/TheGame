@@ -21,6 +21,9 @@ class Game:
         self.updated_blocks: dict[tuple[int, int], int] = {}
         self.UPDATE_DELAY_MS = 50
     
+    def get_name(self) -> str:
+        return self.save_manager.save_name
+
     def create_player(self, name: str) -> None:
         if name in self.players: return
         # add try to load player from save

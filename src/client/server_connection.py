@@ -21,10 +21,11 @@ class ServerConnection:
         #     start_new_session=True)
 
     def stop(self) -> None:
-        self.server_process.kill()
+        self.writer.close()
+        # self.server_process.kill()
 
-    async def connect_to_server(self) -> None:
-        self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
+    async def start(self) -> None:
+        self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=1)
 
     async def send_json(self, request: dict) -> None:
         request = json.dumps(request).encode()

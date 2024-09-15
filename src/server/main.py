@@ -41,7 +41,7 @@ class Server:
         # address, sockets
         self.clients: dict[tuple[str, int], tuple[asyncio.StreamReader, asyncio.StreamWriter]] = {}
         # game, players addresses
-        self.games: dict[Game, tuple[str, int]] = {}
+        self.games: dict[Game, list[tuple[str, int]]] = {}
         # actions queue
         self.games_queues: dict[Game, tuple[Queue]] = {}
         # player address, (player name, game)
@@ -163,7 +163,9 @@ class Server:
             case 'saves-list':
                 await self.send_data(writer, {'saves': os.listdir(SAVES_PATH)})
             case 'create-world':
-                await self.create_world(data, addr, writer)
+                await self.create_world(data, writer)
+            case 'join':
+                await self.join_world(data, writer)
             case 'chunk':
                 success, values = await self.get_values(data, ['id'], writer)
                 if not success:
@@ -217,12 +219,10 @@ class Server:
             case 'update':
                 success, values = await self.get_values(data, ['actions'], writer)
                 if not success:
-                    await self.send_invalid_request(writer)
                     return
                 name, game = self.players[addr]
                 actions_queue = self.games_queues[game][0]
                 actions_queue.put({'name': name, 'actions': values[0]})
-                await self.send_json(writer, {'status': self.VALID_REQUEST})
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
                 await self.send_invalid_request(writer)
@@ -240,10 +240,11 @@ class Server:
             })
             # TODO: remove player from game
 
-    async def create_world(self, data: dict, addr: tuple[str, int], writer: asyncio.StreamWriter) -> None:
+    async def create_world(self, data: dict, writer: asyncio.StreamWriter) -> None:
+        addr = writer.get_extra_info('peername')
         success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
         if not success:
-            write_log(f"Client {addr} tried to create game but send partial data {data}")
+            write_log(f"Client {addr} tried to create game but send partial data: '{data}'")
             self.send_invalid_request()
             return
         seed, save, player_name = values
@@ -251,11 +252,32 @@ class Server:
         game = Game(seed, save, actions_queue, self.updates_queue)
         asyncio.create_task(game.run())
         game.create_player(player_name)
-        self.games[game] = addr
+        self.games[game] = [addr]
         self.games_queues[game] = (actions_queue, self.updates_queue)
         self.players[addr] = (player_name, game)
         self.players_names[player_name] = addr
         await self.send_json(writer, {'status': self.VALID_REQUEST})
+
+    async def join_world(self, data: dict, writer: asyncio.StreamWriter) -> None:
+        addr = writer.get_extra_info('peername')
+        if addr in self.players:
+            write_log(f"Client {addr} tried to join game but was already playing: '{data}'")
+            self.send_invalid_request()
+            return
+        success, values = await self.get_values(data, ['game', 'player-name'], writer)
+        if not success:
+            write_log(f"Client {addr} tried to join game but send partial data: '{data}'")
+            self.send_invalid_request()
+            return
+        searched_game_name, player_name = values
+        for game in self.games.keys():
+            if game.get_name() == searched_game_name:
+                game.create_player(player_name)
+                self.players[addr] = (player_name, game)
+                self.players_names[player_name] = addr
+                await self.send_json(writer, {'status': self.VALID_REQUEST})
+                return
+        self.send_invalid_request(writer)
         
 
 def delete_folder(path) -> None:

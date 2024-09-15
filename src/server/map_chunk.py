@@ -10,7 +10,7 @@ class Chunk:
         self.direction: bool = direction
         self.biome: Biome = biome
         self.is_forest: bool = False
-        self.blocks: list[list[blocks.Block]] = []
+        self.blocks: list[blocks.Block] = []
 
     def get_infos_dict(self) -> dict:
         return {
