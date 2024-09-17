@@ -18,14 +18,12 @@ class Player(DrawableEntity, PlayerInterface):
         PlayerInterface.__init__(self)
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
-        self._ui_manager = ui_manager
-        self.window = self._ui_manager.get_window()
         self.infos_font_name: str = ""
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
-        self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self.window, server)
 
-        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, self.window, 'persos', True, images_name=images_name)
+        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, ui_manager, 'persos', True, images_name=images_name, display_name=True)
+        self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self.window, server)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')

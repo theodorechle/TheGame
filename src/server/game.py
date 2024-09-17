@@ -69,11 +69,12 @@ class Game:
                 has_changed = player.update(0) # temp value
                 if player_name in self.new_players:
                     players_dict[player_name] = player.get_all_infos()
-                if has_changed:
+                elif has_changed:
                     players_dict[player_name] = player.get_infos()
             if players_dict:
                 for player_name, player in self.players.items():
                     if player_name in self.new_players:
+                        self.new_players.remove(player_name)
                         self.updates_queue.put((player_name, self.get_all_players_infos()))
                     self.updates_queue.put((player_name, {'players': players_dict}))
             await asyncio.sleep(0.05)

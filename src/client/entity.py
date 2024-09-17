@@ -1,11 +1,11 @@
 from load_image import load_image
 import pygame
 import blocks
-from chunk_manager import ChunkManager
 from entity_interface import EntityInterface
-from map_chunk import Chunk
 from module_infos import RESOURCES_PATH
 from typing import Any
+from gui.ui_manager import UIManager
+from gui.elements import Label
 
 ENTITIES_IMAGES_PATH: str = f'{RESOURCES_PATH}/images'
 
@@ -40,9 +40,12 @@ class Entity(EntityInterface):
                 self.y = value
 
 class DrawableEntity(Entity):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, window: pygame.Surface, add_path: str = '', collisions: bool = True, images_name: str="") -> None:
-        self.window = window
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, ui_manager: UIManager=None, add_path: str = '', collisions: bool = True, images_name: str="", display_name: bool=False) -> None:
+        self._ui_manager = ui_manager
+        self.window = self._ui_manager.get_window()
+        self.display_name = display_name
         super().__init__(name, x, y, speed_x, speed_y, direction, image_length, image_height, collisions)
+        self.name_label = None if not self.display_name else Label(self._ui_manager, self.name, anchor='center', classes_names=['player-name'])
         self.path = ENTITIES_IMAGES_PATH
         if add_path:
             self.path += '/' + add_path
@@ -59,9 +62,14 @@ class DrawableEntity(Entity):
         rel_x and rel_y are the coords of the block in the center of the image
         """
         window_size = self.window.get_size()
-        x = window_size[0] // 2 - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2 + (self.x - rel_x) * blocks.Block.BLOCK_SIZE
+        center_x = window_size[0] // 2 + (self.x - rel_x) * blocks.Block.BLOCK_SIZE
+        x = center_x - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2
         y = window_size[1] // 2 - self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE
         self.window.blit(
             self.image_reversed if self.direction else self.image,
             (x, y)
         )
+        if self.name_label is not None:
+            self.name_label._first_coords = ((self.x - rel_x) * blocks.Block.BLOCK_SIZE, -self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE - 10)
+            self.name_label.update_element()
+            self._ui_manager.ask_refresh(self.name_label)

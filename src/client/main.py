@@ -1,6 +1,8 @@
 import sys
-from module_infos import GUI_PATH
+from module_infos import GUI_PATH, RESOURCES_PATH
 sys.path.append(GUI_PATH)
+
+import os
 from time import monotonic
 
 import menus
@@ -38,6 +40,7 @@ class Client:
         # UI
         self.window = window
         self._ui_manager = UIManager(self.window)
+        self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'player_name.json'))
 
         # keys
         self.server_actions_keyboard_keys: dict[str, int] = {
@@ -143,7 +146,7 @@ class Client:
         self.exit = True
 
     async def run(self) -> None:
-        self.player = Player(self.player_images_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
+        self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
         await self.player.initialize_chunks()
         tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -185,8 +188,8 @@ class Client:
                             for block in blocks.BLOCKS_DICT:
                                 block.scale_image()
                             self.player.scale_image()
-                            # for entity in entities:
-                            #     entity.scale_image()
+                            for player in self.others_players.values():
+                                player.scale_image()
                             break
                     
                 for key, value in self.server_actions_keyboard_keys.items():
@@ -250,7 +253,7 @@ class Client:
                 await self.player.update(player_data)
             else:
                 if player_name not in self.others_players:
-                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self.window, 'persos', True, images_name=player_data.get('images-name', ''))
+                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self._ui_manager, 'persos', True, images_name=player_data.get('images-name', ''), display_name=True)
                 self.others_players[player_name].update(player_data)
         self.display()
 

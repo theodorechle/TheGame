@@ -104,8 +104,9 @@ class Server:
         write_log(f"Client with address {addr} connected")
         try:
             while True:
-                request = await self.receive_msg(reader)
-                if not request:
+                try:
+                    request = await self.receive_msg(reader)
+                except asyncio.IncompleteReadError:
                     write_log(f"Client {addr} disconnected")
                     self.clients.pop(addr)
                     break
@@ -113,7 +114,7 @@ class Server:
                 if 'method' not in request or not isinstance(request['method'], str):
                     write_log(f"Bad request: missing 'method' in {request}")
                     await self.send_invalid_request()
-                    return
+                    continue
                 match request['method'].upper():
                     case 'GET':
                         await self.handle_get(request, writer)
