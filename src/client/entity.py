@@ -8,8 +8,9 @@ from module_infos import RESOURCES_PATH
 from typing import Any
 
 ENTITIES_IMAGES_PATH: str = f'{RESOURCES_PATH}/images'
+
 class Entity(EntityInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, add_path: str='', collisions: bool=True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, collisions: bool=True) -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
@@ -24,19 +25,7 @@ class Entity(EntityInterface):
         self.direction: bool = direction # False if right, True if left
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
-        self.path = ENTITIES_IMAGES_PATH
-        if add_path:
-            self.path += '/' + add_path
-        self.scale_image()
 
-    def scale_image(self) -> None:
-        self.image_size = (self.entity_size[0] * blocks.Block.BLOCK_SIZE, self.entity_size[1] * blocks.Block.BLOCK_SIZE)
-        self.image: pygame.Surface = load_image([f'{self.path}/{self.name}.png'], self.image_size)
-        self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.name}_reversed.png'], self.image_size)
-
-    async def initialize_chunks(self) -> None:
-        await self.chunk_manager.initialize_chunks(1)
-    
     def set_player_edges_pos(self) -> None:
         self.top_player_pos: int = self.entity_size[1]
         self.bottom_player_pos: int = 0
@@ -51,10 +40,20 @@ class Entity(EntityInterface):
                 self.y = value
 
 class DrawableEntity(Entity):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, window: pygame.Surface, add_path: str = '', collisions: bool = True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, window: pygame.Surface, add_path: str = '', collisions: bool = True, images_name: str="") -> None:
         self.window = window
-        super().__init__(name, x, y, speed_x, speed_y, direction, image_length, image_height, add_path, collisions)
-    
+        super().__init__(name, x, y, speed_x, speed_y, direction, image_length, image_height, collisions)
+        self.path = ENTITIES_IMAGES_PATH
+        if add_path:
+            self.path += '/' + add_path
+        self.images_name = images_name
+        self.scale_image()
+
+    def scale_image(self) -> None:
+        self.image_size = (self.entity_size[0] * blocks.Block.BLOCK_SIZE, self.entity_size[1] * blocks.Block.BLOCK_SIZE)
+        self.image: pygame.Surface = load_image([f'{self.path}/{self.images_name}.png'], self.image_size)
+        self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.images_name}_reversed.png'], self.image_size)
+
     def display(self, rel_x: int, rel_y: int) -> None:
         """
         rel_x and rel_y are the coords of the block in the center of the image

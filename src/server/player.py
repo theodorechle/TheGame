@@ -8,11 +8,11 @@ from chunk_manager import ChunkManager
 from typing import Any
 
 class Player(Entity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, chunk_manager: ChunkManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, chunk_manager: ChunkManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None, images_name: str="") -> None:
         PlayerInterface.__init__(self)
         self.interaction_range: int = 1 # doesn't work
 
-        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, chunk_manager, 'persos', True)
+        Entity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, chunk_manager, 'persos', True, images_name=images_name)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
@@ -171,6 +171,13 @@ class Player(Entity, PlayerInterface):
         if menu is not None:
             return menu, (x, y)
         return None, None
+
+    def get_all_infos(self) -> dict[str, Any]:
+        return {
+            'x': self.x,
+            'y': self.y,
+            'images-name': self.images_name
+        }
 
     def get_infos(self) -> dict[str, Any]:
         return {

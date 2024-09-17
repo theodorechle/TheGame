@@ -62,7 +62,7 @@ class Server:
         self.server.close()
 
     async def send_json(self, writer: asyncio.StreamWriter, request: dict) -> None:
-        # write_log(f"Sent {request}")
+        write_log(f"Sent {request}")
         request = json.dumps(request).encode()
         message = struct.pack('>I', len(request)) + request
         writer.write(message)
@@ -82,12 +82,10 @@ class Server:
 
     async def receive_msg(self, reader: asyncio.StreamReader) -> dict:
         raw_msglen = await self.recvall(reader, 4)
-        if not raw_msglen:
-            return {}
+        if not raw_msglen: return {}
         msglen = struct.unpack('>I', raw_msglen)[0]
         message = await self.recvall(reader, msglen)
-        if not message:
-            return {}
+        if not message: return {}
         return json.loads(message)
     
     async def recvall(self, reader: asyncio.StreamReader, size: int) -> bytes:
@@ -111,7 +109,7 @@ class Server:
                     write_log(f"Client {addr} disconnected")
                     self.clients.pop(addr)
                     break
-                # write_log(f"Client {addr} sent request {request}")
+                write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
                     write_log(f"Bad request: missing 'method' in {request}")
                     await self.send_invalid_request()
@@ -171,26 +169,16 @@ class Server:
                 if not success:
                     write_log(f"Bad request: missing value 'value'")
                     await self.send_invalid_request(writer)
-                    return
                 if addr not in self.players:
                     write_log(f"Client {addr} tried to get chunk {values[0]} while not playing")
                     await self.send_invalid_request(writer)
-                    return
                 chunk = self.players[addr][1].chunk_manager.load_chunk(values[0])
                 if chunk is None:
                     await self.send_invalid_request()
-                    return
                 await self.send_data(writer, {
                         'type': 'chunk',
                         'chunk': chunk.get_infos_dict()
                 })
-            # case 'player-infos':
-            #     infos = self.players[addr][1].get_player_infos(self.players[addr][0])
-            #     if infos is None:
-            #         await self.send_invalid_request()
-            #     await self.send_data(writer, {'infos': infos})
-            case 'player-update':
-                await self.send_data(writer, {self.players[addr][1].get_player_update_dict(self.players[addr][0])})
             case values:
                 write_log(f"Bad request: wrong value for data type: '{values}'")
                 await self.send_invalid_request(writer)
@@ -201,8 +189,7 @@ class Server:
         match data['type']:
             case 'save':
                 dir_name = request['data'].get('value', None)
-                if dir_name is None:
-                    return
+                if dir_name is None: return
                 dir_name = os.path.join(SAVES_PATH, dir_name)
                 if os.path.isdir(dir_name):
                     delete_folder(dir_name)
@@ -218,8 +205,7 @@ class Server:
         match data['type']:
             case 'update':
                 success, values = await self.get_values(data, ['actions'], writer)
-                if not success:
-                    return
+                if not success: return
                 name, game = self.players[addr]
                 actions_queue = self.games_queues[game][0]
                 actions_queue.put({'name': name, 'actions': values[0]})
@@ -231,8 +217,7 @@ class Server:
         while True:
             player_name, update_dict = await asyncio.get_event_loop().run_in_executor(None, self.updates_queue.get)
             player_addr: tuple[str, int]|None = self.players_names.get(player_name, None)
-            if player_addr is None:
-                continue
+            if player_addr is None: continue
             update_dict['type'] = 'player-update'
             await self.send_json(self.clients[player_addr][1], {
                 'status': self.VALID_REQUEST,
@@ -251,7 +236,7 @@ class Server:
         actions_queue = Queue()
         game = Game(seed, save, actions_queue, self.updates_queue)
         asyncio.create_task(game.run())
-        game.create_player(player_name)
+        game.create_player(player_name, data.get('player-images-name', ''))
         self.games[game] = [addr]
         self.games_queues[game] = (actions_queue, self.updates_queue)
         self.players[addr] = (player_name, game)
@@ -272,7 +257,7 @@ class Server:
         searched_game_name, player_name = values
         for game in self.games.keys():
             if game.get_name() == searched_game_name:
-                game.create_player(player_name)
+                game.create_player(player_name, data.get('player-images-name', ''))
                 self.players[addr] = (player_name, game)
                 self.players_names[player_name] = addr
                 await self.send_json(writer, {'status': self.VALID_REQUEST})

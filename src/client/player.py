@@ -14,17 +14,18 @@ from map_chunk import Chunk
 from typing import Any
 
 class Player(DrawableEntity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None, images_name: str="") -> None:
         PlayerInterface.__init__(self)
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
-        self.window = ui_manager.get_window()
+        self._ui_manager = ui_manager
+        self.window = self._ui_manager.get_window()
         self.infos_font_name: str = ""
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
         self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self.window, server)
 
-        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, self.window, 'persos', True)
+        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, self.window, 'persos', True, images_name=images_name)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
@@ -37,6 +38,9 @@ class Player(DrawableEntity, PlayerInterface):
         self._last_time_clicked = 0
         self.min_time_before_click = 0.2
         self.set_player_edges_pos()
+
+    async def initialize_chunks(self) -> None:
+        await self.chunk_manager.initialize_chunks(1)
 
     def display(self) -> None:
         self.chunk_manager.display_chunks(self.x, self.y)

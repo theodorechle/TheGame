@@ -89,6 +89,10 @@ class Menu:
 class MainMenu(Menu):
     def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
         super().__init__(window, server)
+        self.ui_manager.update_theme(os.path.join(self.THEMES_PATH, 'main_menu_theme.json'))
+        self._elements.append(elements.Label(self.ui_manager, text='Player name', y="-30%", anchor='center', classes_names=['player-name-label']))
+        self.player_name_input = elements.InputTextBox(self.ui_manager, y="-25%", anchor='center', width='20%', classes_names=['player-name-input'])
+        self._elements.append(self.player_name_input)
         self._elements.append(elements.TextButton(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y="-15%", anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'Join multiplayer world', on_click_function=self.join_world, y='-5%', anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'Load save', on_click_function=self.load_save, y='5%', anchor='center'))

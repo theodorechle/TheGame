@@ -1,0 +1,9 @@
+{
+    ":player-name-input:child": {
+    },
+    ":player-name-label": {
+        "font-size": 50,
+        "border-color": "#ef0000",
+        "text-color": "#ef0000"
+    }
+}

@@ -19,15 +19,17 @@ class Game:
         self.chunk_manager = ChunkManager(map_generator, self.save_manager)
         self.players: dict[str, Player] = {}
         self.updated_blocks: dict[tuple[int, int], int] = {}
+        self.new_players: list[str] = []
         self.UPDATE_DELAY_MS = 50
     
     def get_name(self) -> str:
         return self.save_manager.save_name
 
-    def create_player(self, name: str) -> None:
+    def create_player(self, name: str, images_name: str) -> None:
         if name in self.players: return
         # add try to load player from save
-        self.players[name] = Player(name, 0, Chunk.HEIGHT, 0, 0, True, self.chunk_manager)
+        self.players[name] = Player(name, 0, Chunk.HEIGHT, 0, 0, True, self.chunk_manager, images_name=images_name)
+        self.new_players.append(name)
 
     def get_player_infos(self, name: str) -> Player|None:
         if name not in self.players: return
@@ -64,16 +66,19 @@ class Game:
         while True:
             players_dict: dict[str, Any] = {}
             for player_name, player in self.players.items():
-                infos = player.get_infos()
-                player.update(0) # temp value
-                new_infos = player.get_infos()
-                if infos != new_infos:
-                    players_dict[player_name] = new_infos
+                has_changed = player.update(0) # temp value
+                if player_name in self.new_players:
+                    players_dict[player_name] = player.get_all_infos()
+                if has_changed:
+                    players_dict[player_name] = player.get_infos()
             if players_dict:
                 for player_name, player in self.players.items():
+                    if player_name in self.new_players:
+                        self.updates_queue.put((player_name, self.get_all_players_infos()))
                     self.updates_queue.put((player_name, {'players': players_dict}))
             await asyncio.sleep(0.05)
-    
-    def get_player_update_dict(self, player_name: str) -> dict[str, Any]|None:
-        if player_name not in self.players: return
-        return self.players[player_name][1]
+
+    def get_all_players_infos(self) -> dict[str, Any]:
+        return {
+            'players': {player.name: player.get_all_infos() for player in self.players.values()}
+        }

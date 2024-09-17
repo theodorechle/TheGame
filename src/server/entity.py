@@ -5,7 +5,7 @@ from map_chunk import Chunk
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity(EntityInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, chunk_manager: ChunkManager, add_path: str='', collisions: bool=True) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, chunk_manager: ChunkManager, add_path: str='', collisions: bool=True, images_name: str="") -> None:
         """
         Base class for entities.
         They can move, and have collisions or not.
@@ -21,6 +21,7 @@ class Entity(EntityInterface):
         self.direction: bool = direction # False if right, True if left
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
+        self.images_name = images_name
 
     def set_player_edges_pos(self) -> None:
         self.top_player_pos: int = self.entity_size[1]

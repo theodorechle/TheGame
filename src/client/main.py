@@ -28,6 +28,7 @@ class Client:
         self.MAX_FPS = 20
 
         self.player_name = 'base_character'
+        self.player_images_name = 'base_character'
         self.player = None
         self.others_players: dict[str, DrawableEntity] = {}
 
@@ -80,11 +81,15 @@ class Client:
         Returns True if a game is started else False
         """
         while True:
-            exit_code = menus.MainMenu(self.window, self.server).run()
+            main_menu = menus.MainMenu(self.window, self.server)
+            exit_code = main_menu.run()
             if exit_code == menus.EXIT:
                 self.exit = True
                 break
-            elif exit_code == menus.CREATE_WORLD:
+            player_name = main_menu.player_name_input.get_text()
+            if not player_name: continue
+            self.player_name = player_name
+            if exit_code == menus.CREATE_WORLD:
                 create_world_menu = menus.CreateWorldMenu(self.window, self.server)
                 exit_code = create_world_menu.run()
                 if exit_code == menus.BACK: continue
@@ -98,13 +103,14 @@ class Client:
                         'type': 'create-world',
                         'seed': seed,
                         'save': save_name,
-                        'player-name': self.player_name
+                        'player-name': self.player_name,
+                        'player-images-name': self.player_images_name
                     }
                 })
                 response = await self.server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST: continue
                 return True
-            elif exit_code == menus.JOIN_WORLD:
+            if exit_code == menus.JOIN_WORLD:
                 join_world_menu = menus.JoinWorldMenu(self.window, self.server)
                 exit_code = join_world_menu.run()
                 if exit_code == menus.BACK: continue
@@ -121,13 +127,14 @@ class Client:
                     'data': {
                         'type': 'join',
                         'game': game_name,
-                        'player-name': self.player_name
+                        'player-name': self.player_name,
+                        'player-images-name': self.player_images_name
                     }
                 })
                 response = await self.server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST: continue
                 return True
-            elif exit_code == menus.LOAD_SAVE:
+            if exit_code == menus.LOAD_SAVE:
                 exit_code = menus.LoadSaveMenu(self.window, self.server).run()
                 if exit_code == menus.BACK: continue
         return False
@@ -136,7 +143,7 @@ class Client:
         self.exit = True
 
     async def run(self) -> None:
-        self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server)
+        self.player = Player(self.player_images_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
         await self.player.initialize_chunks()
         tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -229,19 +236,21 @@ class Client:
             if 'data' not in message_dict:
                 continue
             data = message_dict['data']
-            if data['type'] == 'player-update':
-                await self.update_player(data)
-            elif data['type'] == 'chunk':
-                self.player.chunk_manager.set_chunk(message_dict)
-        
+            if 'type' not in data: continue
+            match data['type']:
+                case 'player-update':
+                    await self.update_player(data)
+                case 'chunk':
+                    self.player.chunk_manager.set_chunk(message_dict)
     
     async def update_player(self, data: dict[str, Any]) -> None:
+        if 'players' not in data: return
         for player_name, player_data in data['players'].items():
             if player_name == self.player_name:
                 await self.player.update(player_data)
             else:
                 if player_name not in self.others_players:
-                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self.window, 'persos', True)
+                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self.window, 'persos', True, images_name=player_data.get('images-name', ''))
                 self.others_players[player_name].update(player_data)
         self.display()
 
