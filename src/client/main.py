@@ -114,7 +114,7 @@ class Client:
                 self.server = ServerConnection(host_address, self.PORT)
                 try:
                     await self.server.start()
-                except asyncio.exceptions.TimeoutError:
+                except ConnectionError:
                     continue
                 await self.server.send_json({
                     'method': 'GET',
@@ -138,12 +138,16 @@ class Client:
     async def run(self) -> None:
         self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server)
         await self.player.initialize_chunks()
-        await asyncio.gather(self.loop(), self.process_socket_messages())
+        tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        for p in pending:
+            p.cancel()
 
     async def loop(self) -> None:
         clock = pygame.time.Clock()
         while not self.exit:
             if await self.update():
+                self.server.stop()
                 break # exit
             self.display()
             clock.tick(self.MAX_FPS)
@@ -152,6 +156,9 @@ class Client:
     async def update(self) -> bool:
         for event in pygame.event.get():
             self._ui_manager.process_event(event)
+            if event.type == pygame.QUIT:
+                self.exit = True
+                return False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
@@ -216,7 +223,7 @@ class Client:
         return False
 
     async def process_socket_messages(self) -> None:
-        while True:
+        while not self.exit:
             message_dict = await self.server.receive_msg()
             if not message_dict: return
             if 'data' not in message_dict:
@@ -250,8 +257,8 @@ async def start() -> None:
     client = Client(window)
     try:
         await client.start()
-    except asyncio.exceptions.TimeoutError:
-        print("Can't connect to local server (no response)")
+    except ConnectionError:
+        print("Can't connect to local server")
         return
     do_run_main: bool = await client.run_menus()
     if do_run_main:

@@ -62,7 +62,7 @@ class Server:
         self.server.close()
 
     async def send_json(self, writer: asyncio.StreamWriter, request: dict) -> None:
-        write_log(f"Sent {request}")
+        # write_log(f"Sent {request}")
         request = json.dumps(request).encode()
         message = struct.pack('>I', len(request)) + request
         writer.write(message)
@@ -111,7 +111,7 @@ class Server:
                     write_log(f"Client {addr} disconnected")
                     self.clients.pop(addr)
                     break
-                write_log(f"Client {addr} sent request {request}")
+                # write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
                     write_log(f"Bad request: missing 'method' in {request}")
                     await self.send_invalid_request()

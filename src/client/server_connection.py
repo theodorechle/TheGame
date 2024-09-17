@@ -25,7 +25,12 @@ class ServerConnection:
         # self.server_process.kill()
 
     async def start(self) -> None:
-        self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=1)
+        try:
+            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=1)
+        except asyncio.TimeoutError:
+            raise ConnectionError
+        if self.reader is None or self.writer is None:
+            raise ConnectionError
 
     async def send_json(self, request: dict) -> None:
         request = json.dumps(request).encode()
@@ -41,8 +46,7 @@ class ServerConnection:
         message = await self.recvall(msglen)
         if not message:
             return {}
-        return json.loads(message)
-    
+        return json.loads(message)    
     
     async def recvall(self, size: int) -> bytes:
         msg = b''
