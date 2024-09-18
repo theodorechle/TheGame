@@ -1,7 +1,7 @@
 import blocks
 from map_chunk import Chunk
 from logs import write_log
-from map_generation import MapGenerator
+from generation.map_generation import MapGenerator
 from save_manager import SaveManager
 
 class ChunkManager:

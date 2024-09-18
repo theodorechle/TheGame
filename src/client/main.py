@@ -15,8 +15,8 @@ window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
 from server_connection import ServerConnection
 from gui.ui_manager import UIManager
 from gui import elements
-from player import Player
-from entity import DrawableEntity
+from entities.player import Player
+from entities.entity import DrawableEntity
 import blocks
 from typing import Any
 import asyncio

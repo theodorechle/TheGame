@@ -1,5 +1,5 @@
 import blocks
-from tree import Tree
+from generation.tree import Tree
 
 class Biome:
     def __init__(self,

@@ -16,6 +16,8 @@ Add inventory management between client and server
 
 Allow breaking and placing blocks
 
+Bug with chunk display
+
 ## GENERATION:
 
 - [ ] vertical chunks

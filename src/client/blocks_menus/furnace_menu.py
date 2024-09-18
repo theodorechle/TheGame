@@ -2,7 +2,7 @@ from pygame import Surface
 from gui import elements
 from gui.ui_element import UIElement
 from recipes import FURNACE_RECIPES, smelt
-from player_interface import PlayerInterface
+from entities.player_interface import PlayerInterface
 from furnace_inventory import FurnaceInventory
 from inventory import Inventory
 from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH

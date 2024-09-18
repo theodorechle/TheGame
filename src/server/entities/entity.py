@@ -1,7 +1,6 @@
 import blocks
 from chunk_manager import ChunkManager
-from entity_interface import EntityInterface
-from map_chunk import Chunk
+from entities.entity_interface import EntityInterface
 
 ENTITIES_IMAGES_PATH: str = 'src/resources/images'
 class Entity(EntityInterface):

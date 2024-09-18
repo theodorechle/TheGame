@@ -1,7 +1,7 @@
 from load_image import load_image
 import pygame
 import blocks
-from entity_interface import EntityInterface
+from entities.entity_interface import EntityInterface
 from module_infos import RESOURCES_PATH
 from typing import Any
 from gui.ui_manager import UIManager

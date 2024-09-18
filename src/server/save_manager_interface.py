@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from map_chunk import Chunk
-from player_interface import PlayerInterface
+from entities.player_interface import PlayerInterface
 
 class SaveManagerInterface(metaclass=ABCMeta):
     @abstractmethod

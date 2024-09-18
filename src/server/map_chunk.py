@@ -1,5 +1,5 @@
 import blocks
-from biomes import Biome, get_biome_environment_values
+from generation.biomes import Biome, get_biome_environment_values
 
 class Chunk:
     LENGTH: int = 32

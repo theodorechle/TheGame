@@ -2,7 +2,7 @@ from pygame import Surface
 from gui import elements
 from gui.ui_element import UIElement
 from recipes import WORKBENCH_RECIPES, craft
-from player_interface import PlayerInterface
+from entities.player_interface import PlayerInterface
 from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
 import os
 from typing import Any

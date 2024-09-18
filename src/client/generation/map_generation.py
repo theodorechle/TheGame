@@ -1,8 +1,8 @@
-import biomes
+import generation.biomes as biomes
 import blocks
 import random
 from map_chunk import Chunk
-from tree import Tree
+from generation.tree import Tree
 from typing import Any
 
 class MapGenerator:

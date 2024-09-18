@@ -1,8 +1,8 @@
 from map_chunk import Chunk
 import json
 import os
-from biomes import BIOMES, get_biome_environment_values
-from player_interface import PlayerInterface
+from generation.biomes import BIOMES, get_biome_environment_values
+from entities.player_interface import PlayerInterface
 from save_manager_interface import SaveManagerInterface
 from typing import Any
 from module_infos import MODULE_PATH
