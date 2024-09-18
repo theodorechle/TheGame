@@ -38,11 +38,12 @@ class Entity(EntityInterface):
                 self.x = value
             elif key == 'y':
                 self.y = value
+            elif key == 'direction':
+                self.direction = value
 
 class DrawableEntity(Entity):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, ui_manager: UIManager=None, add_path: str = '', collisions: bool = True, images_name: str="", display_name: bool=False) -> None:
         self._ui_manager = ui_manager
-        self.window = self._ui_manager.get_window()
         self.display_name = display_name
         super().__init__(name, x, y, speed_x, speed_y, direction, image_length, image_height, collisions)
         self.name_label = None if not self.display_name else Label(self._ui_manager, self.name, anchor='center', classes_names=['player-name'])
@@ -61,11 +62,11 @@ class DrawableEntity(Entity):
         """
         rel_x and rel_y are the coords of the block in the center of the image
         """
-        window_size = self.window.get_size()
+        window_size = self._ui_manager.get_window_size()
         center_x = window_size[0] // 2 + (self.x - rel_x) * blocks.Block.BLOCK_SIZE
         x = center_x - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2
         y = window_size[1] // 2 - self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE
-        self.window.blit(
+        self._ui_manager.get_window().blit(
             self.image_reversed if self.direction else self.image,
             (x, y)
         )

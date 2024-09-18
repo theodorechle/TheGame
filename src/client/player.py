@@ -23,7 +23,7 @@ class Player(DrawableEntity, PlayerInterface):
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
         DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, ui_manager, 'persos', True, images_name=images_name, display_name=True)
-        self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self.window, server)
+        self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self._ui_manager.get_window(), server)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
@@ -65,15 +65,15 @@ class Player(DrawableEntity, PlayerInterface):
         infos.append(f'forest: {chunk.is_forest if chunk is not None else ""}')
 
         for i, info in enumerate(infos, start=1):
-            self.window.blit(self.infos_font
+            self._ui_manager.get_window().blit(self.infos_font
                     .render(info, True, "#000000"), (50, 20 * i))
 
     def save(self) -> None:
         self.chunk_manager.save()
     
     def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
-        x = (x - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
-        y = -(y - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
+        x = (x - self._ui_manager.get_window_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
+        y = -(y - self._ui_manager.get_window_size()[1] // 2) // blocks.Block.BLOCK_SIZE
         return x, y
     
     def _is_interactable(self, x: int, y: int) -> bool:

@@ -28,7 +28,7 @@ class Game:
     def create_player(self, name: str, images_name: str) -> None:
         if name in self.players: return
         # add try to load player from save
-        self.players[name] = Player(name, 0, Chunk.HEIGHT, 0, 0, True, self.chunk_manager, images_name=images_name)
+        self.players[name] = Player(name, 0, Chunk.HEIGHT, 0, 0, False, self.chunk_manager, images_name=images_name)
         self.new_players.append(name)
 
     def get_player_infos(self, name: str) -> Player|None:

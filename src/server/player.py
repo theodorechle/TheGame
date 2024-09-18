@@ -182,5 +182,6 @@ class Player(Entity, PlayerInterface):
     def get_infos(self) -> dict[str, Any]:
         return {
             'x': self.x,
-            'y': self.y
+            'y': self.y,
+            'direction': self.direction
         }

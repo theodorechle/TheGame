@@ -128,9 +128,13 @@ class Server:
         except Exception as e:
             write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
         finally:
-            writer.close()
-            await writer.wait_closed()
-            write_log(f"Connection closed for client {addr}")
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except (OSError, ConnectionResetError):
+                pass
+            finally:
+                write_log(f"Connection closed for client {addr}")
 
     async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
         if not isinstance(request.get('data', None), dict):
@@ -231,7 +235,7 @@ class Server:
         success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
         if not success:
             write_log(f"Client {addr} tried to create game but send partial data: '{data}'")
-            self.send_invalid_request()
+            await self.send_invalid_request()
             return
         seed, save, player_name = values
         actions_queue = Queue()
@@ -248,12 +252,12 @@ class Server:
         addr = writer.get_extra_info('peername')
         if addr in self.players:
             write_log(f"Client {addr} tried to join game but was already playing: '{data}'")
-            self.send_invalid_request()
+            await self.send_invalid_request()
             return
         success, values = await self.get_values(data, ['game', 'player-name'], writer)
         if not success:
             write_log(f"Client {addr} tried to join game but send partial data: '{data}'")
-            self.send_invalid_request()
+            await self.send_invalid_request()
             return
         searched_game_name, player_name = values
         for game in self.games.keys():
@@ -263,7 +267,7 @@ class Server:
                 self.players_names[player_name] = addr
                 await self.send_json(writer, {'status': self.VALID_REQUEST})
                 return
-        self.send_invalid_request(writer)
+        await self.send_invalid_request(writer)
         
 
 def delete_folder(path) -> None:

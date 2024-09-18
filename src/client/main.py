@@ -29,7 +29,7 @@ class Client:
         self.server = ServerConnection('127.0.0.1', self.PORT)
         self.MAX_FPS = 20
 
-        self.player_name = 'base_character'
+        self.player_name = ''
         self.player_images_name = 'base_character'
         self.player = None
         self.others_players: dict[str, DrawableEntity] = {}
@@ -85,6 +85,7 @@ class Client:
         """
         while True:
             main_menu = menus.MainMenu(self.window, self.server)
+            main_menu.player_name_input.process_event(pygame.event.Event(pygame.TEXTINPUT, {'text': self.player_name}))
             exit_code = main_menu.run()
             if exit_code == menus.EXIT:
                 self.exit = True
@@ -234,8 +235,10 @@ class Client:
 
     async def process_socket_messages(self) -> None:
         while not self.exit:
-            message_dict = await self.server.receive_msg()
-            if not message_dict: return
+            try:
+                message_dict = await self.server.receive_msg()
+            except asyncio.IncompleteReadError:
+                return
             if 'data' not in message_dict:
                 continue
             data = message_dict['data']
