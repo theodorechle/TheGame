@@ -1,7 +1,5 @@
 ## PRIORITY
 
-Entities: Players and blocks
-
 Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
 
 Allow renaming saves
@@ -13,6 +11,10 @@ Maybe go to C or C++ with SDL2
 Rename window
 
 Save only changed blocks (regenerate them on load)
+
+Add inventory management between client and server
+
+Allow breaking and placing blocks
 
 ## GENERATION:
 
@@ -78,11 +80,11 @@ Save only changed blocks (regenerate them on load)
 
 ## MULTIPLAYER:
 
-- [ ] test multiplayer offline
-- [ ] send data
-- [ ] receive data
-- [ ] synchronize chunks loaded by multiple players
-- [ ] two separated programs for client and server (display, input) and (game management)
-- [ ] server can be runned at same time as playing (but separated)
+- [x] test multiplayer offline
+- [x] send data
+- [x] receive data
+- [x] synchronize chunks loaded by multiple players
+- [x] two separated programs for client and server (display, input) and (game management)
+- [x] server can be runned at same time as playing (but separated)
 
 ## SONGS:
