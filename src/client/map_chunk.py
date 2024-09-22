@@ -1,20 +1,20 @@
 import blocks
+from generation.biomes import Biome
 
 class Chunk:
     LENGTH: int = 32
     HEIGHT: int = 128
-    def __init__(self, id: int, biome: str, is_forest: bool=False, blocks: list[list[blocks.Block]]|None=None) -> None:
+    def __init__(self, id: int, direction: int, biome: Biome, is_forest: bool=False) -> None:
         """direction: False -> left, True -> right"""
         self.id: int = id
-        self.biome: str = biome
+        self.direction: bool = direction
+        self.biome: Biome = biome
         self.is_forest: bool = is_forest
-        if blocks is not None and len(blocks) == self.LENGTH * self.HEIGHT:
-            self.blocks: list[blocks.Block] = blocks
-        else:
-            self.blocks: list[blocks.Block] = []
+        self.blocks: list[blocks.Block] = []
+        self.diffs = set()
     
     def __repr__(self) -> str:
-        return f'id: {self.id}, biome: {self.biome}, is_forest: {self.is_forest}'
+        return f'id: {self.id}, biome: {self.biome.name}, is_forest: {self.is_forest}'
 
 def ints_to_blocks(ints: list[int]) -> list[blocks.Block]:
     """

@@ -14,7 +14,6 @@ class Game:
         self.actions_queue: Queue = actions_queue
         self.updates_queue: Queue = updates_queue
         map_generator = MapGenerator(seed)
-        map_generator.create_seeds()
         self.save_manager = SaveManager(name)
         self.chunk_manager = ChunkManager(map_generator, self.save_manager)
         self.players: dict[str, Player] = {}
@@ -30,6 +29,10 @@ class Game:
         # add try to load player from save
         self.players[name] = Player(name, 0, Chunk.HEIGHT, 0, 0, False, self.chunk_manager, images_name=images_name)
         self.new_players.append(name)
+
+    def remove_player(self, name: str) -> None:
+        if name in self.players:
+            self.players.pop(name)
 
     def get_player_infos(self, name: str) -> Player|None:
         if name not in self.players: return
@@ -83,3 +86,6 @@ class Game:
         return {
             'players': {player.name: player.get_all_infos() for player in self.players.values()}
         }
+
+    def get_infos(self) -> str:
+        return {'seed': self.chunk_manager.map_generator.seed}

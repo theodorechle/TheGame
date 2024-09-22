@@ -24,7 +24,7 @@ from map_chunk import Chunk
 
 class Client:
     PORT = 12345
-    def __init__(self, window) -> None:
+    def __init__(self, window: pygame.Surface) -> None:
         self.exit = False
         self.server = ServerConnection('127.0.0.1', self.PORT)
         self.MAX_FPS = 20
@@ -184,7 +184,7 @@ class Client:
                             menu = menus.SettingsMenu(self.window, self.player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
                             menu.run()
                             self.last_time_in_menu = monotonic()
-                            self.player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())
+                            await self.player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())
                             blocks.Block.BLOCK_SIZE = menu.slider_zoom.get_value()
                             for block in blocks.BLOCKS_DICT:
                                 block.scale_image()
@@ -248,6 +248,8 @@ class Client:
                     await self.update_player(data)
                 case 'chunk':
                     self.player.chunk_manager.set_chunk(message_dict)
+                case 'game-infos':
+                    self.player.chunk_manager.create_map_generator(data)
     
     async def update_player(self, data: dict[str, Any]) -> None:
         if 'players' not in data: return
@@ -261,6 +263,7 @@ class Client:
         self.display()
 
     def display(self) -> None:
+        self.window.fill("#000000")
         self.player.display()
         for player in self.others_players.values():
             player.display(self.player.x, self.player.y)

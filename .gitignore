@@ -2,3 +2,4 @@ __pycache__/
 saves/
 .vscode/
 src/server/server.log
+tests/

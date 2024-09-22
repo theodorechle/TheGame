@@ -4,6 +4,7 @@ from math import ceil
 from map_chunk import Chunk, ints_to_blocks
 from typing import cast
 from server_connection import ServerConnection
+from generation.map_generation import MapGenerator
 
 class ChunkManager:
     def __init__(self, chunk_x_position: int, window: pygame.Surface, server: ServerConnection) -> None:
@@ -12,11 +13,24 @@ class ChunkManager:
         self.window: pygame.Surface = window
         self.server = server
         self.chunks: list[Chunk] = [None]
+        self.map_generator = None
     
     async def initialize_chunks(self, nb_chunks_by_side: int) -> None:
+        await self.initialize_map_generator()
         await self.load_chunk(0)
         await self.change_nb_chunks(nb_chunks_by_side)
     
+    async def initialize_map_generator(self) -> None:
+        await self.server.send_json({
+            'method': 'GET',
+            'data': {
+                'type': 'game-infos'
+            }
+        })
+
+    def create_map_generator(self, data) -> None:
+        self.map_generator = MapGenerator(data['infos']['seed'])
+
     def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
         x += Chunk.LENGTH // 2
@@ -51,14 +65,12 @@ class ChunkManager:
             self.chunks.pop(0)
             id = self.chunk_x_position + self.nb_chunks_by_side + 1
             self.chunks.append(None)
-            chunk = await self.load_chunk(id)
-            self.chunks.append(chunk)
+            await self.load_chunk(id)
         else:
             self.chunks.pop(-1)
             id = self.chunk_x_position - self.nb_chunks_by_side - 1
             self.chunks.insert(0, None)
-            chunk = await self.load_chunk(id)
-            self.chunks.insert(0, chunk)
+            await self.load_chunk(id)
         self.chunk_x_position += added_x
 
     async def change_nb_chunks(self, new_nb_chunks: int) -> None:
@@ -103,10 +115,6 @@ class ChunkManager:
         self.window.blits(
             ((blocks.AIR.image, coords), (chunk.blocks[y * Chunk.LENGTH + block_x % Chunk.LENGTH].image, coords))
         )
-
-    def save(self) -> None:
-        for chunk in self.chunks:
-            self.save_chunk(chunk)
     
     async def load_chunk(self, chunk_id: int) -> None:
         await self.server.send_json({
@@ -117,9 +125,10 @@ class ChunkManager:
             }
         })
     
-    def set_chunk(self, message: dict) -> Chunk:
+    def set_chunk(self, message: dict) -> None:
         if not message or message['status'] == ServerConnection.WRONG_REQUEST:
             return
         chunk_infos = message['data']['chunk']
-        self.chunks[chunk_infos['id'] - self.chunk_x_position + self.nb_chunks_by_side] = Chunk(chunk_infos['id'], chunk_infos['biome'], chunk_infos['is-forest'], ints_to_blocks(chunk_infos['blocks']))
-    
+        index = chunk_infos['id'] - self.chunk_x_position + self.nb_chunks_by_side
+        self.chunks[index] = self.map_generator.generate_chunk(chunk_infos['id'])
+        self.chunks[index].diffs = set(chunk_infos['diffs'])

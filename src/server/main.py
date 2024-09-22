@@ -134,6 +134,7 @@ class Server:
             except (OSError, ConnectionResetError):
                 pass
             finally:
+                self.players[addr][1].remove_player(self.players[addr][0])
                 write_log(f"Connection closed for client {addr}")
 
     async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
@@ -183,6 +184,11 @@ class Server:
                 await self.send_data(writer, {
                         'type': 'chunk',
                         'chunk': chunk.get_infos_dict()
+                })
+            case 'game-infos':
+                await self.send_data(writer, {
+                    'type': 'game-infos',
+                    'infos': self.players[addr][1].get_infos()
                 })
             case values:
                 write_log(f"Bad request: wrong value for data type: '{values}'")

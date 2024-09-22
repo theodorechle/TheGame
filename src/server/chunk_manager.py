@@ -45,10 +45,10 @@ class ChunkManager:
         if chunk_id in self.chunks:
             return self.chunks[chunk_id]
         chunk = self.save_manager.load_chunk(chunk_id)
-        if chunk is None:
+        if not chunk.blocks:
             chunk = self.map_generator.generate_chunk(chunk_id)
             if chunk is None:
                 write_log(f'Chunk {chunk_id} was not generated', True)
-                return None
+                return
         self.chunks[chunk_id] = chunk
         return chunk

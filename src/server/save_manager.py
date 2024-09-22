@@ -8,9 +8,8 @@ from typing import Any
 from module_infos import MODULE_PATH
 
 SAVES_PATH: str = os.path.join(MODULE_PATH, 'saves')
-
 FIRST_VERSIONNED_VERSION = 0.3
-VERSION = 0.3
+CURRENT_VERSION = 0.6
 
 class SaveManager(SaveManagerInterface):
     def __init__(self, save_name: str) -> None:
@@ -24,32 +23,34 @@ class SaveManager(SaveManagerInterface):
         os.makedirs(self.chunks_path, exist_ok=True)
         os.makedirs(self.players_path, exist_ok=True)
 
-    def load_chunk(self, id: int) -> Chunk|None:
+    def load_chunk(self, id: int) -> Chunk:
         try:
             with open(os.path.join(self.chunks_path, str(id) + '.json')) as f:
                 chunk_dict = json.load(f)
         except FileNotFoundError:
-            return None
+            return Chunk(0, False, None)
         version = chunk_dict.get('version', 0)
         # handle different versions
-        chunk: Chunk = Chunk(id, chunk_dict['direction'], BIOMES[tuple(chunk_dict['biome'])])
-        chunk.is_forest = chunk_dict['is_forest']
-        chunk.blocks = chunk_dict['blocks']
+        if version <= 0.3:
+            chunk: Chunk = Chunk(id, chunk_dict['direction'], BIOMES[tuple(chunk_dict['biome'])])
+            chunk.is_forest = chunk_dict['is_forest']
+            chunk.blocks = chunk_dict['blocks']
+        else:
+            chunk: Chunk = Chunk(0, False, None) # fake values
+            chunk.diffs = chunk_dict['diffs']
         return chunk
 
     def save_chunk(self, chunk: Chunk|None) -> None:
         if chunk is None: return
         chunk_dict = {
-            'direction': chunk.direction,
-            'biome': get_biome_environment_values(chunk.biome),
-            'is_forest': chunk.is_forest,
-            'blocks': chunk.blocks,
-            'version': VERSION
+            'diffs': list(chunk.diffs),
+            'version': CURRENT_VERSION
         }
         with open(os.path.join(self.chunks_path, str(chunk.id) + '.json'), 'w') as f:
             json.dump(chunk_dict, f)
     
     def load_players(self) -> dict[str, dict[str, Any]]|None:
+        return
         players: dict[str, dict[str, Any]] = {}
         for player_file in os.listdir(self.players_path):
             try:
@@ -70,6 +71,7 @@ class SaveManager(SaveManagerInterface):
         return players
     
     def save_players(self, players: list[PlayerInterface]) -> None:
+        return
         for player in players:
             player_dict = {
                 'direction': player.direction,
@@ -79,12 +81,13 @@ class SaveManager(SaveManagerInterface):
                 'speed_y': player.speed_y,
                 'hot_bar_inventory': player.hot_bar_inventory.cells,
                 'main_inventory': player.main_inventory.cells,
-                'version': VERSION
+                'version': CURRENT_VERSION
             }
             with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:
                 json.dump(player_dict, f)
 
     def load_generation_infos(self) -> dict[str, Any]|None:
+        return
         try:
             with open(self.generation_infos_path) as f:
                 infos = json.load(f)
@@ -94,6 +97,7 @@ class SaveManager(SaveManagerInterface):
         return infos
     
     def save_generation_infos(self, infos: dict[str, Any]) -> None:
-        infos['version'] = VERSION
+        return
+        infos['version'] = CURRENT_VERSION
         with open(self.generation_infos_path, 'w') as f:
             json.dump(infos, f)
