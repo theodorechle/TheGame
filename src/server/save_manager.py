@@ -28,15 +28,15 @@ class SaveManager(SaveManagerInterface):
             with open(os.path.join(self.chunks_path, str(id) + '.json')) as f:
                 chunk_dict = json.load(f)
         except FileNotFoundError:
-            return Chunk(0, False, None)
+            return Chunk(0, None)
         version = chunk_dict.get('version', 0)
         # handle different versions
         if version <= 0.3:
-            chunk: Chunk = Chunk(id, chunk_dict['direction'], BIOMES[tuple(chunk_dict['biome'])])
+            chunk: Chunk = Chunk(id, BIOMES[tuple(chunk_dict['biome'])])
             chunk.is_forest = chunk_dict['is_forest']
             chunk.blocks = chunk_dict['blocks']
         else:
-            chunk: Chunk = Chunk(0, False, None) # fake values
+            chunk: Chunk = Chunk(0, None) # fake values
             chunk.diffs = chunk_dict['diffs']
         return chunk
 

@@ -4,10 +4,9 @@ from generation.biomes import Biome
 class Chunk:
     LENGTH: int = 32
     HEIGHT: int = 128
-    def __init__(self, id: int, direction: int, biome: Biome, is_forest: bool=False) -> None:
+    def __init__(self, id: int, biome: Biome, is_forest: bool=False) -> None:
         """direction: False -> left, True -> right"""
         self.id: int = id
-        self.direction: bool = direction
         self.biome: Biome = biome
         self.is_forest: bool = is_forest
         self.blocks: list[blocks.Block] = []

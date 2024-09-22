@@ -4,9 +4,6 @@ from generation.tree import Tree
 class Biome:
     def __init__(self,
                 name: str,
-                min_height: int,
-                max_height: int,
-                max_height_difference: int,
                 blocks_by_zone: list[tuple[blocks.Block, int, int]],
                 ore_veins_qty: tuple[int, int],
                 ore_veins_repartition: list[tuple[float, blocks.Block, int, int, float]],
@@ -14,9 +11,6 @@ class Biome:
                 ) -> None:
 
         self.name = name
-        self.min_height = min_height
-        self.max_height = max_height
-        self.max_height_difference = max_height_difference
         # (block, min_height, max_size of the block stack)
         self.blocks_by_zone = blocks_by_zone
         # (min_qty, max_qty)
@@ -34,9 +28,6 @@ def get_biome_environment_values(biome: Biome) -> tuple[int, int, int]|None:
 
 PLAIN = Biome(
     name='plain',
-    min_height=40,
-    max_height=50,
-    max_height_difference=1,
     blocks_by_zone=[
         (blocks.GRASS, 40, 1),
         (blocks.EARTH, 35, 10)
@@ -63,9 +54,6 @@ PLAIN = Biome(
 
 HILL = Biome(
     name='hill',
-    min_height=60,
-    max_height=65,
-    max_height_difference=2,
     blocks_by_zone=[
         (blocks.GRASS, 50, 1),
         (blocks.EARTH, 40, 10)
@@ -92,9 +80,6 @@ HILL = Biome(
 
 MOUNTAIN = Biome(
     name='mountain',
-    min_height=80,
-    max_height=90,
-    max_height_difference=3,
     blocks_by_zone=[],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
@@ -105,9 +90,6 @@ MOUNTAIN = Biome(
 
 HIGH_MOUNTAIN = Biome(
     name='high-mountain',
-    min_height=100,
-    max_height=115,
-    max_height_difference=3,
     blocks_by_zone=[(blocks.SNOW, 100, 10)],
     ore_veins_qty=(10, 20),
     ore_veins_repartition=[
@@ -118,9 +100,6 @@ HIGH_MOUNTAIN = Biome(
 
 LAKE = Biome(
     name='lake',
-    min_height=20,
-    max_height=30,
-    max_height_difference=1,
     blocks_by_zone=[],
     ore_veins_qty=(1, 3),
     ore_veins_repartition=[
@@ -131,9 +110,11 @@ LAKE = Biome(
 
 # tuple (height, temperature, humidity)
 BIOMES = {
-    (0, 1, 1): PLAIN,
-    (1, 1, 1): HILL,
-    (2, 1, 1): MOUNTAIN,
-    (3, 1, 1): HIGH_MOUNTAIN,
-    (-1, 1, 1): LAKE
+    (0, 1, 1): LAKE,
+    (1, 1, 1): PLAIN,
+    (2, 1, 1): HILL,
+    (3, 1, 1): MOUNTAIN,
+    (4, 1, 1): HIGH_MOUNTAIN
 }
+
+MAX_HEIGHT: int = 4

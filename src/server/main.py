@@ -30,6 +30,7 @@ from typing import Any
 from module_infos import SAVES_PATH
 from game import Game
 from logs import write_log
+import traceback
 
 class Server:
     WRONG_REQUEST = 0
@@ -127,6 +128,7 @@ class Server:
                         await self.send_invalid_request()
         except Exception as e:
             write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
+            write_log(f'Detail: {traceback.format_exc()}')
         finally:
             try:
                 writer.close()
