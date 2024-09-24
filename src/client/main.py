@@ -155,14 +155,12 @@ class Client:
             p.cancel()
 
     async def loop(self) -> None:
-        clock = pygame.time.Clock()
         while not self.exit:
             if await self.update():
                 self.server.stop()
                 break # exit
             self.display()
-            clock.tick(self.MAX_FPS)
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.05)
 
     async def update(self) -> bool:
         for event in pygame.event.get():
@@ -260,7 +258,6 @@ class Client:
                 if player_name not in self.others_players:
                     self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self._ui_manager, 'persos', True, images_name=player_data.get('images-name', ''), display_name=True)
                 self.others_players[player_name].update(player_data)
-        self.display()
 
     def display(self) -> None:
         self.window.fill("#000000")

@@ -9,7 +9,7 @@ from generation.perlin import Perlin
 class MapGenerator:
     def __init__(self, seed: str|None = None) -> None:
         self.seed = seed if seed is not None else str(random.randint(-500000000, 500000000))
-        self.OCEAN_HEIGHT: int = 20
+        self.OCEAN_HEIGHT: int = 30
         self.height_generator: Perlin = Perlin(self.seed, 0.005, Chunk.HEIGHT, 3, 0.5, 1.5)
         # self.humidity_generator: Perlin = Perlin(self.seed, 2, Chunk.HEIGHT, 3, 0.5, 2)
         # self.temperature_generator: Perlin = Perlin(self.seed, 2, Chunk.HEIGHT, 3, 0.5, 2)
@@ -93,7 +93,7 @@ class MapGenerator:
         ore_veins_probabilities = [vein[0] for vein in chunk.biome.ore_veins_repartition]
         for _ in range(nb_ore_veins):
             vein = random.choices(chunk.biome.ore_veins_repartition, weights=ore_veins_probabilities)[0]
-            vein_index = random.randrange(vein[2], vein[3] + Chunk.LENGTH)
+            vein_index = random.randrange(vein[2], vein[3]) * Chunk.LENGTH
             pos: list[int] = []
             if chunk.blocks[vein_index] == blocks.STONE:
                 pos.append(vein_index)
@@ -110,9 +110,9 @@ class MapGenerator:
         if index < 0 or index >= Chunk.HEIGHT * Chunk.LENGTH or chunk.blocks[index] != chunk.biome.tree.grows_in: return False
         # check if surrounded by a trunk or leaves
         allowed_blocks = (chunk.biome.tree.trunk_block, chunk.biome.tree.leaves_block)
-        if index // Chunk.LENGTH != 0 and chunk.blocks[index - 1] in allowed_blocks:
+        if index % Chunk.LENGTH != 0 and chunk.blocks[index - 1] in allowed_blocks:
             return True
-        if index // Chunk.LENGTH != Chunk.LENGTH - 1 and chunk.blocks[index + 1] in allowed_blocks:
+        if index % Chunk.LENGTH != Chunk.LENGTH - 1 and chunk.blocks[index + 1] in allowed_blocks:
             return True
         if index > Chunk.LENGTH and chunk.blocks[index - Chunk.LENGTH] in allowed_blocks:
             return True
@@ -167,9 +167,66 @@ class MapGenerator:
                 nb_leaves_right = min(max(nb_leaves_left + random.randint(-1, 1), tree.min_leaves_width), tree.max_leaves_width)
                 self.place_leaves_horizontally_and_vertically(center_min_y, center_max_y, 1, nb_leaves_right + 2, 1, tree, chunk, index)
 
+    @staticmethod
+    def can_carve(chunk: Chunk, x: int, y: int, width: int, height: int) -> bool:
+        return 0 <= x < width and 0 <= y < height and chunk.blocks[y * Chunk.LENGTH + x] == blocks.STONE
+
+    def carve(self, chunk: Chunk, x: int, y: int, radius: int) -> None:
+        if radius == 0 or y <= 0: return
+        a = radius
+        b = 0
+        t1 = radius//16
+        while a >= b:
+            tmp_x = x + a
+            for tmp_y in range(y - b, y + b):
+                if self.can_carve(chunk, tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT):
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
+            tmp_x = x + b
+            for tmp_y in range(y - a, y + a):
+                if self.can_carve(chunk, tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT):
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
+            tmp_x = x - a
+            for tmp_y in range(y - b, y + b):
+                if self.can_carve(chunk, tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT):
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
+            tmp_x = x - b
+            for tmp_y in range(y - a, y + a):
+                if self.can_carve(chunk, tmp_x, tmp_y, Chunk.LENGTH, Chunk.HEIGHT):
+                    chunk.blocks[tmp_y * Chunk.LENGTH + tmp_x] = blocks.AIR
+            b += 1
+            t1 += b
+            t2 = t1 - a
+            if t2 >= 0:
+                t1 = t2
+                a -= 1
+
+
+    def create_caves(self, chunk: Chunk) -> None:
+        state = random.getstate()
+        random.seed(f'{self.seed}{chunk.id - 1}caves')
+        for cave in range(random.randint(0, 5)):
+            cave_radius_generator: Perlin = Perlin(f"{self.seed}radius{cave}", 0.1, 14, 3, 0.5, 2)
+            cave_height_generator: Perlin = Perlin(f"{self.seed}height{cave}", 0.0005, Chunk.HEIGHT * 2, 3, 0.5, 2)
+            radius = round(cave_radius_generator.generate(Chunk.LENGTH * chunk.id - 1))
+            if radius <= 0 or random.randint(0, 5): continue
+            start_y = round(abs(cave_height_generator.generate(Chunk.LENGTH * chunk.id - 1)))
+            self.carve(chunk, Chunk.LENGTH - 1, start_y, radius)
+
+        random.seed(f'{self.seed}{chunk.id}caves')
+        for cave in range(random.randint(0, 5)):
+            cave_radius_generator: Perlin = Perlin(f"{self.seed}radius{cave}", 0.1, 14, 3, 0.5, 2)
+            cave_height_generator: Perlin = Perlin(f"{self.seed}height{cave}", 0.0005, Chunk.HEIGHT * 2, 3, 0.5, 2)
+            for x in range(Chunk.LENGTH):
+                radius = round(cave_radius_generator.generate(Chunk.LENGTH * chunk.id + x))
+                if radius <= 0 or x < radius or x >= Chunk.LENGTH - radius or random.randint(0, 5): continue
+                start_y = round(abs(cave_height_generator.generate(Chunk.LENGTH * chunk.id + x)))
+                self.carve(chunk, x, start_y, radius)
+
+        random.setstate(state)
+
     def generate_chunk(self, chunk_id: int) -> Chunk:
         random_state = random.getstate()
-        random.seed(chunk_id)
+        random.seed(f'{self.seed}{chunk_id}')
 
         chunk: Chunk = Chunk(chunk_id, biomes.HILL)
         chunk_height: int = self.generate_land_shape(chunk)
@@ -178,6 +235,7 @@ class MapGenerator:
 
         self.add_oceans(chunk)
         self.add_biome_blocks(chunk, chunk_height, chunk_temperature, chunk_humidity)
+        self.create_caves(chunk)
         self.add_ore_veins(chunk)
         self.create_trees(chunk)
 
