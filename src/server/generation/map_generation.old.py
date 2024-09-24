@@ -131,13 +131,13 @@ class MapGenerator:
     def can_place_leave(chunk: Chunk, x: int, y: int) -> bool:
         if chunk.biome.tree is None: return False
         if 0 > x or x >= Chunk.LENGTH - 1 or 0 > y or y >= Chunk.HEIGHT or chunk.blocks[y * Chunk.LENGTH + x] != chunk.biome.tree.grows_in: return False
-        if x < Chunk.LENGTH - 1 and chunk.blocks[y * Chunk.LENGTH + x + 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if x < Chunk.LENGTH - 1 and chunk.blocks[y * Chunk.LENGTH + x + 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leaves_block):
             return True
-        if x > 0 and chunk.blocks[y * Chunk.LENGTH + x - 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if x > 0 and chunk.blocks[y * Chunk.LENGTH + x - 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leaves_block):
             return True
-        if y < Chunk.HEIGHT - 1 and chunk.blocks[(y + 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if y < Chunk.HEIGHT - 1 and chunk.blocks[(y + 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leaves_block):
             return True
-        if y > 0 and chunk.blocks[(y - 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+        if y > 0 and chunk.blocks[(y - 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leaves_block):
             return True
         return False
 
@@ -169,7 +169,7 @@ class MapGenerator:
                 center_max_y = random.randint(tree.min_leaves_height, tree.max_leaves_height)
                 for y in range(1, center_max_y + 1):
                     if self.can_place_leave(chunk, start_x, start_y + y):
-                        chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x] = tree.leave_block
+                        chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x] = tree.leaves_block
                 # leaves before trunk
                 min_y = center_min_y
                 max_y = center_max_y
@@ -178,7 +178,7 @@ class MapGenerator:
                     min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
                     for y in range(min_y, max_y + 1):
                         if self.can_place_leave(chunk, start_x + x, start_y + y):
-                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leave_block
+                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leaves_block
                 # leaves after trunk
                 min_y = center_min_y
                 max_y = center_max_y
@@ -187,7 +187,7 @@ class MapGenerator:
                     min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
                     for y in range(min_y, max_y + 1):
                         if self.can_place_leave(chunk, start_x + x, start_y + y):
-                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leave_block
+                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leaves_block
 
     @staticmethod
     def is_valid_pos(x: int, y: int, width: int, height: int) -> bool:

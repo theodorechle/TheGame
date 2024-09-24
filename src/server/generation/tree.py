@@ -16,7 +16,7 @@ class Tree:
                 grows_in: Block
                 ) -> None:
         self.trunk_block = trunk_block
-        self.leave_block = leave_block
+        self.leaves_block = leave_block
         self.min_trunk_height = min_trunk_height
         self.max_trunk_height = max_trunk_height
         self.min_leaves_height = min_leaves_height
