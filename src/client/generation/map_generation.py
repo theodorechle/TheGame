@@ -103,6 +103,69 @@ class MapGenerator:
                     chunk.blocks[index] = vein[1]
                     pos.extend(self.get_positions_for_ore_veins(chunk, index, blocks.STONE))
 
+    @staticmethod
+    def can_place_leave(chunk: Chunk, x: int, y: int) -> bool:
+        if chunk.biome.tree is None: return False
+        # check if can place block
+        if 0 > x or x >= Chunk.LENGTH - 1 or 0 > y or y >= Chunk.HEIGHT or chunk.blocks[y * Chunk.LENGTH + x] != chunk.biome.tree.grows_in: return False
+        # check if surrounded by a trunk or leaves
+        if x < Chunk.LENGTH - 1 and chunk.blocks[y * Chunk.LENGTH + x + 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+            return True
+        if x > 0 and chunk.blocks[y * Chunk.LENGTH + x - 1] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+            return True
+        if y < Chunk.HEIGHT - 1 and chunk.blocks[(y + 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+            return True
+        if y > 0 and chunk.blocks[(y - 1) * Chunk.LENGTH + x] in (chunk.biome.tree.trunk_block, chunk.biome.tree.leave_block):
+            return True
+        return False
+
+    def create_trees(self, chunk: Chunk) -> None:
+        tree: Tree|None = chunk.biome.tree
+        if tree is None: return
+        if chunk.is_forest:
+            spawn_chance = 0.8
+        else:
+            spawn_chance = tree.tree_spawn_chance
+        for start_x in range(tree.min_leaves_width + 1, Chunk.LENGTH - tree.min_leaves_width - 1):
+            if random.random() <= spawn_chance:
+                # chunk if can place tree
+                y = self.get_top_height(chunk, start_x)
+                if chunk.blocks[y * Chunk.LENGTH + start_x] != blocks.GRASS: continue
+                chunk.blocks[y * Chunk.LENGTH + start_x] = blocks.EARTH
+
+                # place trunk
+                top_trunk_height = min(y + random.randint(tree.min_trunk_height, tree.max_trunk_height), Chunk.HEIGHT)
+                y += 1
+                while y < top_trunk_height and chunk.blocks[y * Chunk.LENGTH + start_x] == tree.grows_in:
+                    chunk.blocks[y * Chunk.LENGTH + start_x] = tree.trunk_block
+                    y += 1
+                
+                start_y = y - 1
+                # leaves on the trunk
+                center_min_y = random.randint(-tree.max_leaves_height, -tree.min_leaves_height)
+                center_max_y = random.randint(tree.min_leaves_height, tree.max_leaves_height)
+                for y in range(1, center_max_y + 1):
+                    if self.can_place_leave(chunk, start_x, start_y + y):
+                        chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x] = tree.leave_block
+                # leaves before trunk
+                min_y = center_min_y
+                max_y = center_max_y
+                nb_leaves_left = min(random.randint(-tree.max_leaves_width, -tree.min_leaves_width), min(start_x, Chunk.LENGTH - 1 - start_x))
+                for x in range(-1, nb_leaves_left - 1, -1):
+                    min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
+                    for y in range(min_y, max_y + 1):
+                        if self.can_place_leave(chunk, start_x + x, start_y + y):
+                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leave_block
+                # leaves after trunk
+                min_y = center_min_y
+                max_y = center_max_y
+                nb_leaves_right = min(max(nb_leaves_left + random.randint(-1, 1), tree.min_leaves_width), tree.max_leaves_width)
+                for x in range(1, nb_leaves_right + 2):
+                    min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
+                    for y in range(min_y, max_y + 1):
+                        if self.can_place_leave(chunk, start_x + x, start_y + y):
+                            chunk.blocks[(start_y + y) * Chunk.LENGTH + start_x + x] = tree.leave_block
+
 
     def generate_chunk(self, chunk_id: int) -> Chunk:
         random_state = random.getstate()
@@ -116,6 +179,7 @@ class MapGenerator:
         self.add_oceans(chunk)
         self.add_biome_blocks(chunk, chunk_height, chunk_temperature, chunk_humidity)
         self.add_ore_veins(chunk)
+        self.create_trees(chunk)
 
         random.setstate(random_state)
 
@@ -123,11 +187,11 @@ class MapGenerator:
 
 
 """
-Choose biome
-Land shape (height)
+Land shape (height) OK
+Choose biome OK
 Carve caves
-Replace with biome blocks
+Replace with biome blocks OK
 Place alterations (waterfalls, volcanos, ...)
-Place trees
+Place trees OK
 Place structures
 """
