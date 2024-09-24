@@ -181,7 +181,7 @@ class Client:
                         elif exit_code == menus.BACK:
                             break
                         elif exit_code == menus.SETTINGS:
-                            menu = menus.SettingsMenu(self.window, self.player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
+                            menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
                             menu.run()
                             self.last_time_in_menu = monotonic()
                             await self.player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())

@@ -82,12 +82,12 @@ class Perlin:
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    length = 128
-    frequency = 0.1
+    length = 1280
+    frequency = 0.005
     amplitude = 128
     octaves = 3
     persistence = 0.5
-    lacunarity = 2.0
+    lacunarity = 1.5
 
     seed = 'azertyui'
 
@@ -95,6 +95,7 @@ if __name__ == '__main__':
     
     # Generating range that includes negative numbers
     terrain = perlin.generate_range(-length // 2, length)
+    terrain += 64
 
     # Plot the generated terrain
     plt.plot(terrain)

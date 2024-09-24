@@ -16,7 +16,9 @@ Add inventory management between client and server
 
 Allow breaking and placing blocks
 
-Bug with chunk display
+Use surfaces to render chunks
+
+Rotate some blocks to be less repetitive (need surfaces)
 
 ## GENERATION:
 

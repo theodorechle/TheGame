@@ -74,7 +74,7 @@ class MapGenerator:
                 if blocks_chunk[y * Chunk.LENGTH + x] == blocks.STONE:
                     blocks_chunk[y * Chunk.LENGTH + x] = zone[0]
             last_add_y = add_y
-            last_height = min_height      
+            last_height = min_height
 
         last_add_y = 0
         last_height = last_height_before

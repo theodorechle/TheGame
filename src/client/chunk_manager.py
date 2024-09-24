@@ -131,4 +131,4 @@ class ChunkManager:
         chunk_infos = message['data']['chunk']
         index = chunk_infos['id'] - self.chunk_x_position + self.nb_chunks_by_side
         self.chunks[index] = self.map_generator.generate_chunk(chunk_infos['id'])
-        self.chunks[index].diffs = set(chunk_infos['diffs'])
+        self.chunks[index].set_diffs(chunk_infos['diffs'])

@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
     length = 10000
     frequency = 0.001
-    amplitude = 256
+    amplitude = 128
     octaves = 3
     persistence = 0.1
     lacunarity = 2.0
