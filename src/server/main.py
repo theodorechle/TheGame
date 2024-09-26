@@ -140,7 +140,7 @@ class Server:
                     self.players[addr][1].remove_player(self.players[addr][0])
                     write_log(f"Connection closed for client {addr}")
                 else:
-                    write_log(f"Unknown client disconnected: '{addr}'")
+                    write_log(f"Unknown client disconnected: `{addr}`")
 
     async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
         if not isinstance(request.get('data', None), dict):

@@ -116,13 +116,12 @@ class Client:
                 if exit_code == menus.BACK: continue
                 host_address = join_world_menu.host_address_text_box.get_text().strip()
                 game_name = join_world_menu.world_name_text_box.get_text().strip()
-                self.server.stop()
-                self.server = ServerConnection(host_address, self.PORT)
+                new_server = ServerConnection(host_address, self.PORT)
                 try:
-                    await self.server.start()
+                    await new_server.start()
                 except ConnectionError:
                     continue
-                await self.server.send_json({
+                await new_server.send_json({
                     'method': 'GET',
                     'data': {
                         'type': 'join',
@@ -131,8 +130,10 @@ class Client:
                         'player-images-name': self.player_images_name
                     }
                 })
-                response = await self.server.receive_msg()
+                response = await new_server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST: continue
+                self.server.stop()
+                self.server = new_server
                 return True
             if exit_code == menus.LOAD_SAVE:
                 exit_code = menus.LoadSaveMenu(self.window, self.server).run()
