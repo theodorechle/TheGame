@@ -67,12 +67,8 @@ class Client:
             "place_block": pygame.BUTTON_LEFT,
             "remove_block": pygame.BUTTON_RIGHT
         }
-        self.server_actions_pressed_keys: dict[str, bool] = {}
-        for key in self.server_actions_keyboard_keys.keys():
-            self.server_actions_pressed_keys[key] = False
-        self.client_actions_pressed_keys: dict[str, bool] = {}
-        for key in self.server_actions_keyboard_keys.keys():
-            self.client_actions_pressed_keys[key] = False
+        self.server_actions_pressed_keys: dict[str, bool] = {key: False for key in self.server_actions_keyboard_keys.keys()}
+        self.client_actions_pressed_keys: dict[str, bool] = {key: False for key in self.client_actions_keyboard_keys.keys()}
         for key in self.mouse_buttons.keys():
             self.server_actions_pressed_keys[key] = False
     
@@ -148,6 +144,7 @@ class Client:
 
     async def run(self) -> None:
         self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
+        self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
         await self.player.initialize_chunks()
         tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
@@ -190,12 +187,12 @@ class Client:
                             for player in self.others_players.values():
                                 player.scale_image()
                             break
-                    
+                
                 for key, value in self.server_actions_keyboard_keys.items():
                     if event.key == value:
                         self.server_actions_pressed_keys[key] = True
                         break
-                for key, value in self.client_actions_pressed_keys.items():
+                for key, value in self.client_actions_keyboard_keys.items():
                     if event.key == value:
                         self.client_actions_pressed_keys[key] = True
                         break
@@ -204,7 +201,7 @@ class Client:
                     if event.key == value:
                         self.server_actions_pressed_keys[key] = False
                         break
-                for key, value in self.client_actions_pressed_keys.items():
+                for key, value in self.client_actions_keyboard_keys.items():
                     if event.key == value:
                         self.client_actions_pressed_keys[key] = False
                         break
@@ -219,7 +216,12 @@ class Client:
                         self.server_actions_pressed_keys[key] = False
                         break
     
-        self._ui_manager.update()
+        if self.client_actions_pressed_keys['open_inv']:
+            self.player.main_inventory.toggle_inventory()
+        for i in range(10):
+            if self.client_actions_pressed_keys[f'inv_{i}']:
+                self.player.hot_bar_inventory.set_selected_cell(i, 0)
+        
         actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
         if actions:
             await self.server.send_json({
@@ -229,6 +231,7 @@ class Client:
                     'actions': actions
                 }
             })
+        self._ui_manager.update()
         return False
 
     async def process_socket_messages(self) -> None:
@@ -265,7 +268,7 @@ class Client:
         for player in self.others_players.values():
             player.display(self.player.x, self.player.y)
         self.player.display_hud()
-        self._ui_manager.display()
+        self._ui_manager.display(False)
         pygame.display.update()
 
 async def start() -> None:

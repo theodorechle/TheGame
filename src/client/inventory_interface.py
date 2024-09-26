@@ -2,13 +2,12 @@ from abc import abstractmethod, ABCMeta
 import items
 
 class InventoryInterface(metaclass=ABCMeta):
-    def __init__(self, nb_cells: int, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, nb_cells: int) -> None:
         self._nb_cells: int = nb_cells
-        if cells:
-            self.cells: list[tuple[items.Item|None, int]] = cells.copy()
-        else:
-            self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
+        self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
 
+    def set_cells(self, cells) -> None:
+        self.cells: list[tuple[items.Item|None, int]] = [(items.REVERSED_ITEMS_DICT[item], qty) for item, qty in cells] # list of list with items and quantities
     
     @abstractmethod
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:

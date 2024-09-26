@@ -16,7 +16,6 @@ class Player(Entity, PlayerInterface):
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
-        self.hot_bar_inventory.set_selected_cell(0, 0)
         self.set_player_edges_pos()
 
     def update(self, delta_t: float) -> bool:
@@ -176,7 +175,9 @@ class Player(Entity, PlayerInterface):
         return {
             'x': self.x,
             'y': self.y,
-            'images-name': self.images_name
+            'images-name': self.images_name,
+            'main_inventory': self.main_inventory.cells,
+            'hot_bar_inventory': self.hot_bar_inventory.cells
         }
 
     def get_infos(self) -> dict[str, Any]:

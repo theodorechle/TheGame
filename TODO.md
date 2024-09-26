@@ -1,24 +1,27 @@
 ## PRIORITY
 
-Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
+Saves:
+- Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
+- Allow renaming saves
+- Save only changed blocks (regenerate them on load)
 
-Allow renaming saves
+UI:
+- Add key number on top of main bar
+- Rename window
 
-Add key number on top of main bar
+Render:
+- Use surfaces to render chunks
+- Rotate some blocks to be less repetitive (need surfaces)
 
-Maybe go to C or C++ with SDL2
+Features:
+- Allow breaking and placing blocks
 
-Rename window
+Bugs:
+- Seems like more of the time, the same world is generated
 
-Save only changed blocks (regenerate them on load)
+Others:
+- Maybe go to C or C++ with SDL2
 
-Add inventory management between client and server
-
-Allow breaking and placing blocks
-
-Use surfaces to render chunks
-
-Rotate some blocks to be less repetitive (need surfaces)
 
 ## GENERATION:
 

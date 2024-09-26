@@ -134,7 +134,7 @@ class Server:
                 writer.close()
                 await writer.wait_closed()
             except (OSError, ConnectionResetError):
-                pass
+                write_log(f"Couldn't close connection properly for client {addr}")
             finally:
                 if addr in self.players:
                     self.players[addr][1].remove_player(self.players[addr][0])

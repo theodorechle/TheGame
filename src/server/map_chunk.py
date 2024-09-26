@@ -9,7 +9,7 @@ class Chunk:
         self.id: int = id
         self.biome: Biome = biome
         self.is_forest: bool = False
-        self.blocks: list[blocks.Block] = []
+        self.blocks: list[int] = []
         self.diffs: set[int] = set()
 
     def get_diffs(self) -> dict[int, int]:

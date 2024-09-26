@@ -33,6 +33,7 @@ WOODEN_STICK = Item('wooden_stick')
 
 # new items must be added to the end in order to not break the existing saves
 ITEMS_DICT: dict[Item, int] = {
+    NOTHING: -1,
     IRON_INGOT: 0,
     WOODEN_STICK: 1,
     STONE_PICKAXE: 2,

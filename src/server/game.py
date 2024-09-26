@@ -30,6 +30,10 @@ class Game:
         self.players[name] = Player(name, 0, Chunk.HEIGHT, 0, 0, False, self.chunk_manager, images_name=images_name)
         self.new_players.append(name)
 
+        # for test purpose only
+        self.players[name].hot_bar_inventory.add_element_at_pos(14, 20, 0)
+        self.players[name].hot_bar_inventory.add_element_at_pos(15, 20, 1)
+
     def remove_player(self, name: str) -> None:
         if name in self.players:
             self.players.pop(name)
@@ -89,3 +93,4 @@ class Game:
 
     def get_infos(self) -> str:
         return {'seed': self.chunk_manager.map_generator.seed}
+    

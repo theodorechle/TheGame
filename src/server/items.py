@@ -1,8 +1,6 @@
-class Item:
-    def __init__(self, stack_size: int=99) -> None:
-        self.stack_size = stack_size
+Item = int
 
-NOTHING = None
+NOTHING = -1
 IRON_INGOT = 0
 WOODEN_STICK = 1
 STONE_PICKAXE = 2
@@ -20,4 +18,10 @@ TORCH = 13
 FURNACE = 14
 WORKBENCH = 15
 SNOW = 16
+
+STACK_SIZES: dict[int, int] = {
+}
+
+DEFAULT_STACK_SIZE = 99
+
 # new items must be added to the end in order to not break the existing saves

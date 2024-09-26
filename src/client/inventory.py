@@ -7,8 +7,8 @@ from math import ceil
 from inventory_interface import InventoryInterface
 
 class Inventory(InventoryInterface):
-    def __init__(self, nb_cells: int, ui_manager: UIManager, cells: list[tuple[items.Item|None, int]]|None=None, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
-        super().__init__(nb_cells, cells)
+    def __init__(self, nb_cells: int, ui_manager: UIManager, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
+        super().__init__(nb_cells)
         self._is_opened = False
         self._ui_manager = ui_manager
         self.nb_cells_by_line = min(10, self._nb_cells)
@@ -62,12 +62,19 @@ class Inventory(InventoryInterface):
         element.update_element()
         self._ui_manager.ask_refresh(element)
 
+    def update_all_cells_display_element(self) -> None:
+        for index in range(self._nb_cells):
+            self.update_cell_display_element(index)
+
+    def set_cells(self, cells) -> None:
+        super().set_cells(cells)
+        self.update_all_cells_display_element()
+
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
         Tries to add the quantity of the given element in the inventory at pos.
         Returns the quantity effectively added.
         """
-        return 0
         if 0 > pos or pos >= len(self.cells): return 0
         if self.cells[pos][0] == items.NOTHING: self.cells[pos] = (element, 0)
         elif self.cells[pos][0] != element: return 0
@@ -81,7 +88,6 @@ class Inventory(InventoryInterface):
         Tries to add the quantity of the given element in the inventory at the first free space.
         Returns the quantity effectively added.
         """
-        return 0
         added_quantity: int = 0
         for index in range(len(self.cells)):
             added_quantity = self.add_element_at_pos(element, quantity - added_quantity, index)
@@ -94,7 +100,6 @@ class Inventory(InventoryInterface):
         Tries to remove the quantity of the element in the inventory at pos.
         Returns the quantity effectively removed.
         """
-        return [None, 0]
         if 0 > pos or pos >= len(self.cells): return (None, 0)
         removed_quantity = min(quantity, self.cells[pos][1])
         cell = (self.cells[pos][0], removed_quantity)
@@ -109,7 +114,6 @@ class Inventory(InventoryInterface):
         Remove all instances of element in the inventory.
         Returns the quantity effectively removed
         """
-        return 0
         removed_quantity: int = 0
         for index in range(len(self.cells)):
             if self.cells[index][0] == element:
@@ -118,7 +122,6 @@ class Inventory(InventoryInterface):
         return removed_quantity
 
     def get_element_quantity(self, element: items.Item) -> int:
-        return 0
         quantity = 0
         for cell in self.cells:
             if cell[0] != element: continue
@@ -129,7 +132,6 @@ class Inventory(InventoryInterface):
         """
         Check if the given quantity of the given element is present in the inventory
         """
-        return False
         for cell in self.cells:
             if cell[0] != element: continue
             quantity -= min(quantity, cell[1])
@@ -140,7 +142,6 @@ class Inventory(InventoryInterface):
         """
         Returns the quantity effectively removed
         """
-        return 0
         removed_quantity = 0
         for index, cell in enumerate(self.cells):
             if cell[0] != element: continue
@@ -153,7 +154,6 @@ class Inventory(InventoryInterface):
         Empty the inventory's cell at pos.
         Returns a tuple containing the item in the cell and the quantity of it.
         """
-        return [None, 0]
         if 0 > pos or pos >= len(self.cells): return (items.NOTHING, 0)
         cell = self.cells[pos]
         self.cells[pos] = (items.NOTHING, 0)

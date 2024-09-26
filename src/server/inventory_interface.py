@@ -2,12 +2,12 @@ from abc import abstractmethod, ABCMeta
 import items
 
 class InventoryInterface(metaclass=ABCMeta):
-    def __init__(self, nb_cells: int, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
+    def __init__(self, nb_cells: int, cells: list[tuple[int, int]]|None=None) -> None:
         self._nb_cells: int = nb_cells
         if cells:
-            self.cells: list[tuple[items.Item|None, int]] = cells.copy()
+            self.cells: list[tuple[int, int]] = cells.copy()
         else:
-            self.cells: list[tuple[items.Item|None, int]] = [(items.NOTHING, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
+            self.cells: list[tuple[int, int]] = [(-1, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
 
     
     @abstractmethod

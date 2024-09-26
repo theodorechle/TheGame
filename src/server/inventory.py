@@ -1,6 +1,4 @@
 import items
-from time import monotonic
-from math import ceil
 from inventory_interface import InventoryInterface
 
 class Inventory(InventoryInterface):
@@ -16,7 +14,11 @@ class Inventory(InventoryInterface):
         if 0 > pos or pos >= len(self.cells): return 0
         if self.cells[pos][0] == items.NOTHING: self.cells[pos] = (element, 0)
         elif self.cells[pos][0] != element: return 0
-        added_quantity = min(quantity, element.stack_size - self.cells[pos][1])
+        if element in items.STACK_SIZES:
+            stack_size = items.STACK_SIZES[element]
+        else:
+            stack_size = items.DEFAULT_STACK_SIZE
+        added_quantity = min(quantity, stack_size - self.cells[pos][1])
         self.cells[pos] = (element, self.cells[pos][1] + added_quantity)
         return added_quantity
     
@@ -97,16 +99,3 @@ class Inventory(InventoryInterface):
 
     def sort(self) -> None:
         ...
-
-    def set_selected_cell(self, x: int, y: int) -> None:
-        return
-        self.inventory_table.set_selected_child(self.inventory_table.get_element(x, y))
-        self._selected = x + y*self.nb_cells_by_line
-
-    def get_selected_cell(self) -> None:
-        return
-        return self.inventory_table.get_selected_element()
-    
-    def get_selected_index(self) -> int:
-        return
-        return self._selected

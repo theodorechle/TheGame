@@ -14,7 +14,7 @@ from map_chunk import Chunk
 from typing import Any
 
 class Player(DrawableEntity, PlayerInterface):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None, images_name: str="") -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, ui_manager: UIManager, server: ServerConnection, images_name: str="") -> None:
         PlayerInterface.__init__(self)
         self.render_distance: int = 1
         self.interaction_range: int = 1 # doesn't work
@@ -25,8 +25,8 @@ class Player(DrawableEntity, PlayerInterface):
         DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, ui_manager, 'persos', True, images_name=images_name, display_name=True)
         self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self._ui_manager.get_window(), server)
         self.inventory_size: int = 50
-        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
-        self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
+        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, classes_names=['main-inventory'], anchor='center')
+        self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, classes_names=['hot-bar-inventory'], anchor='bottom')
         self.hot_bar_inventory.toggle_inventory()
         self.hot_bar_inventory.set_selected_cell(0, 0)
         self._current_dragged_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
@@ -217,4 +217,9 @@ class Player(DrawableEntity, PlayerInterface):
 
     async def update(self, update_dict: dict[str, Any]) -> None:
         await self.chunk_manager.update(self.x)
+        for key, value in update_dict.items():
+            if key == 'main_inventory':
+                self.main_inventory.set_cells(value)
+            elif key == 'hot_bar_inventory':
+                self.hot_bar_inventory.set_cells(value)
         DrawableEntity.update(self, update_dict)
