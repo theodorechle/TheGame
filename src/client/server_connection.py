@@ -5,6 +5,7 @@ import json
 import sys
 import os
 from module_infos import SERVER_PATH
+from logs import write_log
 
 class ServerConnection:
     VALID_REQUEST = 1
@@ -25,16 +26,21 @@ class ServerConnection:
         # self.server_process.kill()
 
     async def start(self) -> None:
+        write_log(f"Joining server at {self.host}:{self.port}")
         try:
             self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=1)
         except asyncio.TimeoutError:
+            write_log("Failed to join the server (waited to long)", True)
             raise ConnectionError
         if self.reader is None or self.writer is None:
+            write_log(f"Connection error; reader: {self.reader}, writer: {self.writer}", True)
             raise ConnectionError
 
     async def send_json(self, request: dict) -> None:
-        request = json.dumps(request).encode()
-        message = struct.pack('>I', len(request)) + request
+        json_request = json.dumps(request)
+        write_log(f"Sending {request}")
+        bytes_request = json_request.encode()
+        message = struct.pack('>I', len(bytes_request)) + bytes_request
         self.writer.write(message)
         await self.writer.drain()
     

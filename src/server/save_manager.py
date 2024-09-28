@@ -20,7 +20,6 @@ class SaveManager(SaveManagerInterface):
         self.chunks_path = os.path.join(SAVES_PATH, self.save_name, 'chunks')
         self.players_path = os.path.join(SAVES_PATH, self.save_name, 'players')
         self.generation_infos_path = os.path.join(SAVES_PATH, self.save_name, 'generation_infos.json')
-        return
         os.makedirs(self.chunks_path, exist_ok=True)
         os.makedirs(self.players_path, exist_ok=True)
 

@@ -63,9 +63,10 @@ class Server:
         self.server.close()
 
     async def send_json(self, writer: asyncio.StreamWriter, request: dict) -> None:
-        write_log(f"Sent {request}")
-        request = json.dumps(request).encode()
-        message = struct.pack('>I', len(request)) + request
+        json_request = json.dumps(request)
+        write_log(f"Sending {request}")
+        bytes_request = json_request.encode()
+        message = struct.pack('>I', len(bytes_request)) + bytes_request
         writer.write(message)
         await writer.drain()
 

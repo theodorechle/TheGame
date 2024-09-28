@@ -3,7 +3,6 @@
 Saves:
 - Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
 - Allow renaming saves
-- Save only changed blocks (regenerate them on load)
 
 UI:
 - Add key number on top of main bar

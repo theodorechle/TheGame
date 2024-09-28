@@ -22,6 +22,7 @@ from typing import Any
 import asyncio
 from map_chunk import Chunk
 import traceback
+from logs import write_log
 
 class Client:
     PORT = 12345
@@ -97,6 +98,7 @@ class Client:
                 seed = create_world_menu.seed_text_box.get_text()
                 if not seed:
                     seed = None
+                write_log(f"Creating world {save_name} with seed {seed}")
                 await self.server.send_json({
                     'method': 'GET',
                     'data': {
@@ -108,7 +110,10 @@ class Client:
                     }
                 })
                 response = await self.server.receive_msg()
-                if response['status'] == ServerConnection.WRONG_REQUEST: continue
+                if response['status'] == ServerConnection.WRONG_REQUEST:
+                    write_log("Server failed to create the world")
+                    continue
+                write_log("World created")
                 return True
             if exit_code == menus.JOIN_WORLD:
                 join_world_menu = menus.JoinWorldMenu(self.window, self.server)
@@ -121,6 +126,7 @@ class Client:
                     await new_server.start()
                 except ConnectionError:
                     continue
+                write_log(f"Joining world {game_name} at {host_address}:{self.PORT}")
                 await new_server.send_json({
                     'method': 'GET',
                     'data': {
@@ -131,9 +137,12 @@ class Client:
                     }
                 })
                 response = await new_server.receive_msg()
-                if response['status'] == ServerConnection.WRONG_REQUEST: continue
+                if response['status'] == ServerConnection.WRONG_REQUEST:
+                    write_log("Failed to join world")
+                    continue
                 self.server.stop()
                 self.server = new_server
+                write_log("World joined")
                 return True
             if exit_code == menus.LOAD_SAVE:
                 exit_code = menus.LoadSaveMenu(self.window, self.server).run()
@@ -149,6 +158,7 @@ class Client:
         await self.player.initialize_chunks()
         tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
         done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        write_log(f"Stopped game")
         for p in pending:
             p.cancel()
 
@@ -253,8 +263,10 @@ class Client:
             try:
                 message_dict = await self.server.receive_msg()
             except asyncio.IncompleteReadError:
-                print(traceback.format_exc())
+                write_log("Error while reading input data from server", True)
+                write_log(traceback.format_exc(), True)
                 return
+            write_log(f"Server sent message {message_dict}")
             if 'data' not in message_dict:
                 continue
             data = message_dict['data']

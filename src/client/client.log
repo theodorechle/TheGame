@@ -1,0 +1,108 @@
+Joining server at 127.0.0.1:12345
+Creating world rezazert with seed None
+Sending {'method': 'GET', 'data': {'type': 'create-world', 'seed': None, 'save': 'rezazert', 'player-name': 'zertyui', 'player-images-name': 'base_character'}}
+World created
+Sending {'method': 'GET', 'data': {'type': 'game-infos'}}
+Sending {'method': 'GET', 'data': {'type': 'chunk', 'id': 0}}
+Sending {'method': 'GET', 'data': {'type': 'chunk', 'id': -1}}
+Sending {'method': 'GET', 'data': {'type': 'chunk', 'id': 1}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 127, 'images-name': 'base_character', 'main_inventory': [[-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0]], 'hot_bar_inventory': [[14, 20], [15, 20], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0], [-1, 0]]}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 126, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 125, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 124, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 123, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 122, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 121, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 120, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'type': 'game-infos', 'infos': {'seed': '264559385'}}}
+Server sent message {'status': 1, 'data': {'type': 'chunk', 'chunk': {'id': 0, 'diffs': {}}}}
+Server sent message {'status': 1, 'data': {'type': 'chunk', 'chunk': {'id': -1, 'diffs': {}}}}
+Server sent message {'status': 1, 'data': {'type': 'chunk', 'chunk': {'id': 1, 'diffs': {}}}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 119, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 118, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 117, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 116, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 115, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 114, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 113, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 112, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 111, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 110, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 109, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 108, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 107, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 106, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 105, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 104, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 103, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 1, 'y': 102, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 2, 'y': 101, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 3, 'y': 100, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 4, 'y': 99, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 5, 'y': 98, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 6, 'y': 97, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 7, 'y': 96, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 8, 'y': 95, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 9, 'y': 94, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_right']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 10, 'y': 93, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 10, 'y': 92, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 10, 'y': 91, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 10, 'y': 90, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 10, 'y': 89, 'direction': False}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 10, 'y': 89, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 9, 'y': 89, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 8, 'y': 88, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 7, 'y': 87, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 6, 'y': 86, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 5, 'y': 85, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 4, 'y': 84, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 3, 'y': 83, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 2, 'y': 82, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 1, 'y': 81, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 80, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': 0, 'y': 79, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -1, 'y': 78, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -2, 'y': 77, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -3, 'y': 76, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -3, 'y': 75, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -4, 'y': 75, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -5, 'y': 74, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -6, 'y': 73, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -6, 'y': 72, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -7, 'y': 72, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -8, 'y': 71, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -8, 'y': 70, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -9, 'y': 70, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -10, 'y': 70, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+Server sent message {'status': 1, 'data': {'players': {'zertyui': {'x': -10, 'y': 69, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
