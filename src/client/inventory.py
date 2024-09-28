@@ -194,6 +194,12 @@ class Inventory(InventoryInterface):
     
     def get_selected_index(self) -> int:
         return self._selected
+    
+    def update_cells(self, new_cells: dict[int, int]) -> UIElement:
+        for index, item in new_cells.items():
+            index = int(index)
+            self.cells[index] = (items.REVERSED_ITEMS_DICT[item[0]], item[1])
+            self.update_cell_display_element(index)
 
 def inventory_cells_to_ints(cells: list[tuple[items.Item|None, int]]) -> list[tuple[int, int]]:
     return [(items.ITEMS_DICT[cell[0]], cell[1]) if cell[0] is not None else cell for cell in cells]

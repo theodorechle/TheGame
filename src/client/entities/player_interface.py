@@ -24,18 +24,6 @@ class PlayerInterface(EntityInterface, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
-        pass
-
-    @abstractmethod
-    def _is_interactable(self, x: int, y: int) -> bool:
-        pass
-
-    @abstractmethod
-    def _is_surrounded_by_block(self, x: int, y: int) -> bool:
-        pass
-
-    @abstractmethod
     def place_block(self, pos: tuple[int, int]) -> bool:
         pass
 

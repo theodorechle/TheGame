@@ -126,7 +126,7 @@ class Server:
                     case value: # treat as an error
                         write_log(f"Bad request: wrong value for 'method': {value}")
                         await self.send_invalid_request()
-        except Exception as e:
+        except BaseException as e:
             write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
             write_log(f'Detail: {traceback.format_exc()}')
         finally:
@@ -159,7 +159,7 @@ class Server:
         for value in values:
             if value not in data:
                 write_log(f"Bad request: missing '{value}' in data {data}")
-                await self.send_invalid_request()
+                await self.send_invalid_request(writer)
                 return (False, result_values)
             result_values.append(data[value])
         return (True, result_values)
@@ -224,7 +224,7 @@ class Server:
                 if not success: return
                 name, game = self.players[addr]
                 actions_queue = self.games_queues[game][0]
-                actions_queue.put({'name': name, 'actions': values[0]})
+                actions_queue.put({'name': name, 'actions': values[0], 'additional_data': data.get('additional_data')})
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
                 await self.send_invalid_request(writer)

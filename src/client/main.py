@@ -21,6 +21,7 @@ import blocks
 from typing import Any
 import asyncio
 from map_chunk import Chunk
+import traceback
 
 class Client:
     PORT = 12345
@@ -46,7 +47,8 @@ class Client:
         self.server_actions_keyboard_keys: dict[str, int] = {
             "mv_left": pygame.K_q, # moves
             "mv_right": pygame.K_d,
-            "mv_up": pygame.K_z
+            "mv_up": pygame.K_z,
+            "interact": pygame.K_e
         }
 
         self.client_actions_keyboard_keys: dict[str, int] = {
@@ -61,16 +63,14 @@ class Client:
             "inv_8": pygame.K_9,
             "inv_9": pygame.K_0,
             "open_inv": pygame.K_i,
-            "interact": pygame.K_e
         }
-        self.mouse_buttons: dict[str, int] = {
+        self.server_actions_mouse_buttons: dict[str, int] = {
             "place_block": pygame.BUTTON_LEFT,
             "remove_block": pygame.BUTTON_RIGHT
         }
         self.server_actions_pressed_keys: dict[str, bool] = {key: False for key in self.server_actions_keyboard_keys.keys()}
         self.client_actions_pressed_keys: dict[str, bool] = {key: False for key in self.client_actions_keyboard_keys.keys()}
-        for key in self.mouse_buttons.keys():
-            self.server_actions_pressed_keys[key] = False
+        self.server_actions_pressed_mouse_keys: dict[str, bool] = {key: False for key in self.server_actions_mouse_buttons.keys()}
     
     async def start(self) -> None:
         await self.server.start()
@@ -207,14 +207,14 @@ class Client:
                         self.client_actions_pressed_keys[key] = False
                         break
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                for key, value in self.mouse_buttons.items():
+                for key, value in self.server_actions_mouse_buttons.items():
                     if event.button == value:
-                        self.server_actions_pressed_keys[key] = True
+                        self.server_actions_pressed_mouse_keys[key] = True
                         break
             elif event.type == pygame.MOUSEBUTTONUP:
-                for key, value in self.mouse_buttons.items():
+                for key, value in self.server_actions_mouse_buttons.items():
                     if event.button == value:
-                        self.server_actions_pressed_keys[key] = False
+                        self.server_actions_pressed_mouse_keys[key] = False
                         break
     
         if self.client_actions_pressed_keys['open_inv']:
@@ -223,14 +223,27 @@ class Client:
             if self.client_actions_pressed_keys[f'inv_{i}']:
                 self.player.hot_bar_inventory.set_selected_cell(i, 0)
         
+        additional_data: dict = {}
+        if self.server_actions_pressed_mouse_keys["place_block"]:
+            if (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
+                additional_data['interacted_block'] = block_pos
+                additional_data['selected'] = self.player.hot_bar_inventory.get_selected_index()
+        if self.server_actions_pressed_mouse_keys["remove_block"]:
+            if (block_pos := self.player.remove_block(pygame.mouse.get_pos())) is not None:
+                additional_data['interacted_block'] = block_pos
+
         actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
+        actions.extend(action for action, is_done in self.server_actions_pressed_mouse_keys.items() if is_done)
         if actions:
-            await self.server.send_json({
-                'method': 'POST',
-                'data': {
+            data = {
                     'type': 'update',
                     'actions': actions
-                }
+            }
+            if additional_data:
+                data['additional_data'] = additional_data
+            await self.server.send_json({
+                'method': 'POST',
+                'data': data
             })
         self._ui_manager.update()
         return False
@@ -240,6 +253,7 @@ class Client:
             try:
                 message_dict = await self.server.receive_msg()
             except asyncio.IncompleteReadError:
+                print(traceback.format_exc())
                 return
             if 'data' not in message_dict:
                 continue
@@ -262,6 +276,9 @@ class Client:
                 if player_name not in self.others_players:
                     self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self._ui_manager, 'persos', True, images_name=player_data.get('images-name', ''), display_name=True)
                 self.others_players[player_name].update(player_data)
+        if 'blocks' not in data: return
+        for pos, block in zip(*data['blocks']):
+            self.player.chunk_manager.replace_block(*pos, blocks.REVERSED_BLOCKS_DICT[block])
 
     def display(self) -> None:
         self.window.fill("#000000")

@@ -5,6 +5,7 @@ class Inventory(InventoryInterface):
     def __init__(self, nb_cells: int, cells: list[tuple[items.Item|None, int]]|None=None, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
         super().__init__(nb_cells, cells)
         self.nb_cells_by_line = min(10, self._nb_cells)
+        self.indexes_to_update: set[int] = set()
 
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -20,6 +21,8 @@ class Inventory(InventoryInterface):
             stack_size = items.DEFAULT_STACK_SIZE
         added_quantity = min(quantity, stack_size - self.cells[pos][1])
         self.cells[pos] = (element, self.cells[pos][1] + added_quantity)
+        if added_quantity != 0:
+            self.indexes_to_update.add(pos)
         return added_quantity
     
     def add_element(self, element: items.Item, quantity: int) -> int:
@@ -45,6 +48,8 @@ class Inventory(InventoryInterface):
         self.cells[pos] = (self.cells[pos][0], self.cells[pos][1] - removed_quantity)
         if self.cells[pos][1] == 0:
             self.cells[pos] = (items.NOTHING, 0)
+        if removed_quantity != 0:
+            self.indexes_to_update.add(pos)
         return cell
 
     def remove_element(self, element: items.Item) -> int:
@@ -99,3 +104,6 @@ class Inventory(InventoryInterface):
 
     def sort(self) -> None:
         ...
+
+    def get_updated_items(self) -> dict[int, tuple[int, int]]:
+        return {index: self.cells[index] for index in self.indexes_to_update}

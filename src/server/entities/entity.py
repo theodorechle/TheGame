@@ -21,6 +21,7 @@ class Entity(EntityInterface):
         # number of blocks width and height
         self.entity_size: tuple[int, int] = (image_length, image_height)
         self.images_name = images_name
+        self.force_update = False
 
     def set_player_edges_pos(self) -> None:
         self.top_player_pos: int = self.entity_size[1]

@@ -7,6 +7,7 @@ from typing import Any
 from logs import write_log
 from multiprocessing import Queue
 import asyncio
+from items import Item
 
 class Game:
     def __init__(self, seed, name, actions_queue: Queue, updates_queue: Queue) -> None:
@@ -17,7 +18,7 @@ class Game:
         self.save_manager = SaveManager(name)
         self.chunk_manager = ChunkManager(map_generator, self.save_manager)
         self.players: dict[str, Player] = {}
-        self.updated_blocks: dict[tuple[int, int], int] = {}
+        self.updated_blocks: dict[tuple[int, int], Item] = {}
         self.new_players: list[str] = []
         self.UPDATE_DELAY_MS = 50
     
@@ -48,9 +49,9 @@ class Game:
     async def process_actions(self) -> None:
         while True:
             actions = await asyncio.get_running_loop().run_in_executor(None, self.actions_queue.get)
-            self.player_updates(actions['name'], actions['actions'])
+            self.player_updates(actions['name'], actions['actions'], actions['additional_data'])
 
-    def player_updates(self, player_name: str, actions: list[str]) -> dict[str, Any]:
+    def player_updates(self, player_name: str, actions: list[str], additional_data: dict[str, Any]|None) -> dict[str, Any]:
         player = self.players[player_name]
         for action in actions:
             match action:
@@ -61,11 +62,13 @@ class Game:
                 case 'mv_up':
                     player.speed_y = 1
                 case 'place_block':
-                    continue
-                    player.place_block()
+                    block_pos = tuple(additional_data['interacted_block'])
+                    block = player.place_block(block_pos, additional_data['selected'])
+                    if block is not None: self.updated_blocks[block_pos] = block
                 case 'remove_block':
-                    continue
-                    player.remove_block()
+                    block_pos = tuple(additional_data['interacted_block'])
+                    block = player.remove_block(block_pos)
+                    if block is not None: self.updated_blocks[block_pos] = block
                 case _:
                     write_log(f"Invalid player action '{action}'", True)
 
@@ -78,18 +81,26 @@ class Game:
                     players_dict[player_name] = player.get_all_infos()
                 elif has_changed:
                     players_dict[player_name] = player.get_infos()
-            if players_dict:
+                player.main_inventory.indexes_to_update.clear()
+                player.hot_bar_inventory.indexes_to_update.clear()
+            if players_dict or self.updated_blocks:
                 for player_name, player in self.players.items():
                     if player_name in self.new_players:
                         self.new_players.remove(player_name)
-                        self.updates_queue.put((player_name, self.get_all_players_infos()))
-                    self.updates_queue.put((player_name, {'players': players_dict}))
+                        players = self.get_all_players_infos()
+                    else:
+                        players = players_dict
+                    blocks_pos = []
+                    blocks = []
+                    for pos, block in self.updated_blocks.items():
+                        blocks_pos.append(pos)
+                        blocks.append(block)
+                    self.updates_queue.put((player_name, {'players': players, 'blocks': [blocks_pos, blocks]}))
+            self.updated_blocks.clear()
             await asyncio.sleep(0.05)
 
     def get_all_players_infos(self) -> dict[str, Any]:
-        return {
-            'players': {player.name: player.get_all_infos() for player in self.players.values()}
-        }
+        return {player.name: player.get_all_infos() for player in self.players.values()}
 
     def get_infos(self) -> str:
         return {'seed': self.chunk_manager.map_generator.seed}

@@ -1,7 +1,8 @@
 from load_image import load_image
 from blocks import BLOCKS_IMAGES_PATH
+from module_infos import RESOURCES_PATH
 
-ITEMS_IMAGES_PATH = 'src/resources/images/items'
+ITEMS_IMAGES_PATH = f'{RESOURCES_PATH}/images/items'
 class Item:
     ITEM_SIZE = 40
     def __init__(self, path: str) -> None:

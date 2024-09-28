@@ -46,4 +46,4 @@ def convert_block_to_items(block: blocks.Block, quantity: int) -> dict[items.Ite
     return final_items
 
 def convert_item_to_block(item: items.Item) -> blocks.Block|None:
-    return _ITEM_TO_BLOCK.get(item, None)
+    return _ITEM_TO_BLOCK.get(item, items.NOTHING)
