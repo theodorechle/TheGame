@@ -27,6 +27,7 @@ class ChunkManager:
         chunk, x, y = self.get_chunk_and_coordinates(x, y)
         if chunk is None: return False
         chunk.blocks[y * Chunk.LENGTH + x] = block
+        chunk.diffs.add(y * Chunk.LENGTH + x)
         return True
     
     # def update(self, x: int) -> None:

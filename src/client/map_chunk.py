@@ -12,8 +12,8 @@ class Chunk:
         self.blocks: list[blocks.Block] = []
     
     def set_diffs(self, diffs: dict[int, int]) -> None:
-        for index, block in diffs:
-            self.blocks[index] = blocks.REVERSED_BLOCKS_DICT[block]
+        for index, block in diffs.items():
+            self.blocks[int(index)] = blocks.REVERSED_BLOCKS_DICT[block]
 
     def __repr__(self) -> str:
         return f'id: {self.id}, biome: {self.biome.name}, is_forest: {self.is_forest}'

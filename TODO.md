@@ -13,15 +13,13 @@ Render:
 - Use surfaces to render chunks
 - Rotate some blocks to be less repetitive (need surfaces)
 
-Features:
-- Allow breaking and placing blocks
-
 Bugs:
 - Seems like more of the time, the same world is generated
 
 Others:
 - Maybe go to C or C++ with SDL2
-
+- Put games in separated processes
+- Put different parts of games in separate threads to allow them running concurrently
 
 ## GENERATION:
 
