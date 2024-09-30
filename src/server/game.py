@@ -21,6 +21,7 @@ class Game:
         self.players: dict[str, Player] = {}
         self.updated_blocks: dict[tuple[int, int], Item] = {}
         self.new_players: list[str] = []
+        self.removed_players: list[str] = []
         self.UPDATE_DELAY_MS = 50
     
     def get_name(self) -> str:
@@ -39,6 +40,7 @@ class Game:
     def remove_player(self, name: str) -> None:
         if name in self.players:
             self.players.pop(name)
+            self.removed_players.append(name)
 
     def get_player_infos(self, name: str) -> Player|None:
         if name not in self.players: return
@@ -88,6 +90,9 @@ class Game:
                     players_dict[player_name] = player.get_infos()
                 player.main_inventory.indexes_to_update.clear()
                 player.hot_bar_inventory.indexes_to_update.clear()
+            for player in self.removed_players:
+                players_dict[player] = {'removed': True}
+            self.removed_players.clear()
             if players_dict or self.updated_blocks:
                 for player_name, player in self.players.items():
                     if player_name in self.new_players:

@@ -74,3 +74,8 @@ class DrawableEntity(Entity):
             self.name_label._first_coords = ((self.x - rel_x) * blocks.Block.BLOCK_SIZE, -self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE - 10)
             self.name_label.update_element()
             self._ui_manager.ask_refresh(self.name_label)
+    
+    def delete(self) -> None:
+        if self.name_label is not None:
+            self._ui_manager.remove_element(self.name_label)
+    

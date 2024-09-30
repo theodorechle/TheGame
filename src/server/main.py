@@ -241,7 +241,7 @@ class Server:
         while True:
             player_name, update_dict = await asyncio.get_event_loop().run_in_executor(None, self.updates_queue.get)
             player_addr: tuple[str, int]|None = self.players_names.get(player_name, None)
-            if player_addr is None: continue
+            if player_addr is None or player_addr not in self.clients: continue
             update_dict['type'] = 'player-update'
             await self.send_json(self.clients[player_addr][1], {
                 'status': self.VALID_REQUEST,

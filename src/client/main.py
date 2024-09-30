@@ -302,6 +302,10 @@ class Client:
             if player_name == self.player_name:
                 await self.player.update(player_data)
             else:
+                if 'removed' in player_data:
+                    self.others_players[player_name].delete()
+                    self.others_players.pop(player_name, None)
+                    continue
                 if player_name not in self.others_players:
                     self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self._ui_manager, 'persos', True, images_name=player_data.get('images-name', ''), display_name=True)
                 self.others_players[player_name].update(player_data)
