@@ -140,7 +140,7 @@ class Client:
                 if response['status'] == ServerConnection.WRONG_REQUEST:
                     write_log("Failed to join world")
                     continue
-                self.server.stop()
+                await self.server.stop()
                 self.server = new_server
                 write_log("World joined")
                 return True
@@ -153,22 +153,35 @@ class Client:
         self.exit = True
 
     async def run(self) -> None:
-        self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
-        self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
-        await self.player.initialize_chunks()
-        tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        write_log(f"Stopped game")
-        for p in pending:
-            p.cancel()
+        try:
+            self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
+            self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
+            await self.player.initialize_chunks()
+            tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
+            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            write_log(f"Stopped game")
+            for p in pending:
+                p.cancel()
+        except BaseException as e:
+            write_log(f'Error in run: {repr(e)}', is_err=True)
+            write_log(f'Detail: {traceback.format_exc()}', is_err=True)
+        finally:
+            try:
+                await self.server.stop()
+            except (OSError, ConnectionResetError):
+                write_log(f"Couldn't close connection with server {self.server}", is_err=True)
 
     async def loop(self) -> None:
-        while not self.exit:
-            if await self.update():
-                self.server.stop()
-                break # exit
-            self.display()
-            await asyncio.sleep(0.05)
+        try:
+            while not self.exit:
+                if await self.update():
+                    await self.server.stop()
+                    break # exit
+                self.display()
+                await asyncio.sleep(0.05)
+        except BaseException as e:
+            write_log(f'Error in loop: {repr(e)}', is_err=True)
+            write_log(f'Detail: {traceback.format_exc()}', is_err=True)
 
     async def update(self) -> bool:
         for event in pygame.event.get():
@@ -259,26 +272,30 @@ class Client:
         return False
 
     async def process_socket_messages(self) -> None:
-        while not self.exit:
-            try:
-                message_dict = await self.server.receive_msg()
-            except asyncio.IncompleteReadError:
-                write_log("Error while reading input data from server", True)
-                write_log(traceback.format_exc(), True)
-                return
-            write_log(f"Server sent message {message_dict}")
-            if 'data' not in message_dict:
-                continue
-            data = message_dict['data']
-            if 'type' not in data: continue
-            match data['type']:
-                case 'player-update':
-                    await self.update_player(data)
-                case 'chunk':
-                    self.player.chunk_manager.set_chunk(message_dict)
-                case 'game-infos':
-                    self.player.chunk_manager.create_map_generator(data)
-    
+        try:
+            while not self.exit:
+                try:
+                    message_dict = await self.server.receive_msg()
+                except asyncio.IncompleteReadError:
+                    write_log("Error while reading input data from server", True)
+                    write_log(traceback.format_exc(), True)
+                    return
+                write_log(f"Server sent message {message_dict}")
+                if 'data' not in message_dict:
+                    continue
+                data = message_dict['data']
+                if 'type' not in data: continue
+                match data['type']:
+                    case 'player-update':
+                        await self.update_player(data)
+                    case 'chunk':
+                        self.player.chunk_manager.set_chunk(message_dict)
+                    case 'game-infos':
+                        self.player.chunk_manager.create_map_generator(data)
+        except BaseException as e:
+            write_log(f'Error in process_socket_messages: {repr(e)}', is_err=True)
+            write_log(f'Detail: {traceback.format_exc()}', is_err=True)
+        
     async def update_player(self, data: dict[str, Any]) -> None:
         if 'players' not in data: return
         for player_name, player_data in data['players'].items():
@@ -306,7 +323,7 @@ async def start() -> None:
     try:
         await client.start()
     except ConnectionError:
-        print("Can't connect to local server")
+        write_log("Can't connect to local server", is_err=True)
         return
     do_run_main: bool = await client.run_menus()
     if do_run_main:

@@ -23,27 +23,28 @@ class SaveManager(SaveManagerInterface):
         os.makedirs(self.chunks_path, exist_ok=True)
         os.makedirs(self.players_path, exist_ok=True)
 
-    def load_chunk(self, id: int) -> Chunk:
+    def load_chunk(self, id: int) -> Chunk|dict[int, int]:
         try:
             with open(os.path.join(self.chunks_path, str(id) + '.json')) as f:
                 chunk_dict = json.load(f)
         except FileNotFoundError:
-            return Chunk(0, None)
+            return
         version = chunk_dict.get('version', 0)
         # handle different versions
         if version <= 0.3:
             chunk: Chunk = Chunk(id, BIOMES[tuple(chunk_dict['biome'])])
             chunk.is_forest = chunk_dict['is_forest']
             chunk.blocks = chunk_dict['blocks']
+            return chunk
         else:
-            chunk: Chunk = Chunk(0, None) # fake values
-            chunk.diffs = chunk_dict['diffs']
-        return chunk
+            return chunk_dict['diffs']
 
     def save_chunk(self, chunk: Chunk|None) -> None:
         if chunk is None: return
+        diffs: dict[int, int] = chunk.get_diffs()
+        if not diffs: return
         chunk_dict = {
-            'diffs': list(chunk.diffs),
+            'diffs': diffs,
             'version': CURRENT_VERSION
         }
         with open(os.path.join(self.chunks_path, str(chunk.id) + '.json'), 'w') as f:

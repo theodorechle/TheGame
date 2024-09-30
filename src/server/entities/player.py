@@ -27,7 +27,7 @@ class Player(Entity, PlayerInterface):
         return need_update
 
     def save(self) -> None:
-        self.chunk_manager.save()
+        self.chunk_manager.save_chunks()
     
     def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
         x = (x - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE

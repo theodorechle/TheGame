@@ -3,11 +3,12 @@ from chunk_manager import ChunkManager
 from save_manager import SaveManager
 from entities.player import Player
 from map_chunk import Chunk
-from typing import Any
+from items import Item
 from logs import write_log
+from typing import Any
 from multiprocessing import Queue
 import asyncio
-from items import Item
+import traceback
 
 class Game:
     def __init__(self, seed, name, actions_queue: Queue, updates_queue: Queue) -> None:
@@ -44,7 +45,11 @@ class Game:
         return self.players[name][0].get_infos()
     
     async def run(self) -> None:
-        await asyncio.gather(self.process_actions(), self.update())
+        try:
+            await asyncio.gather(self.process_actions(), self.update())
+        except BaseException as e:
+            write_log(f'Error in game {self.save_manager.save_name}: {repr(e)}', is_err=True)
+            write_log(f'Detail: {traceback.format_exc()}', is_err=True)
     
     async def process_actions(self) -> None:
         while True:

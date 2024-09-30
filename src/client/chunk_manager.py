@@ -66,11 +66,13 @@ class ChunkManager:
             id = self.chunk_x_position + self.nb_chunks_by_side + 1
             self.chunks.append(None)
             await self.load_chunk(id)
+            await self.save_chunks([self.chunk_x_position - self.nb_chunks_by_side])
         else:
             self.chunks.pop(-1)
             id = self.chunk_x_position - self.nb_chunks_by_side - 1
             self.chunks.insert(0, None)
             await self.load_chunk(id)
+            await self.save_chunks([self.chunk_x_position + self.nb_chunks_by_side])
         self.chunk_x_position += added_x
 
     async def change_nb_chunks(self, new_nb_chunks: int) -> None:
@@ -84,6 +86,7 @@ class ChunkManager:
                 await self.load_chunk(self.chunk_x_position - self.nb_chunks_by_side - i - 1)
                 await self.load_chunk(self.chunk_x_position + self.nb_chunks_by_side + i + 1)
         else:
+            await self.save_chunks([nb + self.chunk_x_position for i in range(new_nb_chunks, self.nb_chunks_by_side) for nb in (-i - 1, i + 1)])
             for i in range(new_nb_chunks*2 + 1):
                 new_chunks[i] = self.chunks[self.nb_chunks_by_side - new_nb_chunks + i]
         
@@ -122,6 +125,15 @@ class ChunkManager:
             'data': {
                 'type': 'chunk',
                 'id': chunk_id
+            }
+        })
+    
+    async def save_chunks(self, chunks_ids: list[int]) -> None:
+        await self.server.send_json({
+            'method': 'POST',
+            'data': {
+                'type': 'chunks',
+                'ids': chunks_ids
             }
         })
     

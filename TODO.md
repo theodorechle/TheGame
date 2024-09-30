@@ -14,6 +14,7 @@ Render:
 
 Bugs:
 - Seems like more of the time, the same world is generated
+- Can place a block on the upper part of the player (head)
 
 Others:
 - Maybe go to C or C++ with SDL2

@@ -21,8 +21,9 @@ class ServerConnection:
         #     stderr=sys.stderr,
         #     start_new_session=True)
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         self.writer.close()
+        await self.writer.wait_closed()
         # self.server_process.kill()
 
     async def start(self) -> None:
@@ -63,3 +64,6 @@ class ServerConnection:
             msg += new_msg
             size -= len(new_msg)
         return msg
+    
+    def __repr__(self) -> str:
+        return f'{self.host}:{self.port}'

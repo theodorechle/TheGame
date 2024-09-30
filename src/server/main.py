@@ -115,7 +115,7 @@ class Server:
                 write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
                     write_log(f"Bad request: missing 'method' in {request}")
-                    await self.send_invalid_request()
+                    await self.send_invalid_request(writer)
                     continue
                 match request['method'].upper():
                     case 'GET':
@@ -126,32 +126,32 @@ class Server:
                         await self.handle_post(request, writer)
                     case value: # treat as an error
                         write_log(f"Bad request: wrong value for 'method': {value}")
-                        await self.send_invalid_request()
+                        await self.send_invalid_request(writer)
         except BaseException as e:
             write_log(f'Error handling client {addr}: {repr(e)}', is_err=True)
-            write_log(f'Detail: {traceback.format_exc()}')
+            write_log(f'Detail: {traceback.format_exc()}', is_err=True)
         finally:
             try:
                 writer.close()
                 await writer.wait_closed()
             except (OSError, ConnectionResetError):
-                write_log(f"Couldn't close connection properly for client {addr}")
+                write_log(f"Couldn't close connection properly for client {addr}", is_err=True)
             finally:
                 if addr in self.players:
                     self.players[addr][1].remove_player(self.players[addr][0])
-                    write_log(f"Connection closed for client {addr}")
+                    write_log(f"Removed client {addr} from clients' list")
                 else:
                     write_log(f"Unknown client disconnected: `{addr}`")
 
     async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
         if not isinstance(request.get('data', None), dict):
             write_log(f"Bad request: missing 'data' in {request}")
-            await self.send_invalid_request()
+            await self.send_invalid_request(writer)
             return
         data = request['data']
         if 'type' not in data:
             write_log(f"Bad request: missing 'type' in data {data}")
-            await self.send_invalid_request()
+            await self.send_invalid_request(writer)
             return
         return data
 
@@ -184,9 +184,11 @@ class Server:
                 if addr not in self.players:
                     write_log(f"Client {addr} tried to get chunk {values[0]} while not playing")
                     await self.send_invalid_request(writer)
-                chunk = self.players[addr][1].chunk_manager.load_chunk(values[0])
+                player_name, game = self.players[addr]
+                chunk = game.chunk_manager.load_chunk(player_name, values[0])
                 if chunk is None:
-                    await self.send_invalid_request()
+                    await self.send_invalid_request(writer)
+                    return
                 await self.send_data(writer, {
                         'type': 'chunk',
                         'chunk': chunk.get_infos_dict()
@@ -223,9 +225,14 @@ class Server:
             case 'update':
                 success, values = await self.get_values(data, ['actions'], writer)
                 if not success: return
-                name, game = self.players[addr]
+                player_name, game = self.players[addr]
                 actions_queue = self.games_queues[game][0]
-                actions_queue.put({'name': name, 'actions': values[0], 'additional_data': data.get('additional_data')})
+                actions_queue.put({'name': player_name, 'actions': values[0], 'additional_data': data.get('additional_data')})
+            case 'chunks':
+                success, values = await self.get_values(data, ['ids'], writer)
+                if not success: return
+                player_name, game = self.players[addr]
+                game.chunk_manager.save_chunks(player_name, values[0])
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
                 await self.send_invalid_request(writer)
@@ -247,7 +254,7 @@ class Server:
         success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
         if not success:
             write_log(f"Client {addr} tried to create game but send partial data: '{data}'")
-            await self.send_invalid_request()
+            await self.send_invalid_request(writer)
             return
         seed, save, player_name = values
         actions_queue = Queue()
@@ -264,12 +271,12 @@ class Server:
         addr = writer.get_extra_info('peername')
         if addr in self.players:
             write_log(f"Client {addr} tried to join game but was already playing: '{data}'")
-            await self.send_invalid_request()
+            await self.send_invalid_request(writer)
             return
         success, values = await self.get_values(data, ['game', 'player-name'], writer)
         if not success:
             write_log(f"Client {addr} tried to join game but send partial data: '{data}'")
-            await self.send_invalid_request()
+            await self.send_invalid_request(writer)
             return
         searched_game_name, player_name = values
         for game in self.games.keys():
