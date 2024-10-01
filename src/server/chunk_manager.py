@@ -67,3 +67,8 @@ class ChunkManager:
                     chunk.replace_block(int(index), block)
         self.chunks[chunk_id] = chunk
         return chunk
+
+    def remove_player(self, player_name: str) -> None:
+        if player_name not in self.loaded_chunks_by_player: return
+        self.save_chunks(player_name, list(self.loaded_chunks_by_player[player_name]))
+        self.loaded_chunks_by_player.pop(player_name)

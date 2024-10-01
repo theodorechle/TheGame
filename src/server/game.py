@@ -9,14 +9,22 @@ from typing import Any
 from multiprocessing import Queue
 import asyncio
 import traceback
+from random import randint
 
 class Game:
-    def __init__(self, seed, name, actions_queue: Queue, updates_queue: Queue) -> None:
+    def __init__(self, seed: str|None, name: str, actions_queue: Queue, updates_queue: Queue) -> None:
         super().__init__()
         self.actions_queue: Queue = actions_queue
         self.updates_queue: Queue = updates_queue
-        map_generator = MapGenerator(seed)
         self.save_manager = SaveManager(name)
+        infos = self.save_manager.load_generation_infos()
+        if infos is None:
+            if seed is None:
+                seed = str(randint(-500000000, 500000000))
+            self.save_manager.save_generation_infos({'seed': seed})
+        else:
+            seed = infos['seed']
+        map_generator = MapGenerator(seed)
         self.chunk_manager = ChunkManager(map_generator, self.save_manager)
         self.players: dict[str, Player] = {}
         self.updated_blocks: dict[tuple[int, int], Item] = {}
@@ -26,6 +34,9 @@ class Game:
     
     def get_name(self) -> str:
         return self.save_manager.save_name
+
+    def get_nb_players(self) -> int:
+        return len(self.players)
 
     def create_player(self, name: str, images_name: str) -> None:
         if name in self.players: return
@@ -41,6 +52,7 @@ class Game:
         if name in self.players:
             self.players.pop(name)
             self.removed_players.append(name)
+            self.chunk_manager.remove_player(name)
 
     def get_player_infos(self, name: str) -> Player|None:
         if name not in self.players: return

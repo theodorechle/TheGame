@@ -14,12 +14,17 @@ CURRENT_VERSION = 0.6
 class SaveManager(SaveManagerInterface):
     def __init__(self, save_name: str) -> None:
         self.save_name = save_name
+        self.save_path = os.path.join(SAVES_PATH, self.save_name)
         self.init_repository()
 
+    @staticmethod
+    def save_already_exists(save_name) -> bool:
+        return os.path.exists(os.path.join(SAVES_PATH, save_name))
+
     def init_repository(self) -> None:
-        self.chunks_path = os.path.join(SAVES_PATH, self.save_name, 'chunks')
-        self.players_path = os.path.join(SAVES_PATH, self.save_name, 'players')
-        self.generation_infos_path = os.path.join(SAVES_PATH, self.save_name, 'generation_infos.json')
+        self.chunks_path = os.path.join(self.save_path, 'chunks')
+        self.players_path = os.path.join(self.save_path, 'players')
+        self.generation_infos_path = os.path.join(self.save_path, 'generation_infos.json')
         os.makedirs(self.chunks_path, exist_ok=True)
         os.makedirs(self.players_path, exist_ok=True)
 
@@ -88,7 +93,6 @@ class SaveManager(SaveManagerInterface):
                 json.dump(player_dict, f)
 
     def load_generation_infos(self) -> dict[str, Any]|None:
-        return
         try:
             with open(self.generation_infos_path) as f:
                 infos = json.load(f)
@@ -98,7 +102,6 @@ class SaveManager(SaveManagerInterface):
         return infos
     
     def save_generation_infos(self, infos: dict[str, Any]) -> None:
-        return
         infos['version'] = CURRENT_VERSION
         with open(self.generation_infos_path, 'w') as f:
             json.dump(infos, f)

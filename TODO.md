@@ -3,6 +3,7 @@
 Saves:
 - Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
 - Allow renaming saves
+- Allow loading old saves
 
 UI:
 - Add key number on top of main bar
@@ -15,6 +16,7 @@ Render:
 Bugs:
 - Seems like more of the time, the same world is generated
 - Can place a block on the upper part of the player (head)
+- Client program is exiting when exiting a game
 
 Others:
 - Maybe go to C or C++ with SDL2

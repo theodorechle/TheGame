@@ -55,30 +55,30 @@ class Menu:
                 self.exit(BACK)
         return event
 
-    def run_functions_start_loop(self) -> None:
+    def run_start_loop(self) -> None:
         """
         Designed to be overriden.
-        Allow functions to run at the start of the loop, before events processing.
+        Run at the start of the loop, before events processing.
         """
         pass
 
-    def run_functions_end_loop(self) -> None:
+    def run_end_loop(self) -> None:
         """
         Designed to be overriden.
-        Allow functions to run at the end of the loop, after events processing and before ui_manager and display update.
+        Run at the end of the loop, after events processing and before ui_manager and display update.
         """
         pass
 
     def run(self) -> int:
         clock = pygame.time.Clock()
         while self._loop:
-            self.run_functions_start_loop()
+            self.run_start_loop()
             for event in pygame.event.get():
                 event = self.handle_special_events(event)
                 if event is None:
                     continue
                 self.ui_manager.process_event(event)
-            self.run_functions_end_loop()
+            self.run_end_loop()
             self.ui_manager.update()
             self.ui_manager.display()
             pygame.display.update()
@@ -178,7 +178,7 @@ class SettingsMenu(Menu):
         self._elements.append(self.label_nb_chunks)
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_menu, x='-2%', anchor='right'))
 
-    def run_functions_end_loop(self) -> None:
+    def run_end_loop(self) -> None:
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
         self.label_zoom.set_text(str(self.slider_zoom.get_value()))
 
@@ -197,8 +197,7 @@ class LoadSaveMenu(Menu):
         options_container.add_element(load_button)
         options_container.add_element(delete_button)
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', self.exit_menu, anchor='bottom', y='-10%'))
-        asyncio.run(self.add_saves())
-    
+
     async def add_saves(self) -> None:
         await self.server.send_json({
             'method': 'GET',

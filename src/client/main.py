@@ -111,11 +111,11 @@ class Client:
                 })
                 response = await self.server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
-                    write_log("Server failed to create the world")
+                    write_log(f"Server failed to create the world {save_name}")
                     continue
                 write_log("World created")
                 return True
-            if exit_code == menus.JOIN_WORLD:
+            elif exit_code == menus.JOIN_WORLD:
                 join_world_menu = menus.JoinWorldMenu(self.window, self.server)
                 exit_code = join_world_menu.run()
                 if exit_code == menus.BACK: continue
@@ -130,7 +130,7 @@ class Client:
                 await new_server.send_json({
                     'method': 'GET',
                     'data': {
-                        'type': 'join',
+                        'type': 'join-world',
                         'game': game_name,
                         'player-name': self.player_name,
                         'player-images-name': self.player_images_name
@@ -138,15 +138,34 @@ class Client:
                 })
                 response = await new_server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
-                    write_log("Failed to join world")
+                    write_log(f"Failed to join world {game_name}")
                     continue
                 await self.server.stop()
                 self.server = new_server
                 write_log("World joined")
                 return True
-            if exit_code == menus.LOAD_SAVE:
-                exit_code = menus.LoadSaveMenu(self.window, self.server).run()
+            elif exit_code == menus.LOAD_SAVE:
+                menu = menus.LoadSaveMenu(self.window, self.server)
+                await menu.add_saves()
+                exit_code = menu.run()
                 if exit_code == menus.BACK: continue
+                elif exit_code == menus.START_GAME:
+                    save_name = menu.saves_list.child_selected.get_text()
+                    await self.server.send_json({
+                        'method': 'GET',
+                        'data': {
+                            'type': 'load-world',
+                            'save': save_name,
+                            'player-name': self.player_name,
+                            'player-images-name': self.player_images_name
+                        }
+                    })
+                    response = await self.server.receive_msg()
+                    if response['status'] == ServerConnection.WRONG_REQUEST:
+                        write_log(f"Server failed to load the world {save_name}")
+                        continue
+                    write_log("World loaded")
+                    return True
         return False
 
     def stop_client(self, _: elements.TextButton) -> None:
@@ -333,4 +352,8 @@ async def start() -> None:
     if do_run_main:
         await client.run()
 
-asyncio.run(start())
+try:
+    asyncio.run(start())
+except BaseException as e:
+    write_log(f'Error in process_socket_messages: {repr(e)}', is_err=True)
+    write_log(f'Detail: {traceback.format_exc()}', is_err=True)

@@ -31,6 +31,7 @@ from module_infos import SAVES_PATH
 from game import Game
 from logs import write_log
 import traceback
+from save_manager import SaveManager
 
 class Server:
     WRONG_REQUEST = 0
@@ -44,7 +45,7 @@ class Server:
         # game, players addresses
         self.games: dict[Game, list[tuple[str, int]]] = {}
         # actions queue
-        self.games_queues: dict[Game, tuple[Queue]] = {}
+        self.games_queues: dict[Game, Queue] = {}
         # player address, (player name, game)
         self.players: dict[tuple[str, int], tuple[str, Game]] = {}
         self.players_names: dict[str, tuple[str, int]] = {}
@@ -138,7 +139,11 @@ class Server:
                 write_log(f"Couldn't close connection properly for client {addr}", is_err=True)
             finally:
                 if addr in self.players:
-                    self.players[addr][1].remove_player(self.players[addr][0])
+                    game = self.players[addr][1]
+                    game.remove_player(self.players[addr][0])
+                    if game.get_nb_players() == 0:
+                        self.games.pop(game)
+                        self.games_queues.pop(game)
                     write_log(f"Removed client {addr} from clients' list")
                 else:
                     write_log(f"Unknown client disconnected: `{addr}`")
@@ -174,8 +179,10 @@ class Server:
                 await self.send_data(writer, {'saves': os.listdir(SAVES_PATH)})
             case 'create-world':
                 await self.create_world(data, writer)
-            case 'join':
+            case 'join-world':
                 await self.join_world(data, writer)
+            case 'load-world':
+                await self.load_world(data, writer)
             case 'chunk':
                 success, values = await self.get_values(data, ['id'], writer)
                 if not success:
@@ -226,7 +233,7 @@ class Server:
                 success, values = await self.get_values(data, ['actions'], writer)
                 if not success: return
                 player_name, game = self.players[addr]
-                actions_queue = self.games_queues[game][0]
+                actions_queue = self.games_queues[game]
                 actions_queue.put({'name': player_name, 'actions': values[0], 'additional_data': data.get('additional_data')})
             case 'chunks':
                 success, values = await self.get_values(data, ['ids'], writer)
@@ -256,13 +263,21 @@ class Server:
             write_log(f"Client {addr} tried to create game but send partial data: '{data}'")
             await self.send_invalid_request(writer)
             return
+        if addr in self.players:
+            write_log(f"Client {addr} tried to create game but was already playing: '{data}'")
+            await self.send_invalid_request(writer)
+            return
         seed, save, player_name = values
+        if SaveManager.save_already_exists(save):
+            await self.send_invalid_request(writer)
+            return
+        
         actions_queue = Queue()
         game = Game(seed, save, actions_queue, self.updates_queue)
         asyncio.create_task(game.run())
         game.create_player(player_name, data.get('player-images-name', ''))
         self.games[game] = [addr]
-        self.games_queues[game] = (actions_queue, self.updates_queue)
+        self.games_queues[game] = actions_queue
         self.players[addr] = (player_name, game)
         self.players_names[player_name] = addr
         await self.send_json(writer, {'status': self.VALID_REQUEST})
@@ -287,7 +302,33 @@ class Server:
                 await self.send_json(writer, {'status': self.VALID_REQUEST})
                 return
         await self.send_invalid_request(writer)
+    
+    async def load_world(self, data: dict, writer: asyncio.StreamWriter) -> None:
+        addr = writer.get_extra_info('peername')
+        if addr in self.players:
+            write_log(f"Client {addr} tried to load game but was already playing: '{data}'")
+            await self.send_invalid_request(writer)
+            return
+        success, values = await self.get_values(data, ['save', 'player-name'], writer)
+        if not success:
+            write_log(f"Client {addr} tried to join game but send partial data: '{data}'")
+            await self.send_invalid_request(writer)
+            return
+        save_name, player_name = values
+        if not SaveManager.save_already_exists(save_name):
+            self.send_invalid_request()
+            return
         
+        actions_queue = Queue()
+        game = Game(None, save_name, actions_queue, self.updates_queue)
+        asyncio.create_task(game.run())
+        game.create_player(player_name, data.get('player-images-name', ''))
+        self.games[game] = [addr]
+        self.games_queues[game] = actions_queue
+        self.players[addr] = (player_name, game)
+        self.players_names[player_name] = addr
+        await self.send_json(writer, {'status': self.VALID_REQUEST})
+
 
 def delete_folder(path) -> None:
     for file in os.listdir(path):

@@ -7,8 +7,8 @@ from typing import Any
 from generation.perlin import Perlin
 
 class MapGenerator:
-    def __init__(self, seed: str|None = None) -> None:
-        self.seed = seed if seed is not None else str(random.randint(-500000000, 500000000))
+    def __init__(self, seed: str) -> None:
+        self.seed = seed
         self.OCEAN_HEIGHT: int = 30
         self.height_generator: Perlin = Perlin(self.seed, 0.005, Chunk.HEIGHT, 3, 0.5, 1.5)
         # self.humidity_generator: Perlin = Perlin(self.seed, 2, Chunk.HEIGHT, 3, 0.5, 2)
