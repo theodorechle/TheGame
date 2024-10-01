@@ -15,7 +15,7 @@ Render:
 Bugs:
 - Seems like more of the time, the same world is generated
 - Can place a block on the upper part of the player (head)
-- Client program is exiting when exiting a game
+- Sometimes, server seems to process the updates only when receiving a message from a client, and seems to update weirdly
 
 Player's id:
 - Create a unique identifier for each player to allow multiple players to have the same name

@@ -27,7 +27,8 @@ from logs import write_log
 class Client:
     PORT = 12345
     def __init__(self, window: pygame.Surface) -> None:
-        self.exit = False
+        self.exit_game = False
+        self.exit_program = False
         self.server = ServerConnection('127.0.0.1', self.PORT)
         self.MAX_FPS = 20
 
@@ -76,6 +77,9 @@ class Client:
     async def start(self) -> None:
         await self.server.start()
 
+    async def stop(self) -> None:
+        await self.server.stop()
+
     async def run_menus(self) -> bool:
         """
         Returns True if a game is started else False
@@ -85,7 +89,7 @@ class Client:
             main_menu.player_name_input.process_event(pygame.event.Event(pygame.TEXTINPUT, {'text': self.player_name}))
             exit_code = main_menu.run()
             if exit_code == menus.EXIT:
-                self.exit = True
+                self.exit_program = True
                 break
             player_name = main_menu.player_name_input.get_text()
             if not player_name: continue
@@ -169,9 +173,12 @@ class Client:
         return False
 
     def stop_client(self, _: elements.TextButton) -> None:
-        self.exit = True
+        self.exit_game = True
 
-    async def run(self) -> None:
+    async def run(self) -> bool:
+        """
+        Returns True if the player wants to exit the program, False if only exiting the actual game
+        """
         try:
             self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
             self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
@@ -192,44 +199,53 @@ class Client:
 
     async def loop(self) -> None:
         try:
-            while not self.exit:
-                if await self.update():
-                    await self.server.stop()
-                    break # exit
+            while True:
+                await self.update()
+                if self.exit_game or self.exit_program: return
                 self.display()
                 await asyncio.sleep(0.05)
         except BaseException as e:
             write_log(f'Error in loop: {repr(e)}', is_err=True)
             write_log(f'Detail: {traceback.format_exc()}', is_err=True)
 
-    async def update(self) -> bool:
+    async def update(self) -> None:
         for event in pygame.event.get():
             self._ui_manager.process_event(event)
             if event.type == pygame.QUIT:
-                self.exit = True
-                return False
+                self.exit_program = True
+                return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
                         self.player.place_back_dragged_item()
-                        exit_code = menus.EscapeMenu(self.window, self.server).run()
-                        self.last_time_in_menu = monotonic()
-                        if exit_code == menus.EXIT or exit_code == menus.TO_MAIN_MENU:
-                            return True
-                        elif exit_code == menus.BACK:
-                            break
-                        elif exit_code == menus.SETTINGS:
-                            menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
-                            menu.run()
+                        escape_menu = menus.EscapeMenu(self.window, self.server)
+                        while True:
+                            exit_code = escape_menu.run()
                             self.last_time_in_menu = monotonic()
-                            await self.player.chunk_manager.change_nb_chunks(menu.slider_nb_chunks.get_value())
-                            blocks.Block.BLOCK_SIZE = menu.slider_zoom.get_value()
-                            for block in blocks.BLOCKS_DICT:
-                                block.scale_image()
-                            self.player.scale_image()
-                            for player in self.others_players.values():
-                                player.scale_image()
-                            break
+                            if exit_code == menus.EXIT:
+                                self.exit_program = True
+                                return
+                            if exit_code == menus.TO_MAIN_MENU:
+                                self.exit_game = True
+                                return
+                            elif exit_code == menus.BACK:
+                                return
+                            elif exit_code == menus.SETTINGS:
+                                settings_menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
+                                exit_code = settings_menu.run()
+                                self.last_time_in_menu = monotonic()
+                                await self.player.chunk_manager.change_nb_chunks(settings_menu.slider_nb_chunks.get_value())
+                                blocks.Block.BLOCK_SIZE = settings_menu.slider_zoom.get_value()
+                                for block in blocks.BLOCKS_DICT:
+                                    block.scale_image()
+                                self.player.scale_image()
+                                for player in self.others_players.values():
+                                    player.scale_image()
+                                if exit_code == menus.BACK:
+                                    return
+                                elif exit_code != menus.TO_MAIN_MENU:
+                                    break
+                                escape_menu.reset()                                
                 
                 for key, value in self.server_actions_keyboard_keys.items():
                     if event.key == value:
@@ -288,11 +304,10 @@ class Client:
                 'data': data
             })
         self._ui_manager.update()
-        return False
 
     async def process_socket_messages(self) -> None:
         try:
-            while not self.exit:
+            while not self.exit_game:
                 try:
                     message_dict = await self.server.receive_msg()
                 except asyncio.IncompleteReadError:
@@ -343,15 +358,16 @@ class Client:
 
 async def start() -> None:
     client = Client(window)
-    try:
-        await client.start()
-    except ConnectionError:
-        write_log("Can't connect to local server", is_err=True)
-        return
-    do_run_main: bool = await client.run_menus()
-    if do_run_main:
-        await client.run()
-
+    while not client.exit_program:
+        client.exit_game = False
+        try:
+            await client.start()
+        except ConnectionError:
+            write_log("Can't connect to local server", is_err=True)
+            return
+        do_run_main: bool = await client.run_menus()
+        if do_run_main:
+            await client.run()
 try:
     asyncio.run(start())
 except BaseException as e:
