@@ -12,14 +12,14 @@ Render:
 - Use surfaces to render chunks
 - Rotate some blocks to be less repetitive (need surfaces)
 
+Player's id:
+- Create a unique identifier for each player to allow multiple players to have the same name
+- Find a name to recognize a player from a previous game to allow him loading his data (play as same player)
+
 Bugs:
 - Seems like more of the time, the same world is generated
 - Can place a block on the upper part of the player (head)
 - Sometimes, server seems to process the updates only when receiving a message from a client, and seems to update weirdly
-
-Player's id:
-- Create a unique identifier for each player to allow multiple players to have the same name
-- Find a name to recognize a player from a previous game to allow him loading his data (play as same player)
 
 Others:
 - Maybe go to C or C++ with SDL2
@@ -52,7 +52,7 @@ Others:
 - [x] inventory
 - [ ] life
 - [ ] light
-- [ ] command panel?
+- [ ] command panel
 
 - responsive
 
@@ -94,7 +94,7 @@ Others:
 - [x] send data
 - [x] receive data
 - [x] synchronize chunks loaded by multiple players
-- [x] two separated programs for client and server (display, input) and (game management)
+- [x] two separated programs for client (display, input) and server (game management)
 - [x] server can be runned at same time as playing (but separated)
 
 ## SONGS:
