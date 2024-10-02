@@ -21,7 +21,6 @@ In server sent messages, data is optionnal
 """
 from multiprocessing import Queue
 
-from time import asctime
 import json
 import struct
 import os
@@ -50,7 +49,7 @@ class Server:
         self.players: dict[tuple[str, int], tuple[str, Game]] = {}
         self.players_names: dict[str, tuple[str, int]] = {}
         self.updates_queue = Queue()
-        write_log(f"launched server at {asctime()}")
+        write_log("launched server")
 
     async def run(self) -> None:
         self.server = await asyncio.start_server(self.handle_client_request, self.host, self.port)
