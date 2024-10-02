@@ -14,7 +14,7 @@ Render:
 
 Player's id:
 - Create a unique identifier for each player to allow multiple players to have the same name
-- Find a name to recognize a player from a previous game to allow him loading his data (play as same player)
+- Create accounts
 
 Bugs:
 - Seems like more of the time, the same world is generated
