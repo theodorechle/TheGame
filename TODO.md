@@ -18,7 +18,6 @@ Player's id:
 
 Bugs:
 - Seems like more of the time, the same world is generated
-- Can place a block on the upper part of the player (head)
 - Sometimes, server seems to process the updates only when receiving a message from a client, and seems to update weirdly
 
 Others:

@@ -62,35 +62,36 @@ class Player(Entity, PlayerInterface):
                 or self.chunk_manager.get_block(x - 1, y) not in blocks.TRAVERSABLE_BLOCKS
                 or self.chunk_manager.get_block(x, y - 1) not in blocks.TRAVERSABLE_BLOCKS)
 
-    def place_block(self, pos: tuple[int, int], selected_item_index: int) -> blocks.Block|None:
-        # place block under player
+    def place_block(self, pos: tuple[int, int], selected_item_index: int) -> tuple[blocks.Block, tuple[int, int]]|None:
         block_x, block_y = pos
-        if not self._is_surrounded_by_block(block_x, block_y): return
+
+        # place block under player
         place_block_under = False
         if self.x + self.left_player_pos <= block_x <= self.x + self.right_player_pos \
                 and self.y + self.bottom_player_pos <= block_y < self.y + self.top_player_pos:
+            place_block_under = True
             for x in range(-(self.entity_size[0] // 2), self.entity_size[0] // 2 + 1):
                 block = self.chunk_manager.get_block(self.x + x, self.y + self.top_player_pos)
                 if block == blocks.NOTHING or block not in blocks.TRAVERSABLE_BLOCKS:
                     return
-            place_block_under = True
+            block_y = self.y
         elif not self._is_interactable(block_x - self.x, block_y - self.y): return
         
+        if not self._is_surrounded_by_block(block_x, block_y): return
         block = self.chunk_manager.get_block(block_x, block_y)
         if block in blocks.TRAVERSABLE_BLOCKS:
             item, _ = self.hot_bar_inventory.remove_element_at_pos(1, selected_item_index)
             if item is None: return
-            block = convert_item_to_block(item)
-            if block != blocks.NOTHING:
-                self.chunk_manager.replace_block(block_x, block_y, block)
+            new_block = convert_item_to_block(item)
+            if new_block != blocks.NOTHING:
+                self.chunk_manager.replace_block(block_x, block_y, new_block)
                 self.force_update = True
                 if place_block_under:
                     self.y += 1
-                    self.force_update = True
-                return block
+                return (new_block, (block_x, block_y))
             self.hot_bar_inventory.add_element_at_pos(item, 1, selected_item_index)
 
-    def remove_block(self, pos: tuple[int, int]) -> blocks.Block|None:
+    def remove_block(self, pos: tuple[int, int]) -> tuple[blocks.Block, tuple[int]]|None:
         block_x, block_y = pos
         if not self._is_interactable(block_x - self.x, block_y - self.y): return None
         block = self.chunk_manager.get_block(block_x, block_y)
@@ -101,7 +102,7 @@ class Player(Entity, PlayerInterface):
                 if quantity:
                     self.main_inventory.add_element(item, quantity)
             self.force_update = True
-            return blocks.AIR
+            return (blocks.AIR, (block_x, block_y))
 
     def interact_with_block(self, pos: tuple[int, int]):# -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
         if self.main_inventory.is_opened(): return None, None

@@ -83,11 +83,11 @@ class Game:
                 case 'place_block':
                     block_pos = tuple(additional_data['interacted_block'])
                     block = player.place_block(block_pos, additional_data['selected'])
-                    if block is not None: self.updated_blocks[block_pos] = block
+                    if block is not None: self.updated_blocks[block[1]] = block[0]
                 case 'remove_block':
                     block_pos = tuple(additional_data['interacted_block'])
                     block = player.remove_block(block_pos)
-                    if block is not None: self.updated_blocks[block_pos] = block
+                    if block is not None: self.updated_blocks[block[1]] = block[0]
                 case _:
                     write_log(f"Invalid player action '{action}'", True)
 
