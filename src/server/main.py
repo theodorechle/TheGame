@@ -141,6 +141,7 @@ class Server:
                     game = self.players[addr][1]
                     game.remove_player(self.players[addr][0])
                     if game.get_nb_players() == 0:
+                        game.save()
                         self.games.pop(game)
                         self.games_queues.pop(game)
                     write_log(f"Removed client {addr} from clients' list")

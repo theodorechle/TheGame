@@ -121,6 +121,9 @@ class Game:
             self.updated_blocks.clear()
             await asyncio.sleep(0.05)
 
+    def save(self) ->None:
+        self.chunk_manager
+
     def get_all_players_infos(self) -> dict[str, Any]:
         return {player.name: player.get_all_infos() for player in self.players.values()}
 

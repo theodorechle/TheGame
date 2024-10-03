@@ -44,6 +44,7 @@ class Client:
         self.window = window
         self._ui_manager = UIManager(self.window)
         self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'player_name.json'))
+        self.need_redraw = False
 
         # keys
         self.server_actions_keyboard_keys: dict[str, int] = {
@@ -202,7 +203,9 @@ class Client:
             while True:
                 await self.update()
                 if self.exit_game or self.exit_program: return
-                self.display()
+                if self.need_redraw:
+                    self.display()
+                    self.need_redraw = False
                 await asyncio.sleep(0.05)
         except BaseException as e:
             write_log(f'Error in loop: {repr(e)}', is_err=True)
@@ -217,6 +220,7 @@ class Client:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
+                        self.need_redraw = True                          
                         self.player.place_back_dragged_item()
                         escape_menu = menus.EscapeMenu(self.window, self.server)
                         while True:
@@ -245,7 +249,7 @@ class Client:
                                     return
                                 elif exit_code != menus.TO_MAIN_MENU:
                                     break
-                                escape_menu.reset()                                
+                                escape_menu.reset()      
                 
                 for key, value in self.server_actions_keyboard_keys.items():
                     if event.key == value:
@@ -303,7 +307,8 @@ class Client:
                 'method': 'POST',
                 'data': data
             })
-        self._ui_manager.update()
+        
+        self.need_redraw = self.need_redraw or self._ui_manager.update()
 
     async def process_socket_messages(self) -> None:
         try:
@@ -322,10 +327,13 @@ class Client:
                 match data['type']:
                     case 'player-update':
                         await self.update_player(data)
+                        self.need_redraw = True
                     case 'chunk':
                         self.player.chunk_manager.set_chunk(message_dict)
+                        self.need_redraw = True
                     case 'game-infos':
                         self.player.chunk_manager.create_map_generator(data)
+                        self.need_redraw = True
         except BaseException as e:
             write_log(f'Error in process_socket_messages: {repr(e)}', is_err=True)
             write_log(f'Detail: {traceback.format_exc()}', is_err=True)

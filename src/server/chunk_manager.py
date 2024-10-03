@@ -43,6 +43,10 @@ class ChunkManager:
                 self.save_manager.save_chunk(self.chunks[chunk_id])
                 self.chunks.pop(chunk_id)
     
+    def save_all_chunks(self) -> None:
+        for chunk in self.chunks.values():
+            self.save_manager.save_chunk(chunk)
+
     def load_chunk(self, player_name: str, chunk_id: int) -> Chunk|None:
         if player_name not in self.loaded_chunks_by_player:
             self.loaded_chunks_by_player[player_name] = set()

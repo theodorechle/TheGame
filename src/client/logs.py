@@ -1,8 +1,8 @@
-from module_infos import SERVER_PATH
+from module_infos import CLIENT_PATH
 import os
 from time import asctime
 
-LOG_FILE = os.path.join(SERVER_PATH, 'server.log')
+LOG_FILE = os.path.join(CLIENT_PATH, 'client.log')
 
 def write_log(message: str, is_err: bool=False) -> None:
     if is_err:
