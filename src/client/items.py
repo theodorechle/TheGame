@@ -8,6 +8,9 @@ class Item:
     def __init__(self, path: str) -> None:
         self.path = path
         self.name = path.replace('_', ' ')
+        self.load_image()
+    
+    def load_image(self):
         self.image = load_image([f'{ITEMS_IMAGES_PATH}/{self.path}.png', f'{BLOCKS_IMAGES_PATH}/{self.path}.png'], None)
     
     def __repr__(self) -> str:

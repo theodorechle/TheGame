@@ -10,9 +10,9 @@ class Block:
     BLOCK_SIZE = 30
     def __init__(self, name: str) -> None:
         self.name = name
-        self.scale_image()
+        self.load_image()
     
-    def scale_image(self):
+    def load_image(self):
         self.image: Surface = load_image([f'{BLOCKS_IMAGES_PATH}/{self.name}.png'], (self.BLOCK_SIZE, self.BLOCK_SIZE))
     
     def __repr__(self) -> str:

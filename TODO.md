@@ -20,7 +20,6 @@ Bugs:
 - Seems like more of the time, the same world is generated
 - Sometimes, server seems to process the updates only when receiving a message from a client, and seems to update weirdly
 - Sometimes, items don't stack correctly
-- Find a way to await send_json in loadSave menu for save deletion
 
 Others:
 - Maybe go to C or C++ with SDL2
@@ -40,6 +39,8 @@ Others:
   - (Generate caves only under surface?)
   
 - Create caves before placing biome blocks
+
+- Generate better caves (more randomized, not a curve)
 
 
 ## SAVES AND LOADS:

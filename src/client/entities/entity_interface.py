@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 
 class EntityInterface(metaclass=ABCMeta):
     @abstractmethod
-    def scale_image(self) -> None:
+    def load_image(self) -> None:
         pass
 
     @abstractmethod

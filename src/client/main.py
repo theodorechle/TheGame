@@ -7,10 +7,12 @@ from time import monotonic
 
 import menus
 import pygame
+
 pygame.init()
 WIDTH = 1500
 HEIGHT = 980
 window = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+pygame.display.set_caption("The game")
 
 from server_connection import ServerConnection
 from gui.ui_manager import UIManager
@@ -250,10 +252,10 @@ class Client:
                                 await self.player.chunk_manager.change_nb_chunks(settings_menu.slider_nb_chunks.get_value())
                                 blocks.Block.BLOCK_SIZE = settings_menu.slider_zoom.get_value()
                                 for block in blocks.BLOCKS_DICT:
-                                    block.scale_image()
-                                self.player.scale_image()
+                                    block.load_image()
+                                self.player.load_image()
                                 for player in self.others_players.values():
-                                    player.scale_image()
+                                    player.load_image()
                                 if exit_code == menus.BACK:
                                     return
                                 elif exit_code != menus.TO_MAIN_MENU:

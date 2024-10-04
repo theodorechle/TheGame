@@ -51,9 +51,9 @@ class DrawableEntity(Entity):
         if add_path:
             self.path += '/' + add_path
         self.images_name = images_name
-        self.scale_image()
+        self.load_image()
 
-    def scale_image(self) -> None:
+    def load_image(self) -> None:
         self.image_size = (self.entity_size[0] * blocks.Block.BLOCK_SIZE, self.entity_size[1] * blocks.Block.BLOCK_SIZE)
         self.image: pygame.Surface = load_image([f'{self.path}/{self.images_name}.png'], self.image_size)
         self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.images_name}_reversed.png'], self.image_size)
