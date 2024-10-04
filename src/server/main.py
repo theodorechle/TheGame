@@ -214,12 +214,12 @@ class Server:
         if data is None: return
         match data['type']:
             case 'save':
-                dir_name = request['data'].get('value', None)
-                if dir_name is None: return
-                dir_name = os.path.join(SAVES_PATH, dir_name)
-                if os.path.isdir(dir_name):
-                    delete_folder(dir_name)
-                    await self.send_json(writer, {'status': self.VALID_REQUEST})
+                saves_names = request['data'].get('names', None)
+                if saves_names is None: return
+                for save_name in saves_names:
+                    save_path = os.path.join(SAVES_PATH, save_name)
+                    if os.path.isdir(save_path):
+                        delete_folder(save_path)
             case value:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
                 await self.send_invalid_request(writer)

@@ -153,6 +153,15 @@ class Client:
                 menu = menus.LoadSaveMenu(self.window, self.server)
                 await menu.add_saves()
                 exit_code = menu.run()
+
+                await self.server.send_json({
+                    'method': 'DELETE',
+                    'data': {
+                        'type': 'save',
+                        'names': menu.saves_to_delete
+                    }
+                })
+                
                 if exit_code == menus.BACK: continue
                 elif exit_code == menus.START_GAME:
                     save_name = menu.saves_list.child_selected.get_text()

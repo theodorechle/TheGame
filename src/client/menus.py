@@ -7,7 +7,6 @@ from time import monotonic
 import os
 from module_infos import RESOURCES_PATH
 from server_connection import ServerConnection
-import asyncio
 
 EXIT = 0
 CREATE_WORLD = 1
@@ -199,6 +198,14 @@ class SettingsMenu(Menu):
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
         self.label_zoom.set_text(str(self.slider_zoom.get_value()))
 
+    def handle_special_events(self, event: pygame.event.Event) -> pygame.event.Event|None:
+        if event.type == pygame.QUIT:
+            self.exit(EXIT)
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.exit(TO_MAIN_MENU)
+        return event
+
 class LoadSaveMenu(Menu):
     def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
         super().__init__(window, server)
@@ -214,6 +221,7 @@ class LoadSaveMenu(Menu):
         options_container.add_element(load_button)
         options_container.add_element(delete_button)
         self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', self.exit_menu, anchor='bottom', y='-10%'))
+        self.saves_to_delete: list[str] = []
 
     async def add_saves(self) -> None:
         await self.server.send_json({
@@ -234,12 +242,5 @@ class LoadSaveMenu(Menu):
     def delete_save(self, _: UIElement) -> None:
         selected = self.saves_list.child_selected
         if selected is None: return
-        data = self.server.send_json({
-            'method': 'DELETE',
-            'data': {
-                'type': 'save',
-                'value': selected.get_text()
-            }
-        })
-        if data['status'] != self.server.VALID_REQUEST: return
+        self.saves_to_delete.append(selected.get_text())
         self.saves_list.remove_element(selected)
