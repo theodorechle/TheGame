@@ -71,6 +71,7 @@ class Game:
             self.player_updates(actions['name'], actions['actions'], actions['additional_data'])
 
     def player_updates(self, player_name: str, actions: list[str], additional_data: dict[str, Any]|None) -> dict[str, Any]:
+        if additional_data is None: additional_data = {}
         player = self.players[player_name]
         for action in actions:
             match action:
@@ -81,10 +82,12 @@ class Game:
                 case 'mv_up':
                     player.speed_y = 1
                 case 'place_block':
+                    if 'interacted_block' not in additional_data: continue
                     block_pos = tuple(additional_data['interacted_block'])
                     block = player.place_block(block_pos, additional_data['selected'])
                     if block is not None: self.updated_blocks[block[1]] = block[0]
                 case 'remove_block':
+                    if 'interacted_block' not in additional_data: continue
                     block_pos = tuple(additional_data['interacted_block'])
                     block = player.remove_block(block_pos)
                     if block is not None: self.updated_blocks[block[1]] = block[0]

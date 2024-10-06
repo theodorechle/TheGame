@@ -31,11 +31,11 @@ class ChunkManager:
         self.map_generator = MapGenerator(data['infos']['seed'])
 
     def get_chunk_and_block_index(self, x: int, y: int) -> tuple[Chunk|None, int]:
-        if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
+        if y < 0 or y >= Chunk.HEIGHT: return None, -1
         x += Chunk.LENGTH // 2
         x -= self.chunk_x_position * Chunk.LENGTH
         nb_chunk: int = x // Chunk.LENGTH + self.nb_chunks_by_side
-        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return None, -1, -1 # out of loaded chunks
+        if nb_chunk < 0 or nb_chunk >= len(self.chunks): return None, -1 # out of loaded chunks
         chunk = self.chunks[nb_chunk]
         return chunk, (x % Chunk.LENGTH) + y * Chunk.LENGTH
 

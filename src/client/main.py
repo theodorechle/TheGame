@@ -26,6 +26,8 @@ from map_chunk import Chunk
 import traceback
 from logs import write_log
 
+import random
+
 class Client:
     PORT = 12345
     def __init__(self, window: pygame.Surface) -> None:
@@ -290,7 +292,19 @@ class Client:
                     if event.button == value:
                         self.server_actions_pressed_mouse_keys[key] = False
                         break
-    
+
+        # sending random data to the server for debug only
+
+        # for key in self.server_actions_pressed_mouse_keys.keys():
+        #     self.server_actions_pressed_mouse_keys[key] = random.randint(0, 1)
+
+        # for key in self.server_actions_pressed_keys.keys():
+        #     self.server_actions_pressed_keys[key] = random.randint(0, 1)
+
+        # for key in self.client_actions_pressed_keys.keys():
+        #         self.client_actions_pressed_keys[key] = random.randint(0, 1)
+
+
         if self.client_actions_pressed_keys['open_inv']:
             self.player.main_inventory.toggle_inventory()
         for i in range(10):
