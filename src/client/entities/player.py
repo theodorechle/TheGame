@@ -59,7 +59,7 @@ class Player(DrawableEntity, PlayerInterface):
     def _display_infos(self) -> None:
         infos: list[str] = []
         infos.append(f'coords: x: {self.x}, y: {self.y}')
-        chunk = self.chunk_manager.get_chunk_and_coordinates(self.x, self.y)[0]
+        chunk = self.chunk_manager.get_chunk_and_block_index(self.x, self.y)[0]
         infos.append(f'chunk: {chunk.id if chunk is not None else ""}')
         infos.append(f'biome: {chunk.biome.name if chunk is not None else ""}')
         infos.append(f'forest: {chunk.is_forest if chunk is not None else ""}')
@@ -72,8 +72,8 @@ class Player(DrawableEntity, PlayerInterface):
         self.chunk_manager.save()
     
     def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
-        x = (x - self._ui_manager.get_window_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
-        y = -(y - self._ui_manager.get_window_size()[1] // 2) // blocks.Block.BLOCK_SIZE
+        x = (x - self._ui_manager.get_window_size()[0] // 2 + blocks.block_size // 2) // blocks.block_size
+        y = -(y - self._ui_manager.get_window_size()[1] // 2) // blocks.block_size
         return x, y
 
     def drag_item_in_inventory(self, inventory: Inventory, index: int=-1) -> bool:

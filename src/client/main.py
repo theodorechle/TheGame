@@ -246,16 +246,17 @@ class Client:
                             elif exit_code == menus.BACK:
                                 return
                             elif exit_code == menus.SETTINGS:
-                                settings_menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.Block.BLOCK_SIZE)
+                                settings_menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.block_size)
                                 exit_code = settings_menu.run()
                                 self.last_time_in_menu = monotonic()
                                 await self.player.chunk_manager.change_nb_chunks(settings_menu.slider_nb_chunks.get_value())
-                                blocks.Block.BLOCK_SIZE = settings_menu.slider_zoom.get_value()
+                                blocks.block_size = settings_menu.slider_zoom.get_value()
                                 for block in blocks.BLOCKS_DICT:
                                     block.load_image()
                                 self.player.load_image()
                                 for player in self.others_players.values():
                                     player.load_image()
+                                self.player.chunk_manager.scale_chunk_surfaces()
                                 if exit_code == menus.BACK:
                                     return
                                 elif exit_code != menus.TO_MAIN_MENU:

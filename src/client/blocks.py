@@ -6,14 +6,15 @@ from pygame import Surface
 from blocks_menus.workbench_menu import WorkbenchMenu
 from blocks_menus.furnace_menu import FurnaceMenu
 
+block_size = 30
+
 class Block:
-    BLOCK_SIZE = 30
     def __init__(self, name: str) -> None:
         self.name = name
         self.load_image()
     
     def load_image(self):
-        self.image: Surface = load_image([f'{BLOCKS_IMAGES_PATH}/{self.name}.png'], (self.BLOCK_SIZE, self.BLOCK_SIZE))
+        self.image: Surface = load_image([f'{BLOCKS_IMAGES_PATH}/{self.name}.png'], (block_size, block_size))
     
     def __repr__(self) -> str:
         return self.name

@@ -30,8 +30,8 @@ class Player(Entity, PlayerInterface):
         self.chunk_manager.save_chunks()
     
     def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
-        x = (x - self.window.get_size()[0] // 2 + blocks.Block.BLOCK_SIZE // 2) // blocks.Block.BLOCK_SIZE
-        y = -(y - self.window.get_size()[1] // 2) // blocks.Block.BLOCK_SIZE
+        x = (x - self.window.get_size()[0] // 2 + blocks.block_size // 2) // blocks.block_size
+        y = -(y - self.window.get_size()[1] // 2) // blocks.block_size
         return x, y
     
     def _is_interactable(self, x: int, y: int) -> bool:

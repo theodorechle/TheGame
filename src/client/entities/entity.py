@@ -54,7 +54,7 @@ class DrawableEntity(Entity):
         self.load_image()
 
     def load_image(self) -> None:
-        self.image_size = (self.entity_size[0] * blocks.Block.BLOCK_SIZE, self.entity_size[1] * blocks.Block.BLOCK_SIZE)
+        self.image_size = (self.entity_size[0] * blocks.block_size, self.entity_size[1] * blocks.block_size)
         self.image: pygame.Surface = load_image([f'{self.path}/{self.images_name}.png'], self.image_size)
         self.image_reversed: pygame.Surface = load_image([f'{self.path}/{self.images_name}_reversed.png'], self.image_size)
 
@@ -63,15 +63,15 @@ class DrawableEntity(Entity):
         rel_x and rel_y are the coords of the block in the center of the image
         """
         window_size = self._ui_manager.get_window_size()
-        center_x = window_size[0] // 2 + (self.x - rel_x) * blocks.Block.BLOCK_SIZE
-        x = center_x - self.entity_size[0] * blocks.Block.BLOCK_SIZE // 2
-        y = window_size[1] // 2 - self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE
+        center_x = window_size[0] // 2 + (self.x - rel_x) * blocks.block_size
+        x = center_x - self.entity_size[0] * blocks.block_size // 2
+        y = window_size[1] // 2 - self.image_size[1] + (rel_y - self.y) * blocks.block_size
         self._ui_manager.get_window().blit(
             self.image_reversed if self.direction else self.image,
             (x, y)
         )
         if self.name_label is not None:
-            self.name_label._first_coords = ((self.x - rel_x) * blocks.Block.BLOCK_SIZE, -self.image_size[1] + (rel_y - self.y) * blocks.Block.BLOCK_SIZE - 10)
+            self.name_label._first_coords = ((self.x - rel_x) * blocks.block_size, -self.image_size[1] + (rel_y - self.y) * blocks.block_size - 10)
             self.name_label.update_element()
             self._ui_manager.ask_refresh(self.name_label)
     
