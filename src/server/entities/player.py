@@ -6,7 +6,6 @@ import items
 from time import monotonic
 from chunk_manager import ChunkManager
 from typing import Any
-from map_chunk import Chunk
 from conversions_items_blocks import convert_block_to_items, convert_item_to_block
 
 class Player(Entity, PlayerInterface):

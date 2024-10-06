@@ -361,7 +361,7 @@ class Client:
                     self.others_players.pop(player_name, None)
                     continue
                 if player_name not in self.others_players:
-                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self._ui_manager, 'persos', True, images_name=player_data.get('images-name', ''), display_name=True)
+                    self.others_players[player_name] = DrawableEntity(player_name, 0, 0, 0, 0, False, 1, 2, self._ui_manager, 'persos', True, images_name=player_data.get('images-name', ''), name_displayed=True)
                 self.others_players[player_name].update(player_data)
         if 'blocks' not in data: return
         for pos, block in zip(*data['blocks']):
@@ -372,6 +372,7 @@ class Client:
         self.player.display()
         for player in self.others_players.values():
             player.display(self.player.x, self.player.y)
+            player.display_name(self.player.x, self.player.y)
         self.player.display_hud()
         self._ui_manager.display(False)
         pygame.display.update()

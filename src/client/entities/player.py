@@ -22,7 +22,7 @@ class Player(DrawableEntity, PlayerInterface):
         self.infos_font_size: int = 20
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
-        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, ui_manager, 'persos', True, images_name=images_name, display_name=True)
+        DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, ui_manager, 'persos', True, images_name=images_name, name_displayed=True)
         self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self._ui_manager.get_window(), server)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, classes_names=['main-inventory'], anchor='center')
@@ -49,6 +49,7 @@ class Player(DrawableEntity, PlayerInterface):
         self.hot_bar_inventory.display()
         self._display_infos()
         self.display_item_dragged_pos()
+        self.display_name(self.x, self.y)
 
     def display_item_dragged_pos(self) -> None:
         if self._current_dragged_item[0] is not None:

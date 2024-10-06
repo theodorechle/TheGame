@@ -42,11 +42,11 @@ class Entity(EntityInterface):
                 self.direction = value
 
 class DrawableEntity(Entity):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, ui_manager: UIManager=None, add_path: str = '', collisions: bool = True, images_name: str="", display_name: bool=False) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, ui_manager: UIManager=None, add_path: str = '', collisions: bool = True, images_name: str="", name_displayed: bool=False) -> None:
         self._ui_manager = ui_manager
-        self.display_name = display_name
+        self.name_displayed = name_displayed
         super().__init__(name, x, y, speed_x, speed_y, direction, image_length, image_height, collisions)
-        self.name_label = None if not self.display_name else Label(self._ui_manager, self.name, anchor='center', classes_names=['player-name'])
+        self.name_label = None if not self.name_displayed else Label(self._ui_manager, self.name, anchor='center', classes_names=['player-name'])
         self.path = ENTITIES_IMAGES_PATH
         if add_path:
             self.path += '/' + add_path
@@ -70,6 +70,8 @@ class DrawableEntity(Entity):
             self.image_reversed if self.direction else self.image,
             (x, y)
         )
+    
+    def display_name(self, rel_x: int, rel_y: int) -> None:
         if self.name_label is not None:
             self.name_label._first_coords = ((self.x - rel_x) * blocks.block_size, -self.image_size[1] + (rel_y - self.y) * blocks.block_size - 10)
             self.name_label.update_element()
