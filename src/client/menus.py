@@ -28,6 +28,8 @@ class Menu:
         self.time_menu_creation = monotonic()
         self.min_time_before_exit = 0.2 # seconds
         self._elements: list[UIElement] = []
+        self.repeat_delay = 300
+        self.repeat_interval = 100
     
     def reset(self) -> None:
         self._loop = True
@@ -81,6 +83,7 @@ class Menu:
         pass
 
     def run(self) -> int:
+        pygame.key.set_repeat(self.repeat_delay, self.repeat_interval)
         clock = pygame.time.Clock()
         while self._loop:
             self.run_start_loop()
