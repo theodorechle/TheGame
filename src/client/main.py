@@ -188,6 +188,79 @@ class Client:
 
     def stop_client(self, _: elements.TextButton) -> None:
         self.exit_game = True
+        
+    async def run_escape_menu(self) -> bool:
+        """
+        Return True if need to escape the update function to directly go to the loop function
+        """
+        self.need_redraw = self.need_redraw or self._ui_manager.update()
+        self.need_redraw = True                          
+        self.player.place_back_dragged_item()
+        escape_menu = menus.EscapeMenu(self.window, self.server)
+        while True:
+            exit_code = escape_menu.run()
+            self.last_time_in_menu = monotonic()
+            if exit_code == menus.EXIT:
+                self.exit_program = True
+                return True
+            elif exit_code == menus.TO_MAIN_MENU:
+                self.exit_game = True
+                return True
+            elif exit_code == menus.BACK:
+                return True
+            elif exit_code == menus.SETTINGS:
+                settings_menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.block_size)
+                exit_code = settings_menu.run()
+                self.last_time_in_menu = monotonic()
+                await self.player.chunk_manager.change_nb_chunks(settings_menu.slider_nb_chunks.get_value())
+                new_block_size = settings_menu.slider_zoom.get_value()
+                if new_block_size != blocks.block_size:
+                    blocks.block_size = new_block_size
+                    for block in blocks.BLOCKS_DICT:
+                        block.load_image()
+                    self.player.load_image()
+                    for player in self.others_players.values():
+                        player.load_image()
+                    self.player.chunk_manager.scale_chunk_surfaces()
+                if exit_code == menus.BACK:
+                    return True
+                elif exit_code != menus.TO_MAIN_MENU:
+                    break
+                escape_menu.reset()
+        return False
+
+    def process_event(self, events_dict: dict[str, Any], actions_dict: dict[str, bool], tested_event: Any, value_to_assign: bool) -> bool:
+        for key, event in events_dict.items():
+            if event == tested_event:
+                actions_dict[key] = value_to_assign
+                return True
+        return False
+
+
+    async def process_events(self) -> bool:
+        """
+        Return True if need to escape the update function to directly go to the loop function
+        """
+        for event in pygame.event.get():
+            self._ui_manager.process_event(event)
+            if event.type == pygame.QUIT:
+                self.exit_program = True
+                return True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
+                        if await self.run_escape_menu(): return True
+                
+                if self.process_event(self.server_actions_keyboard_keys, self.server_actions_pressed_keys, event.key, True): continue
+                if self.process_event(self.client_actions_keyboard_keys, self.client_actions_pressed_keys, event.key, True): continue
+            elif event.type == pygame.KEYUP:
+                if self.process_event(self.server_actions_keyboard_keys, self.server_actions_pressed_keys, event.key, False): continue
+                if self.process_event(self.client_actions_keyboard_keys, self.client_actions_pressed_keys, event.key, False): continue
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.process_event(self.server_actions_mouse_buttons, self.server_actions_pressed_mouse_keys, event.button, True): continue
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if self.process_event(self.server_actions_mouse_buttons, self.server_actions_pressed_mouse_keys, event.button, False): continue
+        return False
 
     async def run(self) -> bool:
         """
@@ -225,75 +298,9 @@ class Client:
             write_log(f'Detail: {traceback.format_exc()}', is_err=True)
 
     async def update(self) -> None:
-        for event in pygame.event.get():
-            self._ui_manager.process_event(event)
-            if event.type == pygame.QUIT:
-                self.exit_program = True
-                return
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
-                        self.need_redraw = True                          
-                        self.player.place_back_dragged_item()
-                        escape_menu = menus.EscapeMenu(self.window, self.server)
-                        while True:
-                            exit_code = escape_menu.run()
-                            self.last_time_in_menu = monotonic()
-                            if exit_code == menus.EXIT:
-                                self.exit_program = True
-                                return
-                            if exit_code == menus.TO_MAIN_MENU:
-                                self.exit_game = True
-                                return
-                            elif exit_code == menus.BACK:
-                                return
-                            elif exit_code == menus.SETTINGS:
-                                settings_menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.block_size)
-                                exit_code = settings_menu.run()
-                                self.last_time_in_menu = monotonic()
-                                await self.player.chunk_manager.change_nb_chunks(settings_menu.slider_nb_chunks.get_value())
-                                blocks.block_size = settings_menu.slider_zoom.get_value()
-                                for block in blocks.BLOCKS_DICT:
-                                    block.load_image()
-                                self.player.load_image()
-                                for player in self.others_players.values():
-                                    player.load_image()
-                                self.player.chunk_manager.scale_chunk_surfaces()
-                                if exit_code == menus.BACK:
-                                    return
-                                elif exit_code != menus.TO_MAIN_MENU:
-                                    break
-                                escape_menu.reset()      
-                
-                for key, value in self.server_actions_keyboard_keys.items():
-                    if event.key == value:
-                        self.server_actions_pressed_keys[key] = True
-                        break
-                for key, value in self.client_actions_keyboard_keys.items():
-                    if event.key == value:
-                        self.client_actions_pressed_keys[key] = True
-                        break
-            elif event.type == pygame.KEYUP:
-                for key, value in self.server_actions_keyboard_keys.items():
-                    if event.key == value:
-                        self.server_actions_pressed_keys[key] = False
-                        break
-                for key, value in self.client_actions_keyboard_keys.items():
-                    if event.key == value:
-                        self.client_actions_pressed_keys[key] = False
-                        break
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for key, value in self.server_actions_mouse_buttons.items():
-                    if event.button == value:
-                        self.server_actions_pressed_mouse_keys[key] = True
-                        break
-            elif event.type == pygame.MOUSEBUTTONUP:
-                for key, value in self.server_actions_mouse_buttons.items():
-                    if event.button == value:
-                        self.server_actions_pressed_mouse_keys[key] = False
-                        break
+        if await self.process_events(): return
 
-        # sending random data to the server for debug only
+        # sending random data to the server for DEBUG ONLY
 
         # for key in self.server_actions_pressed_mouse_keys.keys():
         #     self.server_actions_pressed_mouse_keys[key] = random.randint(0, 1)
@@ -307,6 +314,7 @@ class Client:
 
         if self.client_actions_pressed_keys['open_inv']:
             self.player.main_inventory.toggle_inventory()
+        
         for i in range(10):
             if self.client_actions_pressed_keys[f'inv_{i}']:
                 self.player.hot_bar_inventory.set_selected_cell(i, 0)
@@ -316,6 +324,7 @@ class Client:
             if (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
                 additional_data['interacted_block'] = block_pos
                 additional_data['selected'] = self.player.hot_bar_inventory.get_selected_index()
+        
         if self.server_actions_pressed_mouse_keys["remove_block"]:
             if (block_pos := self.player.remove_block(pygame.mouse.get_pos())) is not None:
                 additional_data['interacted_block'] = block_pos
@@ -333,8 +342,6 @@ class Client:
                 'method': 'POST',
                 'data': data
             })
-        
-        self.need_redraw = self.need_redraw or self._ui_manager.update()
 
     async def process_socket_messages(self) -> None:
         try:
