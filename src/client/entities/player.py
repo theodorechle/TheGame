@@ -132,19 +132,19 @@ class Player(DrawableEntity, PlayerInterface):
         return self.drag_item_in_inventory(self.hot_bar_inventory) \
             or self.drag_item_in_inventory(self.main_inventory)
 
-    def place_block(self, pos: tuple[int, int]) -> int|None:
+    def place_block(self, pos: tuple[int, int])-> tuple[int, None]:
         if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
-    def remove_block(self, pos: tuple[int, int]) -> int|None:
+    def remove_block(self, pos: tuple[int, int])-> tuple[int, None]:
         if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
-    def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
+    def interact_with_block(self, pos: tuple[int, int])-> tuple[tuple[tuple[type[BlockMenu], None, tuple[int, int], None]]]:
         if self.main_inventory.is_opened(): return None, None
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None, None
