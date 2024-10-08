@@ -45,5 +45,5 @@ def convert_block_to_items(block: blocks.Block, quantity: int) -> dict[items.Ite
             final_items[itm] += qty
     return final_items
 
-def convert_item_to_block(item: items.Item) -> blocks.Block|None:
+def convert_item_to_block(item: items.Item) -> tuple[blocks.Block, None]:
     return _ITEM_TO_BLOCK.get(item, items.NOTHING)

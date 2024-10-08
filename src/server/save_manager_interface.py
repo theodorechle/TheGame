@@ -8,7 +8,7 @@ class SaveManagerInterface(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def load_chunk(self, id: int) -> Chunk|None:
+    def load_chunk(self, id: int) -> tuple[Chunk, None]:
         pass
 
     @abstractmethod
@@ -16,7 +16,7 @@ class SaveManagerInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def load_players(self) -> list[PlayerInterface]|None:
+    def load_players(self) -> tuple[list[PlayerInterface], None]:
         pass
 
     @abstractmethod

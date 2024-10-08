@@ -12,7 +12,7 @@ class ChunkManager:
         self.nb_players_who_loaded_chunks: dict[int, int] = {}
         self.loaded_chunks_by_player: dict[str, set[int]] = {}
     
-    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
+    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[tuple[Chunk, None, int, int]]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
         x += Chunk.LENGTH // 2
         nb_chunk: int = x // Chunk.LENGTH
@@ -47,7 +47,7 @@ class ChunkManager:
         for chunk in self.chunks.values():
             self.save_manager.save_chunk(chunk)
 
-    def load_chunk(self, player_name: str, chunk_id: int) -> Chunk|None:
+    def load_chunk(self, player_name: str, chunk_id: int) -> tuple[Chunk, None]:
         if player_name not in self.loaded_chunks_by_player:
             self.loaded_chunks_by_player[player_name] = set()
         loaded_chunks: set[int] = self.loaded_chunks_by_player[player_name]

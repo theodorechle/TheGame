@@ -54,7 +54,7 @@ class Game:
             self.removed_players.append(name)
             self.chunk_manager.remove_player(name)
 
-    def get_player_infos(self, name: str) -> Player|None:
+    def get_player_infos(self, name: str) -> tuple[Player, None]:
         if name not in self.players: return
         return self.players[name][0].get_infos()
     
@@ -91,6 +91,10 @@ class Game:
                     block_pos = tuple(additional_data['interacted_block'])
                     block = player.remove_block(block_pos)
                     if block is not None: self.updated_blocks[block[1]] = block[0]
+                case 'drag-item':
+                    if 'item-pos' not in additional_data: continue
+                    item_pos = tuple(additional_data['item-pos'])
+                    
                 case _:
                     write_log(f"Invalid player action '{action}'", True)
 
