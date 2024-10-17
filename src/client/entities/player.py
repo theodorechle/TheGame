@@ -23,6 +23,7 @@ class Player(DrawableEntity, PlayerInterface):
         self.infos_font: pygame.font.Font = pygame.font.SysFont(self.infos_font_name, self.infos_font_size)
 
         DrawableEntity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, ui_manager, 'persos', True, images_name=images_name, name_displayed=True)
+        self.server = server
         self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self._ui_manager.get_window(), server)
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, classes_names=['main-inventory'], anchor='center')
@@ -77,44 +78,6 @@ class Player(DrawableEntity, PlayerInterface):
         y = -(y - self._ui_manager.get_window_size()[1] // 2) // blocks.block_size
         return x, y
 
-    def drag_item_in_inventory(self, inventory: Inventory, index: int=-1) -> bool:
-        if self._last_time_clicked + self.min_time_before_click > monotonic(): return
-        if index == -1:
-            index = inventory.get_clicked_cell()
-        if index != -1:
-            if self._current_dragged_item[0] == items.NOTHING:
-                if inventory.cells[index][0] is not items.NOTHING:
-                    self._dragged_item_element = inventory.inventory_table.get_element_by_index(index).__copy__()
-                    self._dragged_item_element.classes_names.append('dragged-item')
-                    self._ui_manager.update_element_theme(self._dragged_item_element)
-                    self._dragged_item_element.update_element()
-                    item = inventory.empty_cell(index)
-                    self._current_dragged_item = item
-                    self._dragged_item_index = index
-                    self._dragged_item_inventory = inventory
-                    self.display_item_dragged_pos()
-                    self._last_time_clicked = monotonic()
-                    return True
-            else:
-                removed_qty = inventory.add_element_at_pos(*self._current_dragged_item, index)
-                self._current_dragged_item = (self._current_dragged_item[0], self._current_dragged_item[1] - removed_qty)
-                if removed_qty == 0:
-                    dragged_item = self._current_dragged_item
-                    self._current_dragged_item = (items.NOTHING, 0)
-                    self._last_time_clicked = 0
-                    self._dragged_item_element = self._dragged_item_element.delete()
-                    self.drag_item_in_inventory(inventory, index)
-                    inventory.add_element_at_pos(*dragged_item, index)
-
-                if self._current_dragged_item[1] == 0:
-                    self._current_dragged_item = (items.NOTHING, 0)
-                    self._dragged_item_index = -1
-                    self._dragged_item_inventory = None
-                    self._dragged_item_element = self._dragged_item_element.delete()
-                    self._last_time_clicked = monotonic()
-                return True
-        return False
-
     def place_back_dragged_item(self) -> None:
         if self._dragged_item_index == -1: return
         item, qty = self._current_dragged_item
@@ -129,22 +92,39 @@ class Player(DrawableEntity, PlayerInterface):
         self._current_dragged_item = (item, qty)
 
     def drag_item_in_inventories(self) -> bool:
-        return self.drag_item_in_inventory(self.hot_bar_inventory) \
-            or self.drag_item_in_inventory(self.main_inventory)
+        if self._last_time_clicked + self.min_time_before_click > monotonic(): return
+        cell = self.hot_bar_inventory.get_clicked_cell()
+        if cell != -1:
+            inventory_nb = 0
+        else:
+            cell = self.main_inventory.get_clicked_cell()
+            inventory_nb = 1
+        if cell == -1: return False
+        # self.server.send_json({
+        #     'method': 'POST',
+        #     'data': {
+        #         'type': 'drag-item',
+        #         'additional_data': {
+        #             'item-pos': [inventory_nb, cell]
+        #         }
+        #     }
+        # })
+        self._last_time_clicked = monotonic()
+        return True
 
-    def place_block(self, pos: tuple[int, int]) -> int|None:
+    def place_block(self, pos: tuple[int, int])-> tuple[int, None]:
         if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
-    def remove_block(self, pos: tuple[int, int]) -> int|None:
+    def remove_block(self, pos: tuple[int, int])-> tuple[int, None]:
         if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
-    def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
+    def interact_with_block(self, pos: tuple[int, int])-> tuple[tuple[tuple[type[BlockMenu], None, tuple[int, int], None]]]:
         if self.main_inventory.is_opened(): return None, None
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None, None

@@ -30,7 +30,7 @@ class ChunkManager:
     def create_map_generator(self, data) -> None:
         self.map_generator = MapGenerator(data['infos']['seed'])
 
-    def get_chunk_and_block_index(self, x: int, y: int) -> tuple[Chunk|None, int]:
+    def get_chunk_and_block_index(self, x: int, y: int) -> tuple[tuple[Chunk, None, int]]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1
         x += Chunk.LENGTH // 2
         x -= self.chunk_x_position * Chunk.LENGTH
@@ -39,7 +39,7 @@ class ChunkManager:
         chunk = self.chunks[nb_chunk]
         return chunk, (x % Chunk.LENGTH) + y * Chunk.LENGTH
 
-    def get_block(self, x: int, y: int) -> blocks.Block|None:
+    def get_block(self, x: int, y: int) -> tuple[blocks.Block, None]:
         """Return the value at given coordinates, or blocks.NOTHING if out of map"""
         chunk, index = self.get_chunk_and_block_index(x, y)
         if chunk is None: return blocks.NOTHING

@@ -24,7 +24,7 @@ class InventoryInterface(metaclass=ABCMeta):
         """
     
     @abstractmethod
-    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[items.Item|None, int]:
+    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[tuple[items.Item, None, int]]:
         """
         Tries to remove the quantity of the element in the inventory at pos.
         Returns the quantity effectively removed.
@@ -50,7 +50,7 @@ class InventoryInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def empty_cell(self, pos: int) -> tuple[items.Item|None, int]:
+    def empty_cell(self, pos: int) -> tuple[tuple[items.Item, None, int]]:
         """
         Empty the inventory's cell at pos.
         Returns a tuple containing the item in the cell and the quantity of it.

@@ -54,7 +54,7 @@ class Menu:
     def exit_menu(self, _: UIElement) -> None:
         self.exit(BACK)
 
-    def handle_special_events(self, event: pygame.event.Event) -> pygame.event.Event|None:
+    def handle_special_events(self, event: pygame.event.Event) -> tuple[pygame.event.Event, None]:
         """
         Get every event and process it.
         Can return the event, in which case it will be processed by the normal run method and the ui manager.
@@ -124,7 +124,7 @@ class MainMenu(Menu):
     def create_new_game(self, _: UIElement) -> None:
         self.exit(CREATE_WORLD)
     
-    def handle_special_events(self, event: Event) -> Event | None:
+    def handle_special_events(self, event: Event) -> tuple[Event ,  None]:
         if event.type == pygame.QUIT:
             self.exit(EXIT)
         return event
@@ -201,7 +201,7 @@ class SettingsMenu(Menu):
         self.label_nb_chunks.set_text(str(self.slider_nb_chunks.get_value()))
         self.label_zoom.set_text(str(self.slider_zoom.get_value()))
 
-    def handle_special_events(self, event: pygame.event.Event) -> pygame.event.Event|None:
+    def handle_special_events(self, event: pygame.event.Event) -> tuple[pygame.event.Event, None]:
         if event.type == pygame.QUIT:
             self.exit(EXIT)
         elif event.type == pygame.KEYDOWN:
