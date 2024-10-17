@@ -236,7 +236,6 @@ class Client:
                 return True
         return False
 
-
     async def process_events(self) -> bool:
         """
         Return True if need to escape the update function to directly go to the loop function
@@ -318,6 +317,7 @@ class Client:
         for i in range(10):
             if self.client_actions_pressed_keys[f'inv_{i}']:
                 self.player.hot_bar_inventory.set_selected_cell(i, 0)
+                self.need_redraw = True
         
         additional_data: dict = {}
         if self.server_actions_pressed_mouse_keys["place_block"]:
