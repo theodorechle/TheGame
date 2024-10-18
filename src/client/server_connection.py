@@ -11,6 +11,8 @@ class ServerConnection:
     VALID_REQUEST = 1
     WRONG_REQUEST = 0
     TIME_BEFORE_CANCELLING_CONNECTION_S = 5
+    NB_CONNECTIONS_ATTEMPTS = 5
+    TIME_BEFORE_NEW_CONNECTION_ATTEMPT_S = 1
     def __init__(self, host: str, port: int) -> None:
         self.host = host
         self.port = port
@@ -25,7 +27,7 @@ class ServerConnection:
             stdout=sys.stdout,
             stderr=sys.stderr,
             start_new_session=True)
-        write_log("Launched local server")
+        write_log("Created local server")
         
 
     def local_server_exists(self) -> bool:
@@ -43,11 +45,14 @@ class ServerConnection:
 
     async def start(self) -> None:
         write_log(f"Joining server at {self.host}:{self.port}")
-        try:
-            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=self.TIME_BEFORE_CANCELLING_CONNECTION_S)
-        except asyncio.TimeoutError:
-            write_log("Failed to join the server (waited to long)", True)
-            raise ConnectionError
+        for nb_attempts in range(self.NB_CONNECTIONS_ATTEMPTS):
+            try:
+                self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=self.TIME_BEFORE_CANCELLING_CONNECTION_S)
+            except (asyncio.TimeoutError, ConnectionError):
+                write_log(f"Failed to connect to server at {self.host}:{self.port} (attempt {nb_attempts + 1})", True)
+                if nb_attempts == self.NB_CONNECTIONS_ATTEMPTS:
+                    write_log("Failed to join the server (waited to long)", True)
+                    raise ConnectionError
         if self.reader is None or self.writer is None:
             write_log(f"Connection error; reader: {self.reader}, writer: {self.writer}", True)
             raise ConnectionError
