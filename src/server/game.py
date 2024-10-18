@@ -82,7 +82,7 @@ class Game:
                 case 'mv_up':
                     player.speed_y = 1
                 case 'place_block':
-                    if 'interacted_block' not in additional_data: continue
+                    if 'interacted_block' not in additional_data or 'selected' not in additional_data: continue
                     block_pos = tuple(additional_data['interacted_block'])
                     block = player.place_block(block_pos, additional_data['selected'])
                     if block is not None: self.updated_blocks[block[1]] = block[0]

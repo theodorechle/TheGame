@@ -19,7 +19,7 @@ class Chunk:
 
     def update_display_surface(self) -> None:
         for index, block in enumerate(self.blocks):
-            coords = ((index % Chunk.LENGTH) * blocks.block_size, (Chunk.HEIGHT - (index // Chunk.LENGTH)) * blocks.block_size)
+            coords = ((index % Chunk.LENGTH) * blocks.block_size, (Chunk.HEIGHT - (index // Chunk.LENGTH) - 1) * blocks.block_size)
             self._diplay_surface.blits(
                 ((blocks.AIR.image, coords),
                (block.image, coords))
@@ -31,7 +31,7 @@ class Chunk:
 
     def replace_block(self, index: int, block: blocks.Block) -> None:
         self.blocks[index] = block
-        coords = (index % Chunk.LENGTH) * blocks.block_size, (Chunk.HEIGHT - index // Chunk.LENGTH) * blocks.block_size
+        coords = (index % Chunk.LENGTH) * blocks.block_size, (Chunk.HEIGHT - index // Chunk.LENGTH - 1) * blocks.block_size
         self._diplay_surface.blits(
             ((blocks.AIR.image, coords),
             (block.image, coords))

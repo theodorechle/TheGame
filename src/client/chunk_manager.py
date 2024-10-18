@@ -98,7 +98,7 @@ class ChunkManager:
         for index, chunk in enumerate(self.chunks):
             if chunk is None: continue
 #             coords = window_size[0] // 2 + blocks.block_size*(index + x - 0.5), window_size[1] // 2 - blocks.block_size*(index + y + 1)
-            coords = (((index + self.chunk_x_position - self.nb_chunks_by_side - 0.5) * Chunk.LENGTH - x - 0.5) * blocks.block_size + window_size[0] // 2, window_size[1] // 2 - (Chunk.HEIGHT - y + 1) * blocks.block_size)
+            coords = (((index + self.chunk_x_position - self.nb_chunks_by_side - 0.5) * Chunk.LENGTH - x - 0.5) * blocks.block_size + window_size[0] // 2, window_size[1] // 2 - (Chunk.HEIGHT - y) * blocks.block_size)
             chunk.display_chunk(coords, self.window)
 
     # def display_chunks(self, x: int, y: int) -> None:

@@ -110,7 +110,6 @@ class Server:
                     request = await self.receive_msg(reader)
                 except asyncio.IncompleteReadError:
                     write_log(f"Client {addr} disconnected")
-                    self.clients.pop(addr)
                     break
                 write_log(f"Client {addr} sent request {request}")
                 if 'method' not in request or not isinstance(request['method'], str):
@@ -144,6 +143,8 @@ class Server:
                         game.save()
                         self.games.pop(game)
                         self.games_queues.pop(game)
+                    self.players.pop(addr)
+                    self.clients.pop(addr)
                     write_log(f"Removed client {addr} from clients' list")
                 else:
                     write_log(f"Unknown client disconnected: `{addr}`")
