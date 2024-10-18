@@ -407,7 +407,7 @@ async def start() -> None:
             try:
                 await client.start()
             except ConnectionError:
-                write_log("Can't connect to local server", is_err=True)
+                write_log("Can't start client", is_err=True)
                 return
             do_run_main: bool = await client.run_menus()
             if do_run_main:
