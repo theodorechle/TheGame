@@ -34,7 +34,7 @@ class Client:
     def __init__(self, window: pygame.Surface) -> None:
         self.exit_game = False
         self.exit_program = False
-        self.server = ServerConnection(self.DEFAULT_HOST_ADDRESS, self.DEFAULT_SERVER_PORT)
+        self.server = None
         self.MAX_FPS = 20
 
         self.player_name = ''
@@ -81,6 +81,7 @@ class Client:
         self.server_actions_pressed_mouse_keys: dict[str, bool] = {key: False for key in self.server_actions_mouse_buttons.keys()}
     
     async def start(self) -> None:
+        self.server = ServerConnection(self.DEFAULT_HOST_ADDRESS, self.DEFAULT_SERVER_PORT)
         self.server.launch_local_server()
         await self.server.start()
 
@@ -117,7 +118,7 @@ class Client:
                     continue
                 if not seed:
                     seed = None
-                write_log(f"Creating world {save_name} with seed {seed}")
+                write_log(f"Creating world \"{save_name}\" with seed \"{seed}\"")
                 await new_server.send_json({
                     'method': 'GET',
                     'data': {
@@ -130,7 +131,7 @@ class Client:
                 })
                 response = await new_server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
-                    write_log(f"Server failed to create the world {save_name}")
+                    write_log(f"Server failed to create the world \"{save_name}\"")
                     await new_server.stop()
                     continue
                 await self.server.stop()
@@ -148,7 +149,7 @@ class Client:
                     await new_server.start()
                 except ConnectionError:
                     continue
-                write_log(f"Joining world {game_name} at {host_address}:{self.DEFAULT_SERVER_PORT}")
+                write_log(f"Joining world \"{game_name}\" at {host_address}:{self.DEFAULT_SERVER_PORT}")
                 await new_server.send_json({
                     'method': 'GET',
                     'data': {
@@ -160,7 +161,7 @@ class Client:
                 })
                 response = await new_server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
-                    write_log(f"Failed to join world {game_name}")
+                    write_log(f"Failed to join world \"{game_name}\"")
                     await new_server.stop()
                     continue
                 await self.server.stop()
@@ -194,7 +195,7 @@ class Client:
                     })
                     response = await self.server.receive_msg()
                     if response['status'] == ServerConnection.WRONG_REQUEST:
-                        write_log(f"Server failed to load the world {save_name}")
+                        write_log(f"Server failed to load the world \"{save_name}\"")
                         continue
                     write_log("World loaded")
                     return True
