@@ -80,10 +80,12 @@ class Client:
         self.server_actions_pressed_mouse_keys: dict[str, bool] = {key: False for key in self.server_actions_mouse_buttons.keys()}
     
     async def start(self) -> None:
+        self.server.launch_local_server()
         await self.server.start()
 
     async def stop(self) -> None:
         await self.server.stop()
+        self.server.stop_local_server()
 
     async def run_menus(self) -> bool:
         """
@@ -249,7 +251,6 @@ class Client:
                 if event.key == pygame.K_ESCAPE:
                     if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
                         if await self.run_escape_menu(): return True
-                
                 if self.process_event(self.server_actions_keyboard_keys, self.server_actions_pressed_keys, event.key, True): continue
                 if self.process_event(self.client_actions_keyboard_keys, self.client_actions_pressed_keys, event.key, True): continue
             elif event.type == pygame.KEYUP:
@@ -400,16 +401,21 @@ class Client:
 
 async def start() -> None:
     client = Client(window)
-    while not client.exit_program:
-        client.exit_game = False
-        try:
-            await client.start()
-        except ConnectionError:
-            write_log("Can't connect to local server", is_err=True)
-            return
-        do_run_main: bool = await client.run_menus()
-        if do_run_main:
-            await client.run()
+    try:
+        while not client.exit_program:
+            client.exit_game = False
+            try:
+                await client.start()
+            except ConnectionError:
+                write_log("Can't connect to local server", is_err=True)
+                return
+            do_run_main: bool = await client.run_menus()
+            if do_run_main:
+                await client.run()
+    except BaseException:
+        client.stop()
+        raise
+
 try:
     asyncio.run(start())
 except BaseException as e:

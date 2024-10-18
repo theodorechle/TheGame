@@ -15,16 +15,27 @@ class ServerConnection:
         self.port = port
         self.reader = None
         self.writer = None
-        # self.server_process = subprocess.Popen(
-        #     [sys.executable, os.path.join(SERVER_PATH, 'main.py')],
-        #     stdout=sys.stdout,
-        #     stderr=sys.stderr,
-        #     start_new_session=True)
+        self.server_process: subprocess.Popen|None = None
+    
+    def launch_local_server(self) -> None:
+        if self.server_process is not None: return
+        self.server_process = subprocess.Popen(
+            [sys.executable, os.path.join(SERVER_PATH, 'main.py')],
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            start_new_session=True)
+
+    def local_server_exists(self) -> bool:
+        return self.server_process is not None
+    
+    def stop_local_server(self) -> None:
+        if self.server_process is None: return
+        self.server_process.kill()
+        self.server_process = None
 
     async def stop(self) -> None:
         self.writer.close()
         await self.writer.wait_closed()
-        # self.server_process.kill()
 
     async def start(self) -> None:
         write_log(f"Joining server at {self.host}:{self.port}")

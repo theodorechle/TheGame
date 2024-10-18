@@ -1,5 +1,9 @@
 ## PRIORITY
 
+Allow changing ip addresses
+
+## OTHER
+
 Saves:
 - Sometimes, the chunks and players directories are created in saves/, not in saves/save_name/
 - Allow renaming saves
