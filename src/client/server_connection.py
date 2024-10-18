@@ -53,6 +53,7 @@ class ServerConnection:
                 if nb_attempts == self.NB_CONNECTIONS_ATTEMPTS:
                     write_log("Failed to join the server (waited to long)", True)
                     raise ConnectionError
+                await asyncio.sleep(self.TIME_BEFORE_NEW_CONNECTION_ATTEMPT_S)
         if self.reader is None or self.writer is None:
             write_log(f"Connection error; reader: {self.reader}, writer: {self.writer}", True)
             raise ConnectionError
