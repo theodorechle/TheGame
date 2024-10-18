@@ -413,20 +413,17 @@ class Client:
 
 async def start() -> None:
     client = Client(window)
-    try:
-        while not client.exit_program:
-            client.exit_game = False
-            try:
-                await client.start()
-            except ConnectionError:
-                write_log("Can't start client", is_err=True)
-                return
-            do_run_main: bool = await client.run_menus()
-            if do_run_main:
-                await client.run()
-    except BaseException:
+    while not client.exit_program:
+        client.exit_game = False
+        try:
+            await client.start()
+        except ConnectionError:
+            write_log("Can't start client", is_err=True)
+            return
+        do_run_main: bool = await client.run_menus()
+        if do_run_main:
+            await client.run()
         await client.stop()
-        raise
 
 try:
     asyncio.run(start())
