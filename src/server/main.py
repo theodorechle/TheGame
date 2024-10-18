@@ -345,3 +345,4 @@ try:
     asyncio.run(server.run())
 except Exception as e:
     write_log(repr(e), is_err=True)
+    write_log(f'Detail: {traceback.format_exc()}', is_err=True)
