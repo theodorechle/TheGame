@@ -10,6 +10,7 @@ from logs import write_log
 class ServerConnection:
     VALID_REQUEST = 1
     WRONG_REQUEST = 0
+    TIME_BEFORE_CANCELLING_CONNECTION_S = 5
     def __init__(self, host: str, port: int) -> None:
         self.host = host
         self.port = port
@@ -24,6 +25,8 @@ class ServerConnection:
             stdout=sys.stdout,
             stderr=sys.stderr,
             start_new_session=True)
+        write_log("Launched local server")
+        
 
     def local_server_exists(self) -> bool:
         return self.server_process is not None
@@ -32,6 +35,7 @@ class ServerConnection:
         if self.server_process is None: return
         self.server_process.kill()
         self.server_process = None
+        write_log("Closed local server")
 
     async def stop(self) -> None:
         self.writer.close()
@@ -40,7 +44,7 @@ class ServerConnection:
     async def start(self) -> None:
         write_log(f"Joining server at {self.host}:{self.port}")
         try:
-            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=1)
+            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=self.TIME_BEFORE_CANCELLING_CONNECTION_S)
         except asyncio.TimeoutError:
             write_log("Failed to join the server (waited to long)", True)
             raise ConnectionError

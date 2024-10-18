@@ -49,9 +49,9 @@ class Server:
         self.players: dict[tuple[str, int], tuple[str, Game]] = {}
         self.players_names: dict[str, tuple[str, int]] = {}
         self.updates_queue = Queue()
-        write_log("launched server")
-
+    
     async def run(self) -> None:
+        write_log(f"launched server on {self.host}:{self.port}")
         self.server = await asyncio.start_server(self.handle_client_request, self.host, self.port)
         async with self.server:
             await asyncio.gather(
