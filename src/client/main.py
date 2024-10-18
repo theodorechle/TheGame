@@ -29,11 +29,12 @@ from logs import write_log
 import random
 
 class Client:
-    PORT = 12345
+    DEFAULT_SERVER_PORT = 12345
+    DEFAULT_HOST_ADDRESS = '127.0.0.1'
     def __init__(self, window: pygame.Surface) -> None:
         self.exit_game = False
         self.exit_program = False
-        self.server = ServerConnection('127.0.0.1', self.PORT)
+        self.server = ServerConnection(self.DEFAULT_HOST_ADDRESS, self.DEFAULT_SERVER_PORT)
         self.MAX_FPS = 20
 
         self.player_name = ''
@@ -102,15 +103,22 @@ class Client:
             if not player_name: continue
             self.player_name = player_name
             if exit_code == menus.CREATE_WORLD:
-                create_world_menu = menus.CreateWorldMenu(self.window, self.server)
+                create_world_menu = menus.CreateWorldMenu(self.window, self.server, self.DEFAULT_SERVER_PORT)
                 exit_code = create_world_menu.run()
                 if exit_code == menus.BACK: continue
                 save_name = create_world_menu.world_name_text_box.get_text().strip()
                 seed = create_world_menu.seed_text_box.get_text()
+                server_address = create_world_menu.server_address.get_text()
+                server_port = create_world_menu.server_port.get_text()
+                new_server = ServerConnection(server_address, server_port)
+                try:
+                    await new_server.start()
+                except ConnectionError:
+                    continue
                 if not seed:
                     seed = None
                 write_log(f"Creating world {save_name} with seed {seed}")
-                await self.server.send_json({
+                await new_server.send_json({
                     'method': 'GET',
                     'data': {
                         'type': 'create-world',
@@ -120,10 +128,13 @@ class Client:
                         'player-images-name': self.player_images_name
                     }
                 })
-                response = await self.server.receive_msg()
+                response = await new_server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
                     write_log(f"Server failed to create the world {save_name}")
+                    await new_server.stop()
                     continue
+                await self.server.stop()
+                self.server = new_server
                 write_log("World created")
                 return True
             elif exit_code == menus.JOIN_WORLD:
@@ -132,12 +143,12 @@ class Client:
                 if exit_code == menus.BACK: continue
                 host_address = join_world_menu.host_address_text_box.get_text().strip()
                 game_name = join_world_menu.world_name_text_box.get_text().strip()
-                new_server = ServerConnection(host_address, self.PORT)
+                new_server = ServerConnection(host_address, self.DEFAULT_SERVER_PORT)
                 try:
                     await new_server.start()
                 except ConnectionError:
                     continue
-                write_log(f"Joining world {game_name} at {host_address}:{self.PORT}")
+                write_log(f"Joining world {game_name} at {host_address}:{self.DEFAULT_SERVER_PORT}")
                 await new_server.send_json({
                     'method': 'GET',
                     'data': {
@@ -150,6 +161,7 @@ class Client:
                 response = await new_server.receive_msg()
                 if response['status'] == ServerConnection.WRONG_REQUEST:
                     write_log(f"Failed to join world {game_name}")
+                    await new_server.stop()
                     continue
                 await self.server.stop()
                 self.server = new_server
@@ -413,7 +425,7 @@ async def start() -> None:
             if do_run_main:
                 await client.run()
     except BaseException:
-        client.stop()
+        await client.stop()
         raise
 
 try:

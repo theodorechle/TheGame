@@ -130,14 +130,20 @@ class MainMenu(Menu):
         return event
 
 class CreateWorldMenu(Menu):
-    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+    def __init__(self, window: pygame.Surface, server: ServerConnection, default_port: int) -> None:
         super().__init__(window, server)
-        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y=400)
+        self._elements.append(elements.Label(self.ui_manager, 'Server address', anchor='top', y="27%", x="-7%"))
+        self.server_address: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text="127.0.0.1", allowed_chars=['.', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], anchor='top', y="30%", x="-7%")
+        self._elements.append(self.server_address)
+        self._elements.append(elements.Label(self.ui_manager, 'Server port', anchor='top', y="27%", x="7%"))
+        self.server_port: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text=str(default_port), allowed_chars=['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], anchor='top', y="30%", x="7%")
+        self._elements.append(self.server_port)
+        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y="45%")
         self._elements.append(self.world_name_text_box)
-        self.seed_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Seed', anchor='top', y=600)
+        self.seed_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Seed', anchor='top', y="65%")
         self._elements.append(self.seed_text_box)
-        self._elements.append(elements.TextButton(self.ui_manager, 'Create', on_click_function=self.start_game, anchor='top', y=800))
-        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Create', on_click_function=self.start_game, anchor='top', y="90%"))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x="5%", y="5%"))
     
     def start_game(self, _: UIElement) -> None:
         text = self.world_name_text_box.get_text()
