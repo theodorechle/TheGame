@@ -1,5 +1,5 @@
 __pycache__/
-saves/*
+saves/
 .vscode/
 src/server/server.log
 src/client/client.log

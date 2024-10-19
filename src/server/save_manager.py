@@ -14,6 +14,7 @@ CURRENT_VERSION = 0.6
 class SaveManager(SaveManagerInterface):
     def __init__(self, save_name: str) -> None:
         self.save_name = save_name
+        os.makedirs(SAVES_PATH, exist_ok=True)
         self.save_path = os.path.join(SAVES_PATH, self.save_name)
         self.init_repository()
 
