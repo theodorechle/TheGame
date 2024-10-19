@@ -104,7 +104,7 @@ class Client:
             if not player_name: continue
             self.player_name = player_name
             if exit_code == menus.CREATE_WORLD:
-                create_world_menu = menus.CreateWorldMenu(self.window, self.server, self.DEFAULT_SERVER_PORT)
+                create_world_menu = menus.CreateWorldMenu(self.window, self.server, self.DEFAULT_HOST_ADDRESS, self.DEFAULT_SERVER_PORT)
                 exit_code = create_world_menu.run()
                 if exit_code == menus.BACK: continue
                 save_name = create_world_menu.world_name_text_box.get_text().strip()
@@ -139,17 +139,18 @@ class Client:
                 write_log("World created")
                 return True
             elif exit_code == menus.JOIN_WORLD:
-                join_world_menu = menus.JoinWorldMenu(self.window, self.server)
+                join_world_menu = menus.JoinWorldMenu(self.window, self.server, self.DEFAULT_SERVER_PORT)
                 exit_code = join_world_menu.run()
                 if exit_code == menus.BACK: continue
                 host_address = join_world_menu.host_address_text_box.get_text().strip()
+                port_address = join_world_menu.host_port_text_box.get_text().strip()
                 game_name = join_world_menu.world_name_text_box.get_text().strip()
-                new_server = ServerConnection(host_address, self.DEFAULT_SERVER_PORT)
+                new_server = ServerConnection(host_address, port_address)
                 try:
                     await new_server.start()
                 except ConnectionError:
                     continue
-                write_log(f"Joining world \"{game_name}\" at {host_address}:{self.DEFAULT_SERVER_PORT}")
+                write_log(f"Joining world \"{game_name}\" at {host_address}:{port_address}")
                 await new_server.send_json({
                     'method': 'GET',
                     'data': {

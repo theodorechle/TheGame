@@ -104,13 +104,13 @@ class MainMenu(Menu):
     def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
         super().__init__(window, server)
         self.ui_manager.update_theme(os.path.join(self.THEMES_PATH, 'main_menu.json'))
-        self._elements.append(elements.Label(self.ui_manager, text='Player name', y="-30%", anchor='center', classes_names=['player-name-label']))
-        self.player_name_input = elements.InputTextBox(self.ui_manager, y="-25%", anchor='center', width='20%', classes_names=['player-name-input'])
+        self._elements.append(elements.Label(self.ui_manager, text='Player name', y='-30%', anchor='center', classes_names=['player-name-label']))
+        self.player_name_input = elements.InputTextBox(self.ui_manager, y='-25%', anchor='center', width='20%', classes_names=['player-name-input'])
         self._elements.append(self.player_name_input)
-        self._elements.append(elements.TextButton(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y="-15%", anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Create new world', on_click_function=self.create_new_game, y='-15%', anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'Join multiplayer world', on_click_function=self.join_world, y='-5%', anchor='center'))
         self._elements.append(elements.TextButton(self.ui_manager, 'Load save', on_click_function=self.load_save, y='5%', anchor='center'))
-        self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_game, y="15%", anchor='center'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'QUIT', on_click_function=self.exit_game, y='15%', anchor='center'))
     
     def exit_game(self, _: UIElement) -> None:
         self.exit(EXIT)
@@ -130,20 +130,20 @@ class MainMenu(Menu):
         return event
 
 class CreateWorldMenu(Menu):
-    def __init__(self, window: pygame.Surface, server: ServerConnection, default_port: int) -> None:
+    def __init__(self, window: pygame.Surface, server: ServerConnection, default_host: str, default_port: int) -> None:
         super().__init__(window, server)
-        self._elements.append(elements.Label(self.ui_manager, 'Server address', anchor='top', y="27%", x="-7%"))
-        self.server_address: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text="127.0.0.1", allowed_chars=['.', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], anchor='top', y="30%", x="-7%")
+        self._elements.append(elements.Label(self.ui_manager, 'Server address', anchor='top', y='27%', x='-7%'))
+        self.server_address: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text=default_host, anchor='top', y='30%', x='-7%')
         self._elements.append(self.server_address)
-        self._elements.append(elements.Label(self.ui_manager, 'Server port', anchor='top', y="27%", x="7%"))
-        self.server_port: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text=str(default_port), allowed_chars=['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], anchor='top', y="30%", x="7%")
+        self._elements.append(elements.Label(self.ui_manager, 'Server port', anchor='top', y='27%', x='7%'))
+        self.server_port: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text=str(default_port), allowed_chars=['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], anchor='top', y='30%', x='7%')
         self._elements.append(self.server_port)
-        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y="45%")
+        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y='45%')
         self._elements.append(self.world_name_text_box)
-        self.seed_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Seed', anchor='top', y="65%")
+        self.seed_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Seed', anchor='top', y='65%')
         self._elements.append(self.seed_text_box)
-        self._elements.append(elements.TextButton(self.ui_manager, 'Create', on_click_function=self.start_game, anchor='top', y="90%"))
-        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x="5%", y="5%"))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Create', on_click_function=self.start_game, anchor='top', y='90%'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x='5%', y='5%'))
     
     def start_game(self, _: UIElement) -> None:
         text = self.world_name_text_box.get_text()
@@ -151,19 +151,24 @@ class CreateWorldMenu(Menu):
             self.exit(START_GAME)
 
 class JoinWorldMenu(Menu):
-    def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
+    def __init__(self, window: pygame.Surface, server: ServerConnection, default_port: int) -> None:
         super().__init__(window, server)
-        self.host_address_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text='Host address', anchor='top', y=400)
+        self._elements.append(elements.Label(self.ui_manager, 'Server address', anchor='top', y='27%', x='-7%'))
+        self.host_address_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, anchor='top', y='30%', x='-7%')
         self._elements.append(self.host_address_text_box)
-        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y=600)
+        self._elements.append(elements.Label(self.ui_manager, 'Server port', anchor='top', y='27%', x='7%'))
+        self.host_port_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, text=str(default_port), allowed_chars=['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'], anchor='top', y='30%', x='7%')
+        self._elements.append(self.host_port_text_box)
+        self.world_name_text_box: elements.InputTextBox = elements.InputTextBox(self.ui_manager, placeholder_text="World's name", forbidden_chars=['\\', '/', ':', '*', '?', '"', '<', '>', '|'], anchor='top', y='45%')
         self._elements.append(self.world_name_text_box)
-        self._elements.append(elements.TextButton(self.ui_manager, 'Join', on_click_function=self.join_game, anchor='top', y=800))
-        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x=100, y=100))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Join', on_click_function=self.join_game, anchor='top', y='60%'))
+        self._elements.append(elements.TextButton(self.ui_manager, 'Back', on_click_function=self.exit_menu, x='5%', y='5%'))
     
     def join_game(self, _: UIElement) -> None:
         host_addr = self.host_address_text_box.get_text()
+        port_addr = self.host_port_text_box.get_text()
         world_name = self.world_name_text_box.get_text()
-        if host_addr and not host_addr.isspace() and world_name and not world_name.isspace():
+        if host_addr and not host_addr.isspace() and port_addr and world_name and not world_name.isspace():
             self.exit(START_GAME)
 
 class EscapeMenu(Menu):
@@ -184,18 +189,18 @@ class SettingsMenu(Menu):
         super().__init__(window, server)
         self.ui_manager.update_theme(os.path.join(self.THEMES_PATH, 'settings.json'))
         # loaded chunks
-        self._elements.append(elements.Label(self.ui_manager, 'Nb chunks loaded on each side', y="-24%", anchor='center', classes_names=['help-label']))
-        self.slider_nb_chunks = elements.Slider(self.ui_manager, 1, 25, 1, y="-21%", anchor='center')
+        self._elements.append(elements.Label(self.ui_manager, 'Nb chunks loaded on each side', y='-24%', anchor='center', classes_names=['help-label']))
+        self.slider_nb_chunks = elements.Slider(self.ui_manager, 1, 25, 1, y='-21%', anchor='center')
         self.slider_nb_chunks.set_value(nb_chunks_loaded)
         self._elements.append(self.slider_nb_chunks)
         self.label_nb_chunks = elements.Label(self.ui_manager, y='-18%', anchor='center', width=30)
         self._elements.append(self.label_nb_chunks)
         # zoom
-        self._elements.append(elements.Label(self.ui_manager, 'Zoom', y="10%", anchor='center', classes_names=['help-label']))
-        self.slider_zoom = elements.Slider(self.ui_manager, 1, 40, 1, y="13%", anchor='center')
+        self._elements.append(elements.Label(self.ui_manager, 'Zoom', y='10%', anchor='center', classes_names=['help-label']))
+        self.slider_zoom = elements.Slider(self.ui_manager, 1, 40, 1, y='13%', anchor='center')
         self.slider_zoom.set_value(zoom)
         self._elements.append(self.slider_nb_chunks)
-        self.label_zoom = elements.Label(self.ui_manager, y="16%", anchor='center', width=30)
+        self.label_zoom = elements.Label(self.ui_manager, y='16%', anchor='center', width=30)
         self._elements.append(self.label_nb_chunks)
         self._elements.append(elements.TextButton(self.ui_manager, 'BACK', on_click_function=self.exit_to_main_menu, x='-2%', y='-2%', anchor='right'))
         self._elements.append(elements.TextButton(self.ui_manager, 'BACK TO GAME', on_click_function=self.exit_menu, x='-2%', y='2%', anchor='right'))
@@ -219,7 +224,7 @@ class LoadSaveMenu(Menu):
     def __init__(self, window: pygame.Surface, server: ServerConnection) -> None:
         super().__init__(window, server)
         self.ui_manager.update_theme(os.path.join(self.THEMES_PATH, 'load_save.json'))
-        self.saves_list = elements.ItemList(self.ui_manager, height="80%", anchor='top', y='2%', width='50%', items_classes_names=['item-list-childs'])
+        self.saves_list = elements.ItemList(self.ui_manager, height='80%', anchor='top', y='2%', width='50%', items_classes_names=['item-list-childs'])
         self._elements.append(self.saves_list)
         options_container = elements.Container(self.ui_manager, x='-15%', anchor='right', height='8%', classes_names=['options-container'])
         self._elements.append(options_container)

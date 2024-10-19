@@ -10,7 +10,7 @@ from logs import write_log
 class ServerConnection:
     VALID_REQUEST = 1
     WRONG_REQUEST = 0
-    TIME_BEFORE_CANCELLING_CONNECTION_S = 5
+    TIME_BEFORE_CANCELLING_CONNECTION_S = 1
     NB_CONNECTIONS_ATTEMPTS = 5
     TIME_BEFORE_NEW_CONNECTION_ATTEMPT_S = 1
     def __init__(self, host: str, port: int) -> None:
