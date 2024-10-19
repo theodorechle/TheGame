@@ -1,6 +1,6 @@
 ## PRIORITY
 
-Allow changing ip addresses
+Allow server to have a different ip and a different port (given in parameters)
 
 ## OTHER
 
