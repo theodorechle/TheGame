@@ -26,8 +26,6 @@ from map_chunk import Chunk
 import traceback
 from logs import write_log
 
-import random
-
 class Client:
     DEFAULT_SERVER_PORT = 12345
     DEFAULT_HOST_ADDRESS = '127.0.0.1'
@@ -111,7 +109,8 @@ class Client:
                 seed = create_world_menu.seed_text_box.get_text()
                 server_address = create_world_menu.server_address.get_text()
                 server_port = create_world_menu.server_port.get_text()
-                new_server = ServerConnection(server_address, server_port)
+                if not server_port.isnumeric(): return
+                new_server = ServerConnection(server_address, int(server_port))
                 try:
                     await new_server.start()
                 except ConnectionError:
@@ -145,7 +144,8 @@ class Client:
                 host_address = join_world_menu.host_address_text_box.get_text().strip()
                 port_address = join_world_menu.host_port_text_box.get_text().strip()
                 game_name = join_world_menu.world_name_text_box.get_text().strip()
-                new_server = ServerConnection(host_address, port_address)
+                if not server_port.isnumeric(): return
+                new_server = ServerConnection(host_address, int(port_address))
                 try:
                     await new_server.start()
                 except ConnectionError:
@@ -207,7 +207,7 @@ class Client:
         
     async def run_escape_menu(self) -> bool:
         """
-        Return True if need to escape the update function to directly go to the loop function
+        Return True if it needs to escape the update function to directly go to the loop function
         """
         self.need_redraw = self.need_redraw or self._ui_manager.update()
         self.need_redraw = True                          
@@ -254,7 +254,7 @@ class Client:
 
     async def process_events(self) -> bool:
         """
-        Return True if need to escape the update function to directly go to the loop function
+        Return True if it needs to escape the update function to directly go to the loop function
         """
         for event in pygame.event.get():
             self._ui_manager.process_event(event)
@@ -276,7 +276,7 @@ class Client:
                 if self.process_event(self.server_actions_mouse_buttons, self.server_actions_pressed_mouse_keys, event.button, False): continue
         return False
 
-    async def run(self) -> bool:
+    async def run(self) -> None:
         """
         Returns True if the player wants to exit the program, False if only exiting the actual game
         """
