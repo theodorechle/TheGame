@@ -51,6 +51,7 @@ class Server:
         self.updates_queue = Queue()
     
     async def run(self) -> None:
+        SaveManager.create_save_directory()
         write_log(f"launched server on {self.host}:{self.port}")
         self.server = await asyncio.start_server(self.handle_client_request, self.host, self.port)
         async with self.server:
