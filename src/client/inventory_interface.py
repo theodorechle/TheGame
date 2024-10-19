@@ -9,6 +9,9 @@ class InventoryInterface(metaclass=ABCMeta):
     def set_cells(self, cells) -> None:
         self.cells: list[tuple[items.Item|None, int]] = [(items.REVERSED_ITEMS_DICT[item], qty) for item, qty in cells] # list of list with items and quantities
     
+    def get_nb_cells(self) -> int:
+        return self._nb_cells
+
     @abstractmethod
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:
         """
@@ -24,7 +27,7 @@ class InventoryInterface(metaclass=ABCMeta):
         """
     
     @abstractmethod
-    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[tuple[items.Item, None, int]]:
+    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[items.Item|None, int]:
         """
         Tries to remove the quantity of the element in the inventory at pos.
         Returns the quantity effectively removed.
@@ -50,7 +53,7 @@ class InventoryInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def empty_cell(self, pos: int) -> tuple[tuple[items.Item, None, int]]:
+    def empty_cell(self, pos: int) -> tuple[items.Item|None, int]:
         """
         Empty the inventory's cell at pos.
         Returns a tuple containing the item in the cell and the quantity of it.

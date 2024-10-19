@@ -1,6 +1,5 @@
 import blocks
 from map_chunk import Chunk
-from logs import write_log
 from generation.map_generation import MapGenerator
 from save_manager import SaveManager
 
@@ -12,7 +11,7 @@ class ChunkManager:
         self.nb_players_who_loaded_chunks: dict[int, int] = {}
         self.loaded_chunks_by_player: dict[str, set[int]] = {}
     
-    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[tuple[Chunk, None, int, int]]:
+    def get_chunk_and_coordinates(self, x: int, y: int) -> tuple[Chunk|None, int, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1, -1
         x += Chunk.LENGTH // 2
         nb_chunk: int = x // Chunk.LENGTH
@@ -47,7 +46,7 @@ class ChunkManager:
         for chunk in self.chunks.values():
             self.save_manager.save_chunk(chunk)
 
-    def load_chunk(self, player_name: str, chunk_id: int) -> tuple[Chunk, None]:
+    def load_chunk(self, player_name: str, chunk_id: int) -> Chunk|None:
         if player_name not in self.loaded_chunks_by_player:
             self.loaded_chunks_by_player[player_name] = set()
         loaded_chunks: set[int] = self.loaded_chunks_by_player[player_name]
@@ -58,14 +57,11 @@ class ChunkManager:
         else:
             self.nb_players_who_loaded_chunks[chunk_id] += 1
         if chunk_id in self.chunks: return self.chunks[chunk_id]
-        loaded = self.save_manager.load_chunk(chunk_id)
+        loaded: Chunk|dict[int, int]|None = self.save_manager.load_chunk(chunk_id)
         if isinstance(loaded, Chunk):
             chunk = loaded
         else:
             chunk = self.map_generator.generate_chunk(chunk_id)
-            if chunk is None:
-                write_log(f'Chunk {chunk_id} was not generated', True)
-                return
             if isinstance(loaded, dict):
                 for index, block in loaded.items():
                     chunk.replace_block(int(index), block)

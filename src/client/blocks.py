@@ -5,8 +5,9 @@ from load_image import load_image
 from pygame import Surface
 from blocks_menus.workbench_menu import WorkbenchMenu
 from blocks_menus.furnace_menu import FurnaceMenu
+from blocks_menus.block_menu import BlockMenu
 
-block_size = 30
+block_size: int = 30
 
 class Block:
     def __init__(self, name: str) -> None:
@@ -72,7 +73,7 @@ SWIMMABLE_BLOCKS = [
     LAVA
 ]
 
-INTERACTABLE_BLOCKS = {
+INTERACTABLE_BLOCKS: dict[Block, BlockMenu] = {
     WORKBENCH: WorkbenchMenu,
     # FURNACE: FurnaceMenu
 }

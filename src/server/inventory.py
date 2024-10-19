@@ -95,7 +95,7 @@ class Inventory(InventoryInterface):
     def empty_cell(self, pos: int) -> tuple[tuple[items.Item, None, int]]:
         """
         Empty the inventory's cell at pos.
-        Returns a tuple containing the item in the cell and the quantity of it.
+        Returns a $1|Nonecontaining the item in the cell and the quantity of it.
         """
         if 0 > pos or pos >= len(self.cells): return (items.NOTHING, 0)
         cell = self.cells[pos]

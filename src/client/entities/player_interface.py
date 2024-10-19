@@ -1,11 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from entities.entity_interface import EntityInterface
 from inventory_interface import InventoryInterface
+from typing import Any
 
 class PlayerInterface(EntityInterface, metaclass=ABCMeta):
     def __init__(self) -> None:
-        self.main_inventory: InventoryInterface = None
-        self.hot_bar_inventory: InventoryInterface = None
+        self.main_inventory: InventoryInterface
+        self.hot_bar_inventory: InventoryInterface
     
     @abstractmethod
     def display_hud(self) -> None:
@@ -16,7 +17,11 @@ class PlayerInterface(EntityInterface, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def update(self, delta_t: float) -> bool:
+    async def update(self, update_dict: dict[str, Any]) -> None:
+        pass
+    
+    @abstractmethod
+    def display(self) -> None:
         pass
 
     @abstractmethod

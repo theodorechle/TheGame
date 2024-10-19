@@ -22,7 +22,7 @@ COMBURANTS = {
     items.WOODEN_STICK: 3
 }
 
-def craft(craft_name, recipes, *inventories: Inventory) -> bool:
+def craft(craft_name: str, recipes, *inventories: Inventory) -> bool:
     """
     Try to craft the given item and return True if crafted else False
     """

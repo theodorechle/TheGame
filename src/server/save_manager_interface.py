@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from map_chunk import Chunk
 from entities.player_interface import PlayerInterface
+from typing import Any
 
 class SaveManagerInterface(metaclass=ABCMeta):
     @abstractmethod
@@ -8,7 +9,7 @@ class SaveManagerInterface(metaclass=ABCMeta):
         pass
     
     @abstractmethod
-    def load_chunk(self, id: int) -> tuple[Chunk, None]:
+    def load_chunk(self, id: int) -> Chunk|dict[int, int]|None:
         pass
 
     @abstractmethod
@@ -16,7 +17,7 @@ class SaveManagerInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def load_players(self) -> tuple[list[PlayerInterface], None]:
+    def load_players(self) -> dict[str, dict[str, Any]]|None:
         pass
 
     @abstractmethod

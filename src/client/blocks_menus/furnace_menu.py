@@ -13,7 +13,7 @@ from typing import Any
 class FurnaceMenu(BlockMenu):
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface) -> None:
         super().__init__(block_data, player, window)
-        self.temp_player_inventory = Inventory(player.main_inventory._nb_cells + player.hot_bar_inventory._nb_cells, self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
+        self.temp_player_inventory = Inventory(player.main_inventory.get_nb_cells() + player.hot_bar_inventory.get_nb_cells(), self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
         self.temp_player_inventory.toggle_inventory()
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'furnace_menu_theme.json'))
         self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))

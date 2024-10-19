@@ -1,9 +1,9 @@
 import blocks
 import pygame
 from map_chunk import Chunk
-from typing import cast
 from server_connection import ServerConnection
 from generation.map_generation import MapGenerator
+from typing import Any
 
 class ChunkManager:
     def __init__(self, chunk_x_position: int, window: pygame.Surface, server: ServerConnection) -> None:
@@ -27,10 +27,10 @@ class ChunkManager:
             }
         })
 
-    def create_map_generator(self, data) -> None:
+    def create_map_generator(self, data: dict[str, Any]) -> None:
         self.map_generator = MapGenerator(data['infos']['seed'])
 
-    def get_chunk_and_block_index(self, x: int, y: int) -> tuple[tuple[Chunk, None, int]]:
+    def get_chunk_and_block_index(self, x: int, y: int) -> tuple[Chunk|None, int]:
         if y < 0 or y >= Chunk.HEIGHT: return None, -1
         x += Chunk.LENGTH // 2
         x -= self.chunk_x_position * Chunk.LENGTH
@@ -39,7 +39,7 @@ class ChunkManager:
         chunk = self.chunks[nb_chunk]
         return chunk, (x % Chunk.LENGTH) + y * Chunk.LENGTH
 
-    def get_block(self, x: int, y: int) -> tuple[blocks.Block, None]:
+    def get_block(self, x: int, y: int)  -> blocks.Block|None:
         """Return the value at given coordinates, or blocks.NOTHING if out of map"""
         chunk, index = self.get_chunk_and_block_index(x, y)
         if chunk is None: return blocks.NOTHING
@@ -77,7 +77,6 @@ class ChunkManager:
     async def change_nb_chunks(self, new_nb_chunks: int) -> None:
         if new_nb_chunks == self.nb_chunks_by_side: return
         new_chunks: list[Chunk|None] = [None for _ in range(new_nb_chunks * 2 + 1)]
-        new_surfaces: list[pygame.Surface|None] = [None for _ in range(new_nb_chunks * 2 + 1)]
         difference = new_nb_chunks - self.nb_chunks_by_side
         if difference > 0:
             for i in range(self.nb_chunks_by_side*2 + 1):
@@ -90,7 +89,7 @@ class ChunkManager:
             for i in range(new_nb_chunks*2 + 1):
                 new_chunks[i] = self.chunks[self.nb_chunks_by_side - new_nb_chunks + i]
         
-        self.chunks = cast(list[Chunk], new_chunks)
+        self.chunks = new_chunks
         self.nb_chunks_by_side = new_nb_chunks
     
     def display_chunks(self, x: int, y: int) -> None:
@@ -98,7 +97,7 @@ class ChunkManager:
         for index, chunk in enumerate(self.chunks):
             if chunk is None: continue
 #             coords = window_size[0] // 2 + blocks.block_size*(index + x - 0.5), window_size[1] // 2 - blocks.block_size*(index + y + 1)
-            coords = (((index + self.chunk_x_position - self.nb_chunks_by_side - 0.5) * Chunk.LENGTH - x - 0.5) * blocks.block_size + window_size[0] // 2, window_size[1] // 2 - (Chunk.HEIGHT - y) * blocks.block_size)
+            coords: tuple[float, float] = (((index + self.chunk_x_position - self.nb_chunks_by_side - 0.5) * Chunk.LENGTH - x - 0.5) * blocks.block_size + window_size[0] // 2, window_size[1] // 2 - (Chunk.HEIGHT - y) * blocks.block_size)
             chunk.display_chunk(coords, self.window)
 
     # def display_chunks(self, x: int, y: int) -> None:
@@ -145,7 +144,7 @@ class ChunkManager:
             }
         })
     
-    def set_chunk_surface(self, id) -> None:
+    def set_chunk_surface(self, id: int) -> None:
         index = id - self.chunk_x_position + self.nb_chunks_by_side
         if self.chunks[index] is None: return
         self.chunks[index].update_display_surface()
@@ -155,7 +154,7 @@ class ChunkManager:
             if chunk is None: continue
             chunk.reset_display_surface()
 
-    def set_chunk(self, message: dict) -> None:
+    def set_chunk(self, message: dict[str, Any]) -> None:
         if not message or message['status'] == ServerConnection.WRONG_REQUEST:
             return
         chunk_infos = message['data']['chunk']

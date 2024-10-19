@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 class EntityInterface(metaclass=ABCMeta):
     @abstractmethod
@@ -10,9 +11,9 @@ class EntityInterface(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def display(self) -> None:
+    def display(self, rel_x: int, rel_y: int) -> None:
         pass
 
     @abstractmethod
-    def update(self, delta_t: float) -> bool:
+    def update(self, update_dict: dict[str, Any]) -> None:
         pass

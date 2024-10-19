@@ -20,7 +20,7 @@ class Biome:
         self.tree = tree
 
 
-def get_biome_environment_values(biome: Biome) -> tuple[tuple[int, int, int], None]:
+def get_biome_environment_values(biome: Biome)  -> tuple[int, int, int]|None:
     for vars, biome_ in BIOMES.items():
         if biome_ == biome:
             return vars

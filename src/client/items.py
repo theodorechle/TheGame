@@ -36,7 +36,7 @@ SNOW = Item('snow')
 WOODEN_STICK = Item('wooden_stick')
 
 # new items must be added to the end in order to not break the existing saves
-ITEMS_DICT: dict[Item, int] = {
+ITEMS_DICT: dict[Item|None, int] = {
     NOTHING: -1,
     IRON_INGOT: 0,
     WOODEN_STICK: 1,
@@ -57,4 +57,4 @@ ITEMS_DICT: dict[Item, int] = {
     SNOW: 16,
 }
 
-REVERSED_ITEMS_DICT: dict[int, Item] = {v: k for k, v in ITEMS_DICT.items()}
+REVERSED_ITEMS_DICT: dict[int, Item|None] = {v: k for k, v in ITEMS_DICT.items()}

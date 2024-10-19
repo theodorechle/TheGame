@@ -26,8 +26,8 @@ class Player(DrawableEntity, PlayerInterface):
         self.server = server
         self.chunk_manager: ChunkManager = ChunkManager(round(x / Chunk.LENGTH), self._ui_manager.get_window(), server)
         self.inventory_size: int = 50
-        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, ui_manager, classes_names=['main-inventory'], anchor='center')
-        self.hot_bar_inventory: Inventory = Inventory(10, ui_manager, classes_names=['hot-bar-inventory'], anchor='bottom')
+        self.main_inventory = Inventory(self.inventory_size - 10, ui_manager, classes_names=['main-inventory'], anchor='center')
+        self.hot_bar_inventory = Inventory(10, ui_manager, classes_names=['hot-bar-inventory'], anchor='bottom')
         self.hot_bar_inventory.toggle_inventory()
         self.hot_bar_inventory.set_selected_cell(0, 0)
         self._current_dragged_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
@@ -71,7 +71,7 @@ class Player(DrawableEntity, PlayerInterface):
                     .render(info, True, "#000000"), (50, 20 * i))
 
     def save(self) -> None:
-        self.chunk_manager.save()
+        pass
     
     def _get_relative_pos(self, x: int, y: int) -> tuple[int, int]:
         x = (x - self._ui_manager.get_window_size()[0] // 2 + blocks.block_size // 2) // blocks.block_size
@@ -92,7 +92,7 @@ class Player(DrawableEntity, PlayerInterface):
         self._current_dragged_item = (item, qty)
 
     def drag_item_in_inventories(self) -> bool:
-        if self._last_time_clicked + self.min_time_before_click > monotonic(): return
+        if self._last_time_clicked + self.min_time_before_click > monotonic(): return False
         cell = self.hot_bar_inventory.get_clicked_cell()
         if cell != -1:
             inventory_nb = 0
@@ -112,19 +112,19 @@ class Player(DrawableEntity, PlayerInterface):
         self._last_time_clicked = monotonic()
         return True
 
-    def place_block(self, pos: tuple[int, int])-> tuple[int, None]:
+    def place_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
         if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
-    def remove_block(self, pos: tuple[int, int])-> tuple[int, None]:
+    def remove_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
         if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
-    def interact_with_block(self, pos: tuple[int, int])-> tuple[tuple[tuple[type[BlockMenu], None, tuple[int, int], None]]]:
+    def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
         if self.main_inventory.is_opened(): return None, None
         x, y = self._get_relative_pos(*pos)
         if not self._is_interactable(x, y): return None, None

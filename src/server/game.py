@@ -54,7 +54,7 @@ class Game:
             self.removed_players.append(name)
             self.chunk_manager.remove_player(name)
 
-    def get_player_infos(self, name: str) -> tuple[Player, None]:
+    def get_player_infos(self, name: str)  -> Player|None:
         if name not in self.players: return
         return self.players[name][0].get_infos()
     

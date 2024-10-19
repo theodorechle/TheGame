@@ -84,6 +84,7 @@ class Client:
         await self.server.start()
 
     async def stop(self) -> None:
+        if self.server is None: return
         await self.server.stop()
         self.server.stop_local_server()
 
@@ -91,6 +92,7 @@ class Client:
         """
         Returns True if a game is started else False
         """
+        if self.server is None: return False
         while True:
             main_menu = menus.MainMenu(self.window, self.server)
             main_menu.player_name_input.process_event(pygame.event.Event(pygame.TEXTINPUT, {'text': self.player_name}))
@@ -109,7 +111,7 @@ class Client:
                 seed = create_world_menu.seed_text_box.get_text()
                 server_address = create_world_menu.server_address.get_text()
                 server_port = create_world_menu.server_port.get_text()
-                if not server_port.isnumeric(): return
+                if not server_port.isnumeric(): continue
                 new_server = ServerConnection(server_address, int(server_port))
                 try:
                     await new_server.start()
@@ -144,7 +146,7 @@ class Client:
                 host_address = join_world_menu.host_address_text_box.get_text().strip()
                 port_address = join_world_menu.host_port_text_box.get_text().strip()
                 game_name = join_world_menu.world_name_text_box.get_text().strip()
-                if not server_port.isnumeric(): return
+                if not port_address.isnumeric(): continue
                 new_server = ServerConnection(host_address, int(port_address))
                 try:
                     await new_server.start()
@@ -184,6 +186,7 @@ class Client:
                 
                 if exit_code == menus.BACK: continue
                 elif exit_code == menus.START_GAME:
+                    if menu.saves_list.child_selected is None: continue
                     save_name = menu.saves_list.child_selected.get_text()
                     await self.server.send_json({
                         'method': 'GET',
@@ -209,6 +212,7 @@ class Client:
         """
         Return True if it needs to escape the update function to directly go to the loop function
         """
+        if self.server is None or self.player is None: return False
         self.need_redraw = self.need_redraw or self._ui_manager.update()
         self.need_redraw = True                          
         self.player.place_back_dragged_item()
@@ -228,7 +232,7 @@ class Client:
                 settings_menu = menus.SettingsMenu(self.window, self.server, self.player.chunk_manager.nb_chunks_by_side, blocks.block_size)
                 exit_code = settings_menu.run()
                 self.last_time_in_menu = monotonic()
-                await self.player.chunk_manager.change_nb_chunks(settings_menu.slider_nb_chunks.get_value())
+                await self.player.chunk_manager.change_nb_chunks(int(settings_menu.slider_nb_chunks.get_value()))
                 new_block_size = settings_menu.slider_zoom.get_value()
                 if new_block_size != blocks.block_size:
                     blocks.block_size = new_block_size
@@ -280,12 +284,13 @@ class Client:
         """
         Returns True if the player wants to exit the program, False if only exiting the actual game
         """
+        if self.server is None: return
         try:
             self.player = Player(self.player_name, 0, Chunk.HEIGHT, 0, 0, False, self._ui_manager, self.server, images_name=self.player_images_name)
             self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
             await self.player.initialize_chunks()
             tasks = [asyncio.create_task(self.loop()), asyncio.create_task(self.process_socket_messages())]
-            done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+            _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             write_log(f"Stopped game")
             for p in pending:
                 p.cancel()
@@ -334,7 +339,7 @@ class Client:
                 self.player.hot_bar_inventory.set_selected_cell(i, 0)
                 self.need_redraw = True
         
-        additional_data: dict = {}
+        additional_data: dict[str, Any] = {}
         if self.server_actions_pressed_mouse_keys["place_block"]:
             if (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
                 additional_data['interacted_block'] = block_pos
@@ -347,7 +352,7 @@ class Client:
         actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
         actions.extend(action for action, is_done in self.server_actions_pressed_mouse_keys.items() if is_done)
         if actions:
-            data = {
+            data: dict[str, Any] = {
                     'type': 'update',
                     'actions': actions
             }
@@ -370,7 +375,7 @@ class Client:
                 write_log(f"Server sent message {message_dict}")
                 if 'data' not in message_dict:
                     continue
-                data = message_dict['data']
+                data: dict[str, Any] = message_dict['data']
                 if 'type' not in data: continue
                 match data['type']:
                     case 'player-update':
@@ -382,6 +387,9 @@ class Client:
                     case 'game-infos':
                         self.player.chunk_manager.create_map_generator(data)
                         self.need_redraw = True
+                    case type:
+                        write_log(f"Unknown type \"{type}\"", True)
+
         except BaseException as e:
             write_log(f'Error in process_socket_messages: {repr(e)}', is_err=True)
             write_log(f'Detail: {traceback.format_exc()}', is_err=True)
@@ -401,7 +409,7 @@ class Client:
                 self.others_players[player_name].update(player_data)
         if 'blocks' not in data: return
         for pos, block in zip(*data['blocks']):
-            self.player.chunk_manager.replace_block(*pos, blocks.REVERSED_BLOCKS_DICT[block])
+            self.player.chunk_manager.replace_block(pos[0], pos[1], blocks.REVERSED_BLOCKS_DICT[block])
 
     def display(self) -> None:
         self.window.fill("#000000")

@@ -42,7 +42,7 @@ class Entity(EntityInterface):
                 self.direction = value
 
 class DrawableEntity(Entity):
-    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, ui_manager: UIManager=None, add_path: str = '', collisions: bool = True, images_name: str="", name_displayed: bool=False) -> None:
+    def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, image_length: int, image_height: int, ui_manager: UIManager, add_path: str = '', collisions: bool = True, images_name: str="", name_displayed: bool=False) -> None:
         self._ui_manager = ui_manager
         self.name_displayed = name_displayed
         super().__init__(name, x, y, speed_x, speed_y, direction, image_length, image_height, collisions)

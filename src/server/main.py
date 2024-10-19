@@ -32,6 +32,8 @@ from logs import write_log
 import traceback
 from save_manager import SaveManager
 
+MESSAGE = dict[str, Any]
+
 class Server:
     WRONG_REQUEST = 0
     VALID_REQUEST = 1
@@ -44,11 +46,11 @@ class Server:
         # game, players addresses
         self.games: dict[Game, list[tuple[str, int]]] = {}
         # actions queue
-        self.games_queues: dict[Game, Queue] = {}
+        self.games_queues: dict[Game, Queue[MESSAGE]] = {}
         # player address, (player name, game)
         self.players: dict[tuple[str, int], tuple[str, Game]] = {}
         self.players_names: dict[str, tuple[str, int]] = {}
-        self.updates_queue = Queue()
+        self.updates_queue: Queue[tuple[str, MESSAGE]] = Queue()
     
     async def run(self) -> None:
         SaveManager.create_save_directory()
@@ -63,7 +65,7 @@ class Server:
     def close(self) -> None:
         self.server.close()
 
-    async def send_json(self, writer: asyncio.StreamWriter, request: dict) -> None:
+    async def send_json(self, writer: asyncio.StreamWriter, request: MESSAGE) -> None:
         json_request = json.dumps(request)
         write_log(f"Sending {request}")
         bytes_request = json_request.encode()
@@ -77,13 +79,13 @@ class Server:
         })
 
     async def send_data(self, writer: asyncio.StreamWriter, data: dict[Any, Any], status: int=VALID_REQUEST) -> None:
-        message = {
+        message: MESSAGE = {
             'status': status,
             'data': data
         }
         await self.send_json(writer, message)
 
-    async def receive_msg(self, reader: asyncio.StreamReader) -> dict:
+    async def receive_msg(self, reader: asyncio.StreamReader) -> MESSAGE:
         raw_msglen = await self.recvall(reader, 4)
         if not raw_msglen: return {}
         msglen = struct.unpack('>I', raw_msglen)[0]
@@ -150,7 +152,7 @@ class Server:
                 else:
                     write_log(f"Unknown client disconnected: `{addr}`")
 
-    async def get_data(self, request: dict, writer: asyncio.StreamWriter) -> dict|None:
+    async def get_data(self, request: MESSAGE, writer: asyncio.StreamWriter) -> MESSAGE|None:
         if not isinstance(request.get('data', None), dict):
             write_log(f"Bad request: missing 'data' in {request}")
             await self.send_invalid_request(writer)
@@ -162,7 +164,7 @@ class Server:
             return
         return data
 
-    async def get_values(self, data: dict, values: list[Any], writer: asyncio.StreamWriter) -> tuple[bool, list[Any]]:
+    async def get_values(self, data: MESSAGE, values: list[Any], writer: asyncio.StreamWriter) -> tuple[bool, list[Any]]:
         result_values: list[Any] = []
         for value in values:
             if value not in data:
@@ -172,9 +174,9 @@ class Server:
             result_values.append(data[value])
         return (True, result_values)
 
-    async def handle_get(self, request: dict, writer: asyncio.StreamWriter) -> None:
+    async def handle_get(self, request: MESSAGE, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
-        data: dict|None = await self.get_data(request, writer)
+        data: MESSAGE|None = await self.get_data(request, writer)
         if data is None: return
         match data['type']:
             case 'saves-list':
@@ -211,8 +213,8 @@ class Server:
                 write_log(f"Bad request: wrong value for data type: '{values}'")
                 await self.send_invalid_request(writer)
 
-    async def handle_delete(self, request: dict, writer: asyncio.StreamWriter) -> None:
-        data: dict|None = await self.get_data(request, writer)
+    async def handle_delete(self, request: MESSAGE, writer: asyncio.StreamWriter) -> None:
+        data: MESSAGE|None = await self.get_data(request, writer)
         if data is None: return
         match data['type']:
             case 'save':
@@ -226,9 +228,9 @@ class Server:
                 write_log(f"Bad request: wrong value for data type: '{value}'")
                 await self.send_invalid_request(writer)
 
-    async def handle_post(self, request: dict, writer: asyncio.StreamWriter) -> None:
+    async def handle_post(self, request: MESSAGE, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
-        data: dict|None = await self.get_data(request, writer)
+        data: MESSAGE|None = await self.get_data(request, writer)
         if data is None: return
         match data['type']:
             case 'update':
@@ -258,7 +260,7 @@ class Server:
             })
             # TODO: remove player from game
 
-    async def create_world(self, data: dict, writer: asyncio.StreamWriter) -> None:
+    async def create_world(self, data: MESSAGE, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
         success, values = await self.get_values(data, ['seed', 'save', 'player-name'], writer)
         if not success:
@@ -274,7 +276,7 @@ class Server:
             await self.send_invalid_request(writer)
             return
         
-        actions_queue = Queue()
+        actions_queue: Queue[MESSAGE] = Queue()
         game = Game(seed, save, actions_queue, self.updates_queue)
         asyncio.create_task(game.run())
         game.create_player(player_name, data.get('player-images-name', ''))
@@ -284,7 +286,7 @@ class Server:
         self.players_names[player_name] = addr
         await self.send_json(writer, {'status': self.VALID_REQUEST})
 
-    async def join_world(self, data: dict, writer: asyncio.StreamWriter) -> None:
+    async def join_world(self, data: MESSAGE, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
         if addr in self.players:
             write_log(f"Client {addr} tried to join game but was already playing: '{data}'")
@@ -305,7 +307,7 @@ class Server:
                 return
         await self.send_invalid_request(writer)
     
-    async def load_world(self, data: dict, writer: asyncio.StreamWriter) -> None:
+    async def load_world(self, data: MESSAGE, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
         if addr in self.players:
             write_log(f"Client {addr} tried to load game but was already playing: '{data}'")
@@ -318,10 +320,10 @@ class Server:
             return
         save_name, player_name = values
         if not SaveManager.save_already_exists(save_name):
-            self.send_invalid_request()
+            await self.send_invalid_request(writer)
             return
         
-        actions_queue = Queue()
+        actions_queue: Queue[MESSAGE] = Queue()
         game = Game(None, save_name, actions_queue, self.updates_queue)
         asyncio.create_task(game.run())
         game.create_player(player_name, data.get('player-images-name', ''))
@@ -332,7 +334,7 @@ class Server:
         await self.send_json(writer, {'status': self.VALID_REQUEST})
 
 
-def delete_folder(path) -> None:
+def delete_folder(path: str) -> None:
     for file in os.listdir(path):
         file_path = os.path.join(path, file)
         if os.path.isdir(file_path):

@@ -48,7 +48,7 @@ class MapGenerator:
             y: int = int(max(min(self.height_generator.generate(x + chunk.id*Chunk.LENGTH) + Chunk.HEIGHT // 2, Chunk.HEIGHT), 1))
             self.replace_blocks_vertically(chunk, x, 0, y, blocks.STONE)
             heights_sum += y
-        return (heights_sum / Chunk.LENGTH) * biomes.MAX_HEIGHT // 100
+        return int((heights_sum / Chunk.LENGTH) * biomes.MAX_HEIGHT // 100)
 
     def add_oceans(self, chunk: Chunk) -> None:
         for x in range(Chunk.LENGTH):
@@ -76,7 +76,7 @@ class MapGenerator:
                 last_height = min_height + add_y
 
     @staticmethod
-    def get_positions_for_ore_veins(chunk: Chunk, index: int, block: blocks.Block) -> list[tuple[int, int]]:
+    def get_positions_for_ore_veins(chunk: Chunk, index: int, block: blocks.Block) -> list[int]:
         pos: list[int] = []
         if index // Chunk.LENGTH != 0 and chunk.blocks[index - 1] == block:
             pos.append(index - 1)
@@ -125,7 +125,7 @@ class MapGenerator:
             if self.can_place_leave(chunk, position + y*Chunk.LENGTH):
                 chunk.blocks[position + y*Chunk.LENGTH] = leaves_block
 
-    def place_leaves_horizontally_and_vertically(self, min_y: int, max_y, min_x: int, max_x: int, step: int, tree: Tree, chunk: Chunk, position: int) -> None:
+    def place_leaves_horizontally_and_vertically(self, min_y: int, max_y: int, min_x: int, max_x: int, step: int, tree: Tree, chunk: Chunk, position: int) -> None:
         for x in range(min_x, max_x, step):
             min_y, max_y = min(min_y + random.randint(0, 1), -tree.min_leaves_height), max(max_y - random.randint(0, 1), tree.min_leaves_height)
             self.place_leaves_vertically(min_y, max_y + 1, chunk, position + x, tree.leaves_block)

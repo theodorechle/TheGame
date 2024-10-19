@@ -22,7 +22,7 @@ class SaveManager(SaveManagerInterface):
         os.makedirs(SAVES_PATH, exist_ok=True)
 
     @staticmethod
-    def save_already_exists(save_name) -> bool:
+    def save_already_exists(save_name: str) -> bool:
         return os.path.exists(os.path.join(SAVES_PATH, save_name))
 
     def init_repository(self) -> None:
@@ -32,7 +32,7 @@ class SaveManager(SaveManagerInterface):
         os.makedirs(self.chunks_path, exist_ok=True)
         os.makedirs(self.players_path, exist_ok=True)
 
-    def load_chunk(self, id: int) -> tuple[Chunk, dict[int, int]]:
+    def load_chunk(self, id: int) -> Chunk|dict[int, int]|None:
         try:
             with open(os.path.join(self.chunks_path, str(id) + '.json')) as f:
                 chunk_dict = json.load(f)
@@ -52,14 +52,14 @@ class SaveManager(SaveManagerInterface):
         if chunk is None: return
         diffs: dict[int, int] = chunk.get_diffs()
         if not diffs: return
-        chunk_dict = {
+        chunk_dict: dict[str, Any] = {
             'diffs': diffs,
             'version': CURRENT_VERSION
         }
         with open(os.path.join(self.chunks_path, str(chunk.id) + '.json'), 'w') as f:
             json.dump(chunk_dict, f)
     
-    def load_players(self) -> tuple[dict[str, dict[str, Any]], None]:
+    def load_players(self) -> dict[str, dict[str, Any]]|None:
         return
         players: dict[str, dict[str, Any]] = {}
         for player_file in os.listdir(self.players_path):
@@ -96,7 +96,7 @@ class SaveManager(SaveManagerInterface):
             with open(os.path.join(self.players_path, player.name + '.json'), 'w') as f:
                 json.dump(player_dict, f)
 
-    def load_generation_infos(self) -> tuple[dict[str, Any], None]:
+    def load_generation_infos(self) -> dict[str, Any]|None:
         try:
             with open(self.generation_infos_path) as f:
                 infos = json.load(f)

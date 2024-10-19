@@ -6,6 +6,7 @@ import sys
 import os
 from module_infos import SERVER_PATH
 from logs import write_log
+from typing import Any
 
 class ServerConnection:
     VALID_REQUEST = 1
@@ -18,7 +19,7 @@ class ServerConnection:
         self.port = port
         self.reader = None
         self.writer = None
-        self.server_process: subprocess.Popen|None = None
+        self.server_process: subprocess.Popen[bytes]|None = None
     
     def launch_local_server(self) -> None:
         if self.server_process is not None: return
@@ -40,6 +41,7 @@ class ServerConnection:
         write_log("Closed local server")
 
     async def stop(self) -> None:
+        if self.writer is None: return
         self.writer.close()
         await self.writer.wait_closed()
 
@@ -58,7 +60,8 @@ class ServerConnection:
             write_log(f"Connection error; reader: {self.reader}, writer: {self.writer}", True)
             raise ConnectionError
 
-    async def send_json(self, request: dict) -> None:
+    async def send_json(self, request: dict[str, Any]) -> None:
+        if self.writer is None: return
         json_request = json.dumps(request)
         write_log(f"Sending {request}")
         bytes_request = json_request.encode()
@@ -66,7 +69,7 @@ class ServerConnection:
         self.writer.write(message)
         await self.writer.drain()
     
-    async def receive_msg(self, ) -> dict:
+    async def receive_msg(self, ) -> dict[str, Any]:
         raw_msglen = await self.recvall(4)
         if not raw_msglen:
             return {}
@@ -77,6 +80,7 @@ class ServerConnection:
         return json.loads(message)    
     
     async def recvall(self, size: int) -> bytes:
+        if self.reader is None: return b''
         msg = b''
         while size:
             new_msg = await self.reader.readexactly(size)

@@ -1,5 +1,6 @@
 import blocks
 from generation.biomes import Biome, get_biome_environment_values
+from typing import Any
 
 class Chunk:
     LENGTH: int = 32
@@ -20,13 +21,13 @@ class Chunk:
         self.blocks[index] = block
         self.diffs.add(index)
 
-    def get_infos_dict(self) -> dict:
+    def get_infos_dict(self) -> dict[str, Any]:
         return {
             'id': self.id,
             'diffs': self.get_diffs()
         }
     
-    def get_all_infos_dict(self) -> dict:
+    def get_all_infos_dict(self) -> dict[str, Any]:
         return {
             'id': self.id,
             'biome': self.biome.name,

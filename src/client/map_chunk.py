@@ -37,7 +37,7 @@ class Chunk:
             (block.image, coords))
         )
     
-    def display_chunk(self, coords: tuple[int, int], surface: pygame.Surface) -> None:
+    def display_chunk(self, coords: tuple[float, float], surface: pygame.Surface) -> None:
         surface.blit(self._diplay_surface, coords)
 
     def __repr__(self) -> str:

@@ -10,7 +10,7 @@ from module_infos import RESOURCES_PATH
 BLOCKS_MENUS_THEMES_PATH = os.path.join(RESOURCES_PATH, 'gui_themes', 'blocks_menus')
 
 class BlockMenu():
-    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: pygame.Surface, *ui_manager_parameters) -> None:
+    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: pygame.Surface, *ui_manager_parameters: list[Any]) -> None:
         self.block_data = block_data
         self.player = player
         self.window = window

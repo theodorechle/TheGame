@@ -35,12 +35,12 @@ class MapGenerator:
     def set_infos(self, infos: dict[str, Any]):
         self.seed = infos['seed']
         self.are_last_biomes_forests = infos['are_last_biomes_forests']
-        self.last_biomes = [biomes.BIOMES[tuple(biome)] if biome is not None else biome for biome in infos['last_biomes']]
+        self.last_biomes = [biomes.BIOMES[$1|Nonebiome)] if biome is not None else biome for biome in infos['last_biomes']]
         self.biome_height_values = infos['biome_height_values']
         self.last_block_height_values = infos['last_block_height_values']
         self.temperature_values = infos['temperature_values']
         self.humidity_values = infos['humidity_values']
-        self.last_caves_pos_and_sizes = [[tuple(cave) for cave in infos_caves] for infos_caves in infos['last_caves_pos_and_sizes']]
+        self.last_caves_pos_and_sizes = [[$1|Nonecave) for cave in infos_caves] for infos_caves in infos['last_caves_pos_and_sizes']]
         
 
     def create_seeds(self) -> None:

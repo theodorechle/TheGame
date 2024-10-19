@@ -95,7 +95,7 @@ class Inventory(InventoryInterface):
                 break
         return added_quantity
     
-    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[tuple[items.Item, None, int]]:
+    def remove_element_at_pos(self, quantity: int, pos: int) -> tuple[items.Item|None, int]:
         """
         Tries to remove the quantity of the element in the inventory at pos.
         Returns the quantity effectively removed.
@@ -142,14 +142,14 @@ class Inventory(InventoryInterface):
         """
         Returns the quantity effectively removed
         """
-        removed_quantity = 0
+        removed_quantity: int = 0
         for index, cell in enumerate(self.cells):
             if cell[0] != element: continue
             removed_quantity += self.remove_element_at_pos(quantity - removed_quantity, index)[1]
             if quantity == removed_quantity: return removed_quantity
         return removed_quantity
 
-    def empty_cell(self, pos: int) -> tuple[tuple[items.Item, None, int]]:
+    def empty_cell(self, pos: int) -> tuple[items.Item|None, int]:
         """
         Empty the inventory's cell at pos.
         Returns a tuple containing the item in the cell and the quantity of it.
@@ -189,20 +189,14 @@ class Inventory(InventoryInterface):
         self.inventory_table.set_selected_child(self.inventory_table.get_element(x, y))
         self._selected = x + y*self.nb_cells_by_line
 
-    def get_selected_cell(self) -> tuple[UIElement, None]:
+    def get_selected_cell(self)  -> UIElement|None:
         return self.inventory_table.get_selected_element()
     
     def get_selected_index(self) -> int:
         return self._selected
     
-    def update_cells(self, new_cells: dict[int, int]) -> UIElement:
+    def update_cells(self, new_cells: dict[int, tuple[int, int]]) -> None:
         for index, item in new_cells.items():
             index = int(index)
             self.cells[index] = (items.REVERSED_ITEMS_DICT[item[0]], item[1])
             self.update_cell_display_element(index)
-
-def inventory_cells_to_ints(cells: list[tuple[items.Item|None, int]]) -> list[tuple[int, int]]:
-    return [(items.ITEMS_DICT[cell[0]], cell[1]) if cell[0] is not None else cell for cell in cells]
-
-def ints_to_inventory_cells(ints: list[tuple[int, int]]) -> tuple[list[tuple[items.Item, None, int]]]:
-    return [(items.REVERSED_ITEMS_DICT[cell[0]], cell[1]) if cell[0] is not None else cell for cell in ints]

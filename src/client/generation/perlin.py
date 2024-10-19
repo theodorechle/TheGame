@@ -13,15 +13,15 @@ class Perlin:
         self.generate_permutation_table()
 
     @staticmethod
-    def fade(t):
+    def fade(t: int) -> int:
         return t ** 3 * (t * (t * 6 - 15) + 10)
 
     @staticmethod
-    def lerp(t, a, b):
+    def lerp(t: float, a: float, b: float) -> float:
         return a + t * (b - a)
 
     @staticmethod
-    def gradient(h, x):
+    def gradient(h: int, x: float):
         g = 1 if h % 2 == 0 else -1
         return g * x
 
@@ -32,7 +32,7 @@ class Perlin:
         random.shuffle(self.permutation_table)
         random.setstate(state)
 
-    def perlin(self, x):
+    def perlin(self, x: float) -> float:
         # Handle negative coordinates by ensuring consistent wrapping
         x0 = int(np.floor(x)) & (self.grid_size - 1)
         x1 = (x0 + 1) & (self.grid_size - 1)
@@ -54,7 +54,7 @@ class Perlin:
         # Interpolate between the two corners
         return self.lerp(u, n0, n1)
 
-    def generate(self, x: int):
+    def generate(self, x: int) -> float:
         total = 0
         amplitude = 1
         frequency = self.frequency
