@@ -143,7 +143,7 @@ class Server:
                     game = self.players[addr][1]
                     game.remove_player(self.players[addr][0])
                     if game.get_nb_players() == 0:
-                        game.save()
+                        game.delete()
                         self.games.pop(game)
                         self.games_queues.pop(game)
                     self.players.pop(addr)
@@ -209,8 +209,8 @@ class Server:
                     'type': 'game-infos',
                     'infos': self.players[addr][1].get_infos()
                 })
-            case values:
-                write_log(f"Bad request: wrong value for data type: '{values}'")
+            case value:
+                write_log(f"Bad request: invalid for data type for GET: '{value}'")
                 await self.send_invalid_request(writer)
 
     async def handle_delete(self, request: MESSAGE, writer: asyncio.StreamWriter) -> None:
@@ -225,27 +225,26 @@ class Server:
                     if os.path.isdir(save_path):
                         delete_folder(save_path)
             case value:
-                write_log(f"Bad request: wrong value for data type: '{value}'")
+                write_log(f"Bad request: invalid for data type for DELETE: '{value}'")
                 await self.send_invalid_request(writer)
 
     async def handle_post(self, request: MESSAGE, writer: asyncio.StreamWriter) -> None:
         addr = writer.get_extra_info('peername')
+        player_name, game = self.players[addr]
         data: MESSAGE|None = await self.get_data(request, writer)
         if data is None: return
         match data['type']:
             case 'update':
                 success, values = await self.get_values(data, ['actions'], writer)
                 if not success: return
-                player_name, game = self.players[addr]
                 actions_queue = self.games_queues[game]
-                actions_queue.put({'name': player_name, 'actions': values[0], 'additional_data': data.get('additional_data')})
+                actions_queue.put({'name': player_name, 'actions': values[0], 'additional-data': data.get('additional-data')})
             case 'chunks':
                 success, values = await self.get_values(data, ['ids'], writer)
                 if not success: return
-                player_name, game = self.players[addr]
                 game.chunk_manager.save_chunks(player_name, values[0])
             case value:
-                write_log(f"Bad request: wrong value for data type: '{value}'")
+                write_log(f"Bad request: invalid for data type for POST: '{value}'")
                 await self.send_invalid_request(writer)
 
     async def process_updates(self) -> None:

@@ -51,28 +51,28 @@ class Client:
 
         # keys
         self.server_actions_keyboard_keys: dict[str, int] = {
-            "mv_left": pygame.K_q, # moves
-            "mv_right": pygame.K_d,
-            "mv_up": pygame.K_z,
+            "mv-left": pygame.K_q, # moves
+            "mv-right": pygame.K_d,
+            "mv-up": pygame.K_z,
             "interact": pygame.K_e
         }
 
         self.client_actions_keyboard_keys: dict[str, int] = {
-            "inv_0": pygame.K_1, # inventory
-            "inv_1": pygame.K_2,
-            "inv_2": pygame.K_3,
-            "inv_3": pygame.K_4,
-            "inv_4": pygame.K_5,
-            "inv_5": pygame.K_6,
-            "inv_6": pygame.K_7,
-            "inv_7": pygame.K_8,
-            "inv_8": pygame.K_9,
-            "inv_9": pygame.K_0,
-            "open_inv": pygame.K_i,
+            "inv-0": pygame.K_1, # inventory
+            "inv-1": pygame.K_2,
+            "inv-2": pygame.K_3,
+            "inv-3": pygame.K_4,
+            "inv-4": pygame.K_5,
+            "inv-5": pygame.K_6,
+            "inv-6": pygame.K_7,
+            "inv-7": pygame.K_8,
+            "inv-8": pygame.K_9,
+            "inv-9": pygame.K_0,
+            "open-inv": pygame.K_i,
         }
         self.server_actions_mouse_buttons: dict[str, int] = {
-            "place_block": pygame.BUTTON_LEFT,
-            "remove_block": pygame.BUTTON_RIGHT
+            "place-block": pygame.BUTTON_LEFT,
+            "remove-block": pygame.BUTTON_RIGHT
         }
         self.server_actions_pressed_keys: dict[str, bool] = {key: False for key in self.server_actions_keyboard_keys.keys()}
         self.client_actions_pressed_keys: dict[str, bool] = {key: False for key in self.client_actions_keyboard_keys.keys()}
@@ -214,8 +214,7 @@ class Client:
         """
         if self.server is None or self.player is None: return False
         self.need_redraw = self.need_redraw or self._ui_manager.update()
-        self.need_redraw = True                          
-        self.player.place_back_dragged_item()
+        self.need_redraw = True
         escape_menu = menus.EscapeMenu(self.window, self.server)
         while True:
             exit_code = escape_menu.run()
@@ -268,6 +267,13 @@ class Client:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     if self.last_time_in_menu < monotonic() - self.min_time_before_toggling_menu:
+                        await self.server.send_json({
+                            'method': 'POST',
+                            'data': {
+                                'type': 'update',
+                                'actions': ['place-back-item']
+                            }
+                        })
                         if await self.run_escape_menu(): return True
                 if self.process_event(self.server_actions_keyboard_keys, self.server_actions_pressed_keys, event.key, True): continue
                 if self.process_event(self.client_actions_keyboard_keys, self.client_actions_pressed_keys, event.key, True): continue
@@ -331,23 +337,26 @@ class Client:
         #         self.client_actions_pressed_keys[key] = random.randint(0, 1)
 
 
-        if self.client_actions_pressed_keys['open_inv']:
+        if self.client_actions_pressed_keys['open-inv']:
             self.player.main_inventory.toggle_inventory()
+            self.need_redraw = True
         
         for i in range(10):
-            if self.client_actions_pressed_keys[f'inv_{i}']:
+            if self.client_actions_pressed_keys[f'inv-{i}']:
                 self.player.hot_bar_inventory.set_selected_cell(i, 0)
                 self.need_redraw = True
         
         additional_data: dict[str, Any] = {}
-        if self.server_actions_pressed_mouse_keys["place_block"]:
-            if (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
-                additional_data['interacted_block'] = block_pos
+        if self.server_actions_pressed_mouse_keys["place-block"]:
+            if (item_pos := self.player.drag_item_in_inventories()) is not None:
+                additional_data['item-pos'] = item_pos
+            elif (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
+                additional_data['interacted-block'] = block_pos
                 additional_data['selected'] = self.player.hot_bar_inventory.get_selected_index()
         
-        if self.server_actions_pressed_mouse_keys["remove_block"]:
+        if self.server_actions_pressed_mouse_keys["remove-block"]:
             if (block_pos := self.player.remove_block(pygame.mouse.get_pos())) is not None:
-                additional_data['interacted_block'] = block_pos
+                additional_data['interacted-block'] = block_pos
 
         actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
         actions.extend(action for action, is_done in self.server_actions_pressed_mouse_keys.items() if is_done)
@@ -357,11 +366,12 @@ class Client:
                     'actions': actions
             }
             if additional_data:
-                data['additional_data'] = additional_data
+                data['additional-data'] = additional_data
             await self.server.send_json({
                 'method': 'POST',
                 'data': data
             })
+        if self.player.need_update(): self.need_redraw = True
 
     async def process_socket_messages(self) -> None:
         try:

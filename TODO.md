@@ -2,6 +2,39 @@
 
 Allow server to have a different ip and a different port (given in parameters)
 
+
+```
+(Sat Oct 19 22:06:49 2024) Sending {'method': 'POST', 'data': {'type': 'chunks', 'ids': [26]}}
+(Sat Oct 19 22:06:49 2024) Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+(Sat Oct 19 22:06:49 2024) Server sent message {'status': 1, 'data': {'players': {'Théodore': {'x': 15, 'y': 55, 'direction': False}, 'ta mère en short': {'x': 13, 'y': 55, 'direction': True}}, 'blocks': [[], []], 'type': 'player-update'}}
+(Sat Oct 19 22:06:49 2024) Sending {'method': 'POST', 'data': {'type': 'update', 'actions': ['mv_left']}}
+(Sat Oct 19 22:06:49 2024) Server sent message {'status': 1, 'data': {'type': 'chunk', 'chunk': {'id': 26, 'diffs': {}}}}
+(Sat Oct 19 22:06:49 2024) Error: Error in process_socket_messages: IndexError('list assignment index out of range')
+(Sat Oct 19 22:06:49 2024) Error: Detail: Traceback (most recent call last):
+  File "/home/hyrhoo/TheGame/src/client/main.py", line 385, in process_socket_messages
+    self.player.chunk_manager.set_chunk(message_dict)
+  File "/home/hyrhoo/TheGame/src/client/chunk_manager.py", line 163, in set_chunk
+    self.chunks[index] = self.map_generator.generate_chunk(id)
+    ~~~~~~~~~~~^^^^^^^
+IndexError: list assignment index out of range
+
+(Sat Oct 19 22:06:49 2024) Stopped game
+(Sat Oct 19 22:06:49 2024) Error: Error in loop: CancelledError()
+(Sat Oct 19 22:06:49 2024) Error: Detail: Traceback (most recent call last):
+  File "/home/hyrhoo/TheGame/src/client/main.py", line 314, in loop
+    await asyncio.sleep(0.05)
+  File "/usr/lib/python3.11/asyncio/tasks.py", line 639, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+(Sat Oct 19 22:06:49 2024) Created local server
+(Sat Oct 19 22:06:49 2024) Joining server at 127.0.0.1:12345
+```
+
+Sometimes, it don't refresh when it needs
+
+
 ## OTHER
 
 Saves:

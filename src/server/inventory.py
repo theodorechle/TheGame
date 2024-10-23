@@ -92,14 +92,15 @@ class Inventory(InventoryInterface):
             if quantity == removed_quantity: return removed_quantity
         return removed_quantity
 
-    def empty_cell(self, pos: int) -> tuple[tuple[items.Item, None, int]]:
+    def empty_cell(self, pos: int) -> tuple[items.Item, int]:
         """
         Empty the inventory's cell at pos.
-        Returns a $1|Nonecontaining the item in the cell and the quantity of it.
+        Returns a tuple containing the item in the cell and the quantity of it.
         """
         if 0 > pos or pos >= len(self.cells): return (items.NOTHING, 0)
         cell = self.cells[pos]
         self.cells[pos] = (items.NOTHING, 0)
+        self.indexes_to_update.add(pos)
         return cell
 
     def sort(self) -> None:

@@ -50,6 +50,7 @@ class Game:
 
     def remove_player(self, name: str) -> None:
         if name in self.players:
+            self.players[name].delete()
             self.players.pop(name)
             self.removed_players.append(name)
             self.chunk_manager.remove_player(name)
@@ -68,33 +69,35 @@ class Game:
     async def process_actions(self) -> None:
         while True:
             actions = await asyncio.get_running_loop().run_in_executor(None, self.actions_queue.get)
-            self.player_updates(actions['name'], actions['actions'], actions['additional_data'])
+            self.player_updates(actions['name'], actions['actions'], actions['additional-data'])
 
     def player_updates(self, player_name: str, actions: list[str], additional_data: dict[str, Any]|None) -> dict[str, Any]:
         if additional_data is None: additional_data = {}
         player = self.players[player_name]
         for action in actions:
             match action:
-                case 'mv_left':
+                case 'mv-left':
                     player.speed_x = -1
-                case 'mv_right':
+                case 'mv-right':
                     player.speed_x = 1
-                case 'mv_up':
+                case 'mv-up':
                     player.speed_y = 1
-                case 'place_block':
-                    if 'interacted_block' not in additional_data or 'selected' not in additional_data: continue
-                    block_pos = tuple(additional_data['interacted_block'])
-                    block = player.place_block(block_pos, additional_data['selected'])
-                    if block is not None: self.updated_blocks[block[1]] = block[0]
-                case 'remove_block':
-                    if 'interacted_block' not in additional_data: continue
-                    block_pos = tuple(additional_data['interacted_block'])
+                case 'place-block':
+                    if 'interacted-block' in additional_data and 'selected' in additional_data:
+                        block_pos = tuple(additional_data['interacted-block'])
+                        block = player.place_block(block_pos, additional_data['selected'])
+                        if block is not None: self.updated_blocks[block[1]] = block[0]
+                    else:
+                        if 'item-pos' not in additional_data: continue
+                        inventory_nb, cell_index = tuple(additional_data['item-pos'])
+                        player.select_item(inventory_nb, cell_index)
+                case 'remove-block':
+                    if 'interacted-block' not in additional_data: continue
+                    block_pos = tuple(additional_data['interacted-block'])
                     block = player.remove_block(block_pos)
                     if block is not None: self.updated_blocks[block[1]] = block[0]
-                case 'drag-item':
-                    if 'item-pos' not in additional_data: continue
-                    item_pos = tuple(additional_data['item-pos'])
-                    
+                case 'place-back-item':
+                    player.place_back_item()
                 case _:
                     write_log(f"Invalid player action '{action}'", True)
 
@@ -128,7 +131,9 @@ class Game:
             self.updated_blocks.clear()
             await asyncio.sleep(0.05)
 
-    def save(self) ->None:
+    def delete(self) ->None:
+        for player in self.players:
+            player.delete()
         self.chunk_manager
 
     def get_all_players_infos(self) -> dict[str, Any]:

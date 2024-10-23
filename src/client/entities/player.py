@@ -7,6 +7,7 @@ import items
 from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 from gui.ui_element import UIElement
+from gui.elements import Button, Label
 from time import monotonic
 from server_connection import ServerConnection
 from chunk_manager import ChunkManager
@@ -30,13 +31,16 @@ class Player(DrawableEntity, PlayerInterface):
         self.hot_bar_inventory = Inventory(10, ui_manager, classes_names=['hot-bar-inventory'], anchor='bottom')
         self.hot_bar_inventory.toggle_inventory()
         self.hot_bar_inventory.set_selected_cell(0, 0)
-        self._current_dragged_item: tuple[items.Item|None, int] = (items.NOTHING, 0)
-        self._dragged_item_index: int = -1
-        self._dragged_item_inventory: Inventory|None = None
+        self.update_needed = False
+
         self._dragged_item_element: UIElement|None = None
+
         self._last_time_clicked = 0
         self.min_time_before_click = 0.2
         self.set_player_edges_pos()
+
+    def need_update(self) -> bool:
+        return self.update_needed
 
     async def initialize_chunks(self) -> None:
         await self.chunk_manager.initialize_chunks(1)
@@ -46,14 +50,14 @@ class Player(DrawableEntity, PlayerInterface):
         super().display(self.x, self.y)
     
     def display_hud(self) -> None:
+        self.display_name(self.x, self.y)
         self.main_inventory.display()
         self.hot_bar_inventory.display()
-        self._display_infos()
         self.display_item_dragged_pos()
-        self.display_name(self.x, self.y)
+        self._display_infos()
 
     def display_item_dragged_pos(self) -> None:
-        if self._current_dragged_item[0] is not None:
+        if self._dragged_item_element is not None:
             self._dragged_item_element._first_coords = pygame.mouse.get_pos()
             self._dragged_item_element.update_element()
             self._ui_manager.ask_refresh(self._dragged_item_element)
@@ -78,48 +82,64 @@ class Player(DrawableEntity, PlayerInterface):
         y = -(y - self._ui_manager.get_window_size()[1] // 2) // blocks.block_size
         return x, y
 
-    def place_back_dragged_item(self) -> None:
-        if self._dragged_item_index == -1: return
-        item, qty = self._current_dragged_item
-        qty -= self._dragged_item_inventory.add_element_at_pos(item, qty, self._dragged_item_index)
-        if qty > 0:
-            qty -= self._dragged_item_inventory.add_element(item, qty)
-        if qty == 0:
-            item = items.NOTHING
-            self._dragged_item_index = -1
-            self._dragged_item_inventory = None
-            self._dragged_item_element = self._dragged_item_element.delete()
-        self._current_dragged_item = (item, qty)
-
-    def drag_item_in_inventories(self) -> bool:
-        if self._last_time_clicked + self.min_time_before_click > monotonic(): return False
-        cell = self.hot_bar_inventory.get_clicked_cell()
-        if cell != -1:
+    def drag_item_in_inventories(self) -> tuple[int, int]|None:
+        if self._last_time_clicked + self.min_time_before_click > monotonic(): return
+        cell_index = self.hot_bar_inventory.get_clicked_cell_index()
+        if cell_index != -1:
             inventory_nb = 0
         else:
-            cell = self.main_inventory.get_clicked_cell()
+            cell_index = self.main_inventory.get_clicked_cell_index()
+            if cell_index == -1: return
             inventory_nb = 1
-        if cell == -1: return False
-        # self.server.send_json({
-        #     'method': 'POST',
-        #     'data': {
-        #         'type': 'drag-item',
-        #         'additional_data': {
-        #             'item-pos': [inventory_nb, cell]
-        #         }
-        #     }
-        # })
+
         self._last_time_clicked = monotonic()
-        return True
+        self._ui_manager.unclick()
+        return (inventory_nb, cell_index)
+
+    def set_dragged_item(self, item: tuple[items.Item|None, int]) -> None:
+        if item == [-1, 0]:
+            self._dragged_item_element.delete()
+            self._dragged_item_element = None
+            return
+
+        self._dragged_item_element = Button(
+            self._ui_manager,
+            width=Inventory.CELL_SIZE,
+            height=Inventory.CELL_SIZE,
+            classes_names=['inventory-cell', 'dragged-item']
+        )
+        image_element: UIElement = self._dragged_item_element.add_element(
+            UIElement(
+                self._ui_manager,
+                width="80%",
+                height="80%",
+                anchor="center"
+            )
+        )
+        image_element._can_have_focus = False
+        if item[0] != -1:
+            image_element.set_background_image(items.REVERSED_ITEMS_DICT[item[0]].image)
+
+        str_qty = str(item[1]) if item[1] else ''
+        label = self._dragged_item_element.add_element(
+            Label(
+                self._ui_manager,
+                str_qty,
+                x="-10%",
+                y="-2%",
+                anchor="bottom-right",
+                classes_names=['inventory-cell-label']
+            )
+        )
+        label._can_have_focus = False
+        self.update_needed = True
 
     def place_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
-        if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
 
     def remove_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
-        if self.drag_item_in_inventories(): return None
         if self.main_inventory.is_opened(): return None
         x, y = self._get_relative_pos(*pos)
         return self.x + x, self.y + y
@@ -136,6 +156,7 @@ class Player(DrawableEntity, PlayerInterface):
         return None, None
 
     async def update(self, update_dict: dict[str, Any]) -> None:
+        self.update_needed = False
         await self.chunk_manager.update(self.x)
         for key, value in update_dict.items():
             if key == 'main_inventory':
@@ -146,4 +167,6 @@ class Player(DrawableEntity, PlayerInterface):
                 self.main_inventory.update_cells(value)
             elif key == 'hot_bar_inventory_updated':
                 self.hot_bar_inventory.update_cells(value)
+            elif key == 'set-dragged-item':
+                self.set_dragged_item(value)
         DrawableEntity.update(self, update_dict)

@@ -47,7 +47,7 @@ class ServerConnection:
 
     async def start(self) -> None:
         write_log(f"Joining server at {self.host}:{self.port}")
-        for nb_attempts in range(self.NB_CONNECTIONS_ATTEMPTS):
+        for nb_attempts in range(max(1, self.NB_CONNECTIONS_ATTEMPTS)):
             try:
                 self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.host, self.port), timeout=self.TIME_BEFORE_CANCELLING_CONNECTION_S)
             except (asyncio.TimeoutError, ConnectionError):
@@ -59,6 +59,7 @@ class ServerConnection:
         if self.reader is None or self.writer is None:
             write_log(f"Connection error; reader: {self.reader}, writer: {self.writer}", True)
             raise ConnectionError
+        write_log("Joined server")
 
     async def send_json(self, request: dict[str, Any]) -> None:
         if self.writer is None: return

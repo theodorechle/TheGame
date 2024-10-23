@@ -3,7 +3,6 @@ from entities.entity import Entity
 from inventory import Inventory
 from entities.player_interface import PlayerInterface
 import items
-from time import monotonic
 from chunk_manager import ChunkManager
 from typing import Any
 from conversions_items_blocks import convert_block_to_items, convert_item_to_block
@@ -17,11 +16,14 @@ class Player(Entity, PlayerInterface):
         self.inventory_size: int = 50
         self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
+        self.selected_item: tuple[items.Item, int] = (items.NOTHING, 0)
+        self.selected_item_index: int = -1
+        self.selected_item_inventory: Inventory|None = None
+        self.is_item_newly_selected = False
         self.set_player_edges_pos()
 
     def update(self, delta_t: float) -> bool:
-        self.item_clicked_last_frame = False
-        need_update = super().update(delta_t) or self.force_update
+        need_update = super().update(delta_t) or self.force_update or self.is_item_newly_selected
         self.force_update = False
         return need_update
 
@@ -114,6 +116,45 @@ class Player(Entity, PlayerInterface):
             return menu, (x, y)
         return None, None
 
+    def place_back_item(self) -> None:
+        if self.selected_item_index == -1: return
+        qty_added = self.hot_bar_inventory.add_element(*self.selected_item)
+        if qty_added != self.selected_item[1]:
+            qty_added += self.main_inventory.add_element(self.selected_item[0], self.selected_item[1] - qty_added)
+        self.selected_item = (items.NOTHING, 0) # remaining quantity magically disappears
+        self.selected_item_index = -1
+        self.selected_item_inventory = None
+        self.force_update = True
+        self.is_item_newly_selected = True
+
+    def select_item(self, inventory_nb: int, cell_index: int) -> None:        
+        inventory: Inventory
+        if inventory_nb == 0:
+            inventory = self.hot_bar_inventory
+        elif inventory_nb == 1:
+            inventory = self.main_inventory
+        else: return
+        if cell_index < 0 or cell_index > inventory._nb_cells: return
+
+        if self.selected_item_index != -1: # item already selected
+            qty_added = inventory.add_element_at_pos(*self.selected_item, cell_index)
+            if qty_added != self.selected_item[1]:
+                self.selected_item = (self.selected_item[0], self.selected_item[1] - qty_added)
+            else:
+                self.selected_item = (items.NOTHING, 0)
+                self.selected_item_index = -1
+                self.selected_item_inventory = None
+        else: # no item selected
+            self.selected_item = inventory.empty_cell(cell_index)
+            if self.selected_item[0] == items.NOTHING: return
+            self.selected_item_index = cell_index
+            self.selected_item_inventory = inventory
+        self.is_item_newly_selected = True
+        self.force_update = True
+
+    def delete(self) -> None:
+        self.place_back_item()
+
     def get_all_infos(self) -> dict[str, Any]:
         return {
             'x': self.x,
@@ -135,4 +176,7 @@ class Player(Entity, PlayerInterface):
         update_hot_bar_inventory = self.hot_bar_inventory.get_updated_items()
         if update_hot_bar_inventory:
             infos['hot_bar_inventory_updated'] = update_hot_bar_inventory
+        if self.is_item_newly_selected:
+            infos['set-dragged-item'] = self.selected_item
+        self.is_item_newly_selected = False
         return infos

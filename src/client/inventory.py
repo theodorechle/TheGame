@@ -7,21 +7,21 @@ from math import ceil
 from inventory_interface import InventoryInterface
 
 class Inventory(InventoryInterface):
+    CELL_SIZE = 40
     def __init__(self, nb_cells: int, ui_manager: UIManager, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
         super().__init__(nb_cells)
         self._is_opened = False
         self._ui_manager = ui_manager
         self.nb_cells_by_line = min(10, self._nb_cells)
         # ui elements initialization
-        self.cell_size = 40
         if classes_names is None:
             classes_names = []
         self.inventory_table = Table(
             self._ui_manager,
             self.nb_cells_by_line,
             ceil(self._nb_cells / self.nb_cells_by_line),
-            self.cell_size,
-            self.cell_size,
+            self.CELL_SIZE,
+            self.CELL_SIZE,
             cells_classes_names=classes_names+['inventory-cell'],
             anchor=anchor,
             visible=self._is_opened)
@@ -35,7 +35,7 @@ class Inventory(InventoryInterface):
             text = str(cell[1])
             if text == '0':
                 text = ''
-            label = Label(self._ui_manager, text, anchor="bottom-right", x="-10%", y="-2%", classes_names=['inventory-cell-label'])
+            label = Label(self._ui_manager, text, x="-10%", y="-2%", anchor="bottom-right", classes_names=['inventory-cell-label'])
             label._can_have_focus = False
             element.add_element(label)
             if cell[0] is not None:
@@ -179,7 +179,8 @@ class Inventory(InventoryInterface):
     def is_opened(self) -> bool:
         return self._is_opened
 
-    def get_clicked_cell(self) -> int:
+    def get_clicked_cell_index(self) -> int:
+        if not self.inventory_table.get_visibility(): return -1
         for index in range(self._nb_cells):
             if self.inventory_table.get_element_by_index(index)._clicked:
                 return index
