@@ -27,7 +27,7 @@ class Game:
         map_generator = MapGenerator(seed)
         self.chunk_manager = ChunkManager(map_generator, self.save_manager)
         self.players: dict[str, Player] = {}
-        self.updated_blocks: dict[tuple[int, int], Item] = {}
+        self.updated_blocks: dict[int, Item] = {}
         self.new_players: list[str] = []
         self.removed_players: list[str] = []
         self.UPDATE_DELAY_MS = 50
@@ -84,16 +84,23 @@ class Game:
                     player.speed_y = 1
                 case 'place-block':
                     if 'interacted-block' in additional_data and 'selected' in additional_data:
+                        if not isinstance(additional_data['interacted-block'], list) or not isinstance(additional_data['selected'], int): return
                         block_pos = tuple(additional_data['interacted-block'])
+                        if not isinstance(block_pos[0], int) or not isinstance(block_pos[1], int): return
+
                         block = player.place_block(block_pos, additional_data['selected'])
                         if block is not None: self.updated_blocks[block[1]] = block[0]
                     else:
                         if 'item-pos' not in additional_data: continue
+                        if not isinstance(additional_data['item-pos'], list): return
                         inventory_nb, cell_index = tuple(additional_data['item-pos'])
+                        if not isinstance(inventory_nb, int) or not isinstance(cell_index, int): return
                         player.select_item(inventory_nb, cell_index)
                 case 'remove-block':
                     if 'interacted-block' not in additional_data: continue
+                    if not isinstance(additional_data['interacted-block'], list): return
                     block_pos = tuple(additional_data['interacted-block'])
+                    if not isinstance(block_pos[0], int) or not isinstance(block_pos[1], int): return
                     block = player.remove_block(block_pos)
                     if block is not None: self.updated_blocks[block[1]] = block[0]
                 case 'place-back-item':
