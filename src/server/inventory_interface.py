@@ -9,6 +9,8 @@ class InventoryInterface(metaclass=ABCMeta):
         else:
             self.cells: list[tuple[int, int]] = [(-1, 0) for _ in range(self._nb_cells)] # list of list with items and quantities
 
+    def get_nb_cells(self) -> int:
+        return self._nb_cells
     
     @abstractmethod
     def add_element_at_pos(self, element: items.Item, quantity: int, pos: int) -> int:

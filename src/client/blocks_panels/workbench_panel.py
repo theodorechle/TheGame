@@ -5,6 +5,7 @@ from recipes import WORKBENCH_RECIPES, craft
 from entities.player_interface import PlayerInterface
 from blocks_panels.block_panel import BLOCKS_MENUS_THEMES_PATH
 from blocks_panels.craft_panel import CraftPanel
+from time import monotonic
 import os
 from typing import Any
 
@@ -28,7 +29,8 @@ class WorkbenchPanel(CraftPanel):
         self._elements.append(self.crafted_quantities)
         self._elements.append(elements.TextButton(self._ui_manager, 'Craft', self._craft, anchor='center', x='45%'))
         self.add_crafts()
-    
+        self.entered_time = monotonic()
+
     def add_crafts(self) -> None:
         self.crafts_list.add_elements(list(WORKBENCH_RECIPES.keys()))
     

@@ -146,7 +146,7 @@ class Player(Entity, PlayerInterface):
         elif inventory_nb == 1:
             inventory = self.main_inventory
         else: return
-        if cell_index < 0 or cell_index > inventory._nb_cells: return
+        if cell_index < 0 or cell_index > inventory.get_nb_cells(): return
 
         if self.selected_item_index != -1: # item already selected
             qty_added = inventory.add_element_at_pos(*self.selected_item, cell_index)

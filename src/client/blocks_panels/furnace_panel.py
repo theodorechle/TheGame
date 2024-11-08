@@ -8,6 +8,7 @@ from inventory import Inventory
 from blocks_panels.craft_panel import CraftPanel
 from blocks_panels.block_panel import BLOCKS_MENUS_THEMES_PATH
 from module_infos import RESOURCES_PATH
+from time import monotonic
 import os
 from typing import Any
 
@@ -37,7 +38,8 @@ class FurnacePanel(CraftPanel):
             self.block_data['inventory'] = FurnaceInventory(5, self._ui_manager)
         self.block_inventory = self.block_data['inventory']
         self.add_crafts()
-    
+        self.entered_time = monotonic()
+
     def add_crafts(self) -> None:
         self.crafts_list.add_elements(list(FURNACE_RECIPES.keys()))
     

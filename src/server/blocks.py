@@ -35,5 +35,5 @@ SWIMMABLE_BLOCKS = [
 
 BLOCKS_INTERFACES: dict[Block, BlockPanel] = {
     WORKBENCH: WorkbenchPanel,
-    # FURNACE: FurnacePanel
+    FURNACE: FurnacePanel
 }
