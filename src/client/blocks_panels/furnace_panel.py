@@ -1,7 +1,7 @@
 from pygame import Surface
 from gui import elements
 from gui.ui_element import UIElement
-from recipes import FURNACE_RECIPES, smelt
+from recipes import FURNACE_RECIPES
 from entities.player_interface import PlayerInterface
 from furnace_inventory import FurnaceInventory
 from inventory import Inventory
@@ -9,14 +9,23 @@ from blocks_panels.craft_panel import CraftPanel
 from blocks_panels.block_panel import BLOCKS_MENUS_THEMES_PATH
 from module_infos import RESOURCES_PATH
 from time import monotonic
+from items import ITEMS_DICT
 import os
 from typing import Any
 
 class FurnacePanel(CraftPanel):
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface, *ui_manager_parameters: list[Any]) -> None:
         super().__init__(block_data, player, window, ui_manager_parameters)
-        self.temp_player_inventory = Inventory(player.main_inventory.get_nb_cells() + player.hot_bar_inventory.get_nb_cells(), self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
-        self.temp_player_inventory.toggle_inventory()
+        self.hot_bar_inventory = Inventory(player.hot_bar_inventory.get_nb_cells(), self._ui_manager, anchor='bottom')
+        self.hot_bar_inventory.set_cells([[ITEMS_DICT[cell[0]], cell[1]] for cell in player.hot_bar_inventory.cells])
+        self.hot_bar_inventory.set_classes("hot_bar_inventory_furnace_panel")
+        self.hot_bar_inventory.set_anchor("bottom")
+        self.main_inventory = Inventory(player.main_inventory.get_nb_cells(), self._ui_manager, anchor='bottom')
+        self.main_inventory.set_cells([[ITEMS_DICT[cell[0]], cell[1]] for cell in player.main_inventory.cells])
+        self.main_inventory.set_classes("main_inventory_furnace_panel")
+        self.main_inventory.set_anchor("bottom")
+        self.hot_bar_inventory.show()
+        self.main_inventory.show()
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'furnace_menu_theme.json'))
         self._ui_manager.update_theme(os.path.join(RESOURCES_PATH, 'gui_themes', 'inventory.json'))
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', items_classes_names=['craft-list-childs'], on_select_item_function=self.select_craft)
@@ -69,4 +78,9 @@ class FurnacePanel(CraftPanel):
             self.crafted_quantities.add_element(str(item[1]))
 
     def update_after_craft(self) -> None:
-        self.select_craft
+        self.select_craft()
+
+    def close(self) -> None:
+        self._ui_manager.remove_element(self.main_inventory)
+        self._ui_manager.remove_element(self.hot_bar_inventory)
+        return super().close()

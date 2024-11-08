@@ -66,6 +66,7 @@ Others:
 - Maybe go to C or C++ with SDL2
 - Put games in separated processes
 - Put different parts of games in separate threads to allow them running concurrently
+- Add an DrawableInventory class
 
 ## GENERATION:
 

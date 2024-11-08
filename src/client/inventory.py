@@ -46,7 +46,16 @@ class Inventory(InventoryInterface):
         # timers
         self._last_time_toggled = 0
         self.time_before_toggle = 0.2
-    
+
+    def set_classes(self, classes_name: list[str]):
+        self.inventory_table.classes_names = classes_name
+        self._ui_manager.update_element_theme(self.inventory_table, True)
+
+    def set_anchor(self, anchor: str):
+        self.inventory_table.anchor = anchor
+        self.inventory_table.update_element()
+        self._ui_manager.ask_refresh(self.inventory_table)
+
     def update_cell_display_element(self, index: int) -> None:
         if index >= self._nb_cells: return
         cell = self.cells[index]
@@ -93,7 +102,7 @@ class Inventory(InventoryInterface):
     def display(self) -> None:
         self._ui_manager.ask_refresh(self.inventory_table)
 
-    def toggle_inventory(self) -> bool:
+    def toggle(self) -> bool:
         """
         Returns whether it needs a screen update or not
         """
@@ -102,6 +111,18 @@ class Inventory(InventoryInterface):
         self._last_time_toggled = monotonic()
         self.inventory_table.set_visibility(self._is_opened)
         return True
+    
+    def show(self) -> None:
+        if self._last_time_toggled > monotonic() - self.time_before_toggle: return
+        self._is_opened = True 
+        self._last_time_toggled = monotonic()
+        self.inventory_table.set_visibility(self._is_opened)
+    
+    def hide(self) -> None:
+        if self._last_time_toggled > monotonic() - self.time_before_toggle: return
+        self._is_opened = False
+        self._last_time_toggled = monotonic()
+        self.inventory_table.set_visibility(self._is_opened)
     
     def is_opened(self) -> bool:
         return self._is_opened

@@ -354,7 +354,7 @@ class Client:
 
 
             if self.client_actions_pressed_keys['open-inv']:
-                self.player.main_inventory.toggle_inventory()
+                self.player.main_inventory.toggle()
                 self.need_redraw = True
             
             for i in range(10):

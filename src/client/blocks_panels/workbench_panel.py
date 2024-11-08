@@ -1,7 +1,7 @@
 from pygame import Surface
 from gui import elements
 from gui.ui_element import UIElement
-from recipes import WORKBENCH_RECIPES, craft
+from recipes import WORKBENCH_RECIPES
 from entities.player_interface import PlayerInterface
 from blocks_panels.block_panel import BLOCKS_MENUS_THEMES_PATH
 from blocks_panels.craft_panel import CraftPanel

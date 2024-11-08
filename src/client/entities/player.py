@@ -28,7 +28,7 @@ class Player(DrawableEntity, PlayerInterface):
         self.inventory_size: int = 50
         self.main_inventory = Inventory(self.inventory_size - 10, ui_manager, classes_names=['main-inventory'], anchor='center')
         self.hot_bar_inventory = Inventory(10, ui_manager, classes_names=['hot-bar-inventory'], anchor='bottom')
-        self.hot_bar_inventory.toggle_inventory()
+        self.hot_bar_inventory.toggle()
         self.hot_bar_inventory.set_selected_cell(0, 0)
         self.update_needed = False
 
