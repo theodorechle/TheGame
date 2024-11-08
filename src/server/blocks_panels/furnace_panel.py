@@ -2,10 +2,10 @@
 from entities.player_interface import PlayerInterface
 # from furnace_inventory import FurnaceInventory
 from inventory import Inventory
-from blocks_interfaces.block_interface import BlockInterface
+from blocks_panels.craft_panel import CraftPanel
 from typing import Any
 
-class FurnaceInterface(BlockInterface):
+class FurnacePanel(CraftPanel):
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface) -> None:
         super().__init__(block_data, player)
         self.temp_player_inventory = Inventory(player.main_inventory.get_nb_cells() + player.hot_bar_inventory.get_nb_cells(), self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
@@ -18,7 +18,7 @@ class FurnaceInterface(BlockInterface):
     def add_crafts(self) -> None:
         self.crafts_list.add_elements(list(FURNACE_RECIPES.keys()))
     
-    def craft_item(self) -> None:
+    def craft(self) -> None:
         selected_craft = self.crafts_list.child_selected
         if selected_craft is None: return
         if smelt(selected_craft.get_text(), FURNACE_RECIPES, self.block_inventory, self.player.hot_bar_inventory, self.player.main_inventory):

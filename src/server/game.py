@@ -107,6 +107,9 @@ class Game:
                         if block is None: continue
                 case 'stop-interact':
                     player.stop_interacting_with_block()
+                case 'craft':
+                    if 'craft-name' in additional_data:
+                        player.craft(additional_data['craft-name'])
                 case _:
                     write_log(f"Invalid player action '{action}'", True)
 

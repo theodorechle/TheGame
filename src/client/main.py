@@ -21,7 +21,7 @@ from entities.player import Player
 from entities.entity import DrawableEntity
 import blocks
 from map_chunk import Chunk
-from blocks_interfaces import block_interface
+from blocks_panels.panels import BlockPanel, CraftPanel
 from typing import Any
 import asyncio
 import traceback
@@ -44,7 +44,7 @@ class Client:
         self.last_time_in_menu: float = 0
         self.min_time_before_toggling_menu: float = 0.3
 
-        self.opened_block_interface: block_interface.BlockInterface|None = None
+        self.opened_block_panel: BlockPanel|None = None
         # UI
         self.window = window
         self._ui_manager = UIManager(self.window)
@@ -325,60 +325,61 @@ class Client:
             write_log(f'Detail: {traceback.format_exc()}', is_err=True)
 
     async def update(self) -> None:
-        if self.opened_block_interface is not None:
-            if self.opened_block_interface.process_events(self.server_actions_keyboard_keys['interact']):
-                await self.server.send_json({
-                    'method': 'POST',
-                    'data': {
-                        'type': 'update',
-                        'actions': ['stop-interact']
-                    }
-                })
-            self.need_redraw = self.need_redraw or self.opened_block_interface.update()
-            return
-        elif await self.process_events(): return
-
-        # sending random data to the server for DEBUG ONLY
-
-        # import random
-        
-        # for key in self.server_actions_pressed_mouse_keys.keys():
-        #     self.server_actions_pressed_mouse_keys[key] = random.randint(0, 1)
-
-        # for key in self.server_actions_pressed_keys.keys():
-        #     self.server_actions_pressed_keys[key] = random.randint(0, 1)
-
-        # for key in self.client_actions_pressed_keys.keys():
-        #         self.client_actions_pressed_keys[key] = random.randint(0, 1)
-
-
-        if self.client_actions_pressed_keys['open-inv']:
-            self.player.main_inventory.toggle_inventory()
-            self.need_redraw = True
-        
-        for i in range(10):
-            if self.client_actions_pressed_keys[f'inv-{i}']:
-                self.player.hot_bar_inventory.set_selected_cell(i, 0)
-                self.need_redraw = True
-        
+        actions: list[str] = []
         additional_data: dict[str, Any] = {}
-        if self.server_actions_pressed_mouse_keys["place-block"]:
-            if (item_pos := self.player.drag_item_in_inventories()) is not None:
-                additional_data['item-pos'] = item_pos
-            elif (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
-                additional_data['interacted-block'] = block_pos
-                additional_data['selected'] = self.player.hot_bar_inventory.get_selected_index()
-        
-        if self.server_actions_pressed_mouse_keys["remove-block"]:
-            if (block_pos := self.player.remove_block(pygame.mouse.get_pos())) is not None:
-                additional_data['interacted-block'] = block_pos
 
-        if self.server_actions_pressed_keys["interact"]:
-            if (block_pos := self.player.interact_with_block(pygame.mouse.get_pos())) is not None:
-                additional_data['interacted-block'] = block_pos
+        if self.opened_block_panel is not None:
+            if self.opened_block_panel.process_events(self.server_actions_keyboard_keys['interact']):
+                actions.append('stop-interact')
+            if isinstance(self.opened_block_panel, CraftPanel):
+                craft_name: str|None = self.opened_block_panel.get_item_to_craft()
+                if craft_name is not None:
+                    actions.append('craft')
+                    additional_data['craft-name'] = craft_name
+        else:
+            if await self.process_events(): return
 
-        actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
-        actions.extend(action for action, is_done in self.server_actions_pressed_mouse_keys.items() if is_done)
+            # sending random data to the server for DEBUG ONLY
+
+            # import random
+            
+            # for key in self.server_actions_pressed_mouse_keys.keys():
+            #     self.server_actions_pressed_mouse_keys[key] = random.randint(0, 1)
+
+            # for key in self.server_actions_pressed_keys.keys():
+            #     self.server_actions_pressed_keys[key] = random.randint(0, 1)
+
+            # for key in self.client_actions_pressed_keys.keys():
+            #         self.client_actions_pressed_keys[key] = random.randint(0, 1)
+
+
+            if self.client_actions_pressed_keys['open-inv']:
+                self.player.main_inventory.toggle_inventory()
+                self.need_redraw = True
+            
+            for i in range(10):
+                if self.client_actions_pressed_keys[f'inv-{i}']:
+                    self.player.hot_bar_inventory.set_selected_cell(i, 0)
+                    self.need_redraw = True
+            
+            if self.server_actions_pressed_mouse_keys["place-block"]:
+                if (item_pos := self.player.drag_item_in_inventories()) is not None:
+                    additional_data['item-pos'] = item_pos
+                elif (block_pos := self.player.place_block(pygame.mouse.get_pos())) is not None:
+                    additional_data['interacted-block'] = block_pos
+                    additional_data['selected'] = self.player.hot_bar_inventory.get_selected_index()
+            
+            if self.server_actions_pressed_mouse_keys["remove-block"]:
+                if (block_pos := self.player.remove_block(pygame.mouse.get_pos())) is not None:
+                    additional_data['interacted-block'] = block_pos
+
+            if self.server_actions_pressed_keys["interact"]:
+                if (block_pos := self.player.interact_with_block(pygame.mouse.get_pos())) is not None:
+                    additional_data['interacted-block'] = block_pos
+
+            actions = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
+            actions.extend(action for action, is_done in self.server_actions_pressed_mouse_keys.items() if is_done)
+
         if actions:
             data: dict[str, Any] = {
                     'type': 'update',
@@ -391,7 +392,7 @@ class Client:
                 'data': data
             })
         self.server_actions_pressed_keys['interact'] = False
-        if self.opened_block_interface is not None and self.opened_block_interface.update(): self.need_redraw = True
+        if self.opened_block_panel is not None and self.opened_block_panel.update(): self.need_redraw = True
         elif self.player.need_update(): self.need_redraw = True
 
     async def process_socket_messages(self) -> None:
@@ -434,11 +435,14 @@ class Client:
                     write_log(f"Can't open interface of {player_data['open-interface']}", True)
                     block_menu = blocks.BLOCKS_INTERFACES[player_data['open-interface']]
                     block_data = {} # TODO: set a true block_data dict
-                    self.opened_block_interface = block_menu(block_data, self.player, self.window)
+                    self.opened_block_panel = block_menu(block_data, self.player, self.window)
                 elif 'close-interface' in player_data:
-                    self.opened_block_interface.close()
-                    self.opened_block_interface = None
+                    self.opened_block_panel.close()
+                    self.opened_block_panel = None
                     self.need_redraw = True
+                elif 'crafted' in player_data:
+                    if isinstance(self.opened_block_panel, CraftPanel):
+                        self.opened_block_panel.update_after_craft()
             else:
                 if 'removed' in player_data:
                     self.others_players[player_name].delete()
@@ -452,8 +456,8 @@ class Client:
             self.player.chunk_manager.replace_block(pos[0], pos[1], blocks.REVERSED_BLOCKS_DICT[block])
 
     def display(self) -> None:
-        if self.opened_block_interface is not None:
-            self.opened_block_interface.display()
+        if self.opened_block_panel is not None:
+            self.opened_block_panel.display()
         else:
             self.window.fill("#000000")
             self.player.display()

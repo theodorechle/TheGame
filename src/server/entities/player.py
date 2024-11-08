@@ -6,7 +6,7 @@ import items
 from chunk_manager import ChunkManager
 from typing import Any
 from conversions_items_blocks import convert_block_to_items, convert_item_to_block
-from blocks_interfaces.block_interface import BlockInterface
+from blocks_panels.panels import BlockPanel, CraftPanel
 
 class Player(Entity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, chunk_manager: ChunkManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None, images_name: str="") -> None:
@@ -20,7 +20,7 @@ class Player(Entity, PlayerInterface):
         self.selected_item: tuple[items.Item, int] = (items.NOTHING, 0)
         self.selected_item_index: int = -1
         self.selected_item_inventory: Inventory|None = None
-        self.opened_block_interface: BlockInterface|None = None
+        self.opened_block_panel: BlockPanel|None = None
         self.additional_infos: dict[str, Any] = {}
         self.set_player_edges_pos()
 
@@ -112,15 +112,21 @@ class Player(Entity, PlayerInterface):
         if not self._is_interactable(block_x - self.x, block_y - self.y): return
         block = self.chunk_manager.get_block(block_x, block_y)
         if block in blocks.BLOCKS_INTERFACES:
-            self.opened_block_interface = blocks.BLOCKS_INTERFACES[block]({}, self)
+            self.opened_block_panel = blocks.BLOCKS_INTERFACES[block]({}, self)
             self.additional_infos['open-interface'] = block
             return block
 
     def stop_interacting_with_block(self) -> None:
-        if self.opened_block_interface is None: return
-        self.opened_block_interface.close()
-        self.opened_block_interface = None
+        if self.opened_block_panel is None: return
+        self.opened_block_panel.close()
+        self.opened_block_panel = None
         self.additional_infos['close-interface'] = True
+
+    def craft(self, craft_name: str) -> None:
+        if self.opened_block_panel is None: return
+        if isinstance(self.opened_block_panel, CraftPanel):
+            self.opened_block_panel.craft(craft_name)
+            self.additional_infos['crafted'] = True
 
     def place_back_item(self) -> None:
         if self.selected_item_index == -1: return

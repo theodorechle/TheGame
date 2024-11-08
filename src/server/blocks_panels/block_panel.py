@@ -2,7 +2,7 @@ from time import monotonic
 from typing import Any
 from entities.player_interface import PlayerInterface
 
-class BlockInterface():
+class BlockPanel():
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface) -> None:
         self.block_data = block_data
         self.player = player
@@ -31,6 +31,6 @@ class BlockInterface():
     
     # def display(self, clear: bool=True) -> None:
     #     self._ui_manager.display(clear)
-
+    
     def close(self) -> None:
         ...

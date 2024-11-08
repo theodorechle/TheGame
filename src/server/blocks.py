@@ -1,4 +1,4 @@
-from blocks_interfaces.interfaces import BlockInterface, WorkbenchInterface, FurnaceInterface
+from blocks_panels.panels import BlockPanel, WorkbenchPanel, FurnacePanel
 
 Block = int
 
@@ -33,7 +33,7 @@ SWIMMABLE_BLOCKS = [
     LAVA
 ]
 
-BLOCKS_INTERFACES: dict[Block, BlockInterface] = {
-    WORKBENCH: WorkbenchInterface,
-    # FURNACE: FurnaceMenu
+BLOCKS_INTERFACES: dict[Block, BlockPanel] = {
+    WORKBENCH: WorkbenchPanel,
+    # FURNACE: FurnacePanel
 }

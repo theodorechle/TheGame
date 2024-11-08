@@ -1,0 +1,4 @@
+from blocks_panels.block_panel import BlockPanel
+from blocks_panels.craft_panel import CraftPanel
+from blocks_panels.furnace_panel import FurnacePanel
+from blocks_panels.workbench_panel import WorkbenchPanel

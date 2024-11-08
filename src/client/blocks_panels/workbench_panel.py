@@ -3,11 +3,12 @@ from gui import elements
 from gui.ui_element import UIElement
 from recipes import WORKBENCH_RECIPES, craft
 from entities.player_interface import PlayerInterface
-from blocks_interfaces.block_interface import BlockInterface, BLOCKS_MENUS_THEMES_PATH
+from blocks_panels.block_panel import BLOCKS_MENUS_THEMES_PATH
+from blocks_panels.craft_panel import CraftPanel
 import os
 from typing import Any
 
-class WorkbenchInterface(BlockInterface):
+class WorkbenchPanel(CraftPanel):
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface, *ui_manager_parameters: list[Any]) -> None:
         super().__init__(block_data, player, window, ui_manager_parameters)
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'workbench_menu_theme.json'))
@@ -25,22 +26,19 @@ class WorkbenchInterface(BlockInterface):
         self._elements.append(self.crafted_items)
         self.crafted_quantities = elements.ItemList(self._ui_manager, anchor='left', x='85%', width='5%', height='50%')
         self._elements.append(self.crafted_quantities)
-        self._elements.append(elements.TextButton(self._ui_manager, 'Craft', self.craft_item, anchor='center', x='45%'))
+        self._elements.append(elements.TextButton(self._ui_manager, 'Craft', self._craft, anchor='center', x='45%'))
         self.add_crafts()
     
     def add_crafts(self) -> None:
         self.crafts_list.add_elements(list(WORKBENCH_RECIPES.keys()))
     
-    def craft_item(self, _: UIElement) -> None:
+    def _get_selected_craft(self) -> str|None:
         selected_craft = self.crafts_list.child_selected
-        if selected_craft is None: return
-        if craft(selected_craft.get_text(), WORKBENCH_RECIPES, self.player.hot_bar_inventory, self.player.main_inventory):
-            self.need_update = True
-            self.select_craft(self.crafts_list.child_selected)
-    
-    def select_craft(self, button: elements.TextButton) -> None:
-        craft_name = button.get_text()
-        if craft_name not in WORKBENCH_RECIPES: return
+        return None if selected_craft is None else selected_craft.get_text()
+
+    def select_craft(self, _: UIElement|None=None) -> None:
+        craft_name = self._get_selected_craft()
+        if craft_name is None or craft_name not in WORKBENCH_RECIPES: return
         needed_items, crafted_items = WORKBENCH_RECIPES[craft_name]
         self.needed_items.remove_all_elements()
         self.needed_quantities.remove_all_elements()
@@ -58,4 +56,6 @@ class WorkbenchInterface(BlockInterface):
         for item in crafted_items:
             self.crafted_items.add_element(item[0].name)
             self.crafted_quantities.add_element(str(item[1]))
-        
+    
+    def update_after_craft(self) -> None:
+        self.select_craft()

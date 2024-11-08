@@ -5,12 +5,13 @@ from recipes import FURNACE_RECIPES, smelt
 from entities.player_interface import PlayerInterface
 from furnace_inventory import FurnaceInventory
 from inventory import Inventory
-from blocks_interfaces.block_interface import BlockInterface, BLOCKS_MENUS_THEMES_PATH
+from blocks_panels.craft_panel import CraftPanel
+from blocks_panels.block_panel import BLOCKS_MENUS_THEMES_PATH
 from module_infos import RESOURCES_PATH
 import os
 from typing import Any
 
-class FurnaceInterface(BlockInterface):
+class FurnacePanel(CraftPanel):
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface, *ui_manager_parameters: list[Any]) -> None:
         super().__init__(block_data, player, window, ui_manager_parameters)
         self.temp_player_inventory = Inventory(player.main_inventory.get_nb_cells() + player.hot_bar_inventory.get_nb_cells(), self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
@@ -31,7 +32,7 @@ class FurnaceInterface(BlockInterface):
         self._elements.append(self.crafted_items)
         self.crafted_quantities = elements.ItemList(self._ui_manager, anchor='left', x='85%', width='5%', height='50%', items_classes_names=['item-lists-childs'])
         self._elements.append(self.crafted_quantities)
-        self._elements.append(elements.TextButton(self._ui_manager, 'Craft', self.craft_item, anchor='center', x='45%'))
+        self._elements.append(elements.TextButton(self._ui_manager, 'Craft', self._craft, anchor='center', x='45%'))
         if 'inventory' not in self.block_data:
             self.block_data['inventory'] = FurnaceInventory(5, self._ui_manager)
         self.block_inventory = self.block_data['inventory']
@@ -40,16 +41,13 @@ class FurnaceInterface(BlockInterface):
     def add_crafts(self) -> None:
         self.crafts_list.add_elements(list(FURNACE_RECIPES.keys()))
     
-    def craft_item(self, _: UIElement) -> None:
+    def _get_selected_craft(self) -> str|None:
         selected_craft = self.crafts_list.child_selected
-        if selected_craft is None: return
-        if smelt(selected_craft.get_text(), FURNACE_RECIPES, self.block_inventory, self.player.hot_bar_inventory, self.player.main_inventory):
-            self.need_update = True
-            self.select_craft(self.crafts_list.child_selected)
+        return None if selected_craft is None else selected_craft.get_text()
     
-    def select_craft(self, button: elements.TextButton) -> None:
-        craft_name = button.get_text()
-        if craft_name not in FURNACE_RECIPES: return
+    def select_craft(self, _: UIElement|None=None) -> None:
+        craft_name = self._get_selected_craft()
+        if craft_name is None or craft_name not in FURNACE_RECIPES: return
         needed_items, crafted_items, need_energy = FURNACE_RECIPES[craft_name]
         self.needed_items.remove_all_elements()
         self.needed_quantities.remove_all_elements()
@@ -67,3 +65,6 @@ class FurnaceInterface(BlockInterface):
         for item in crafted_items:
             self.crafted_items.add_element(item[0].name)
             self.crafted_quantities.add_element(str(item[1]))
+
+    def update_after_craft(self) -> None:
+        self.select_craft
