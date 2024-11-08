@@ -3,9 +3,7 @@ BLOCKS_IMAGES_PATH = f'{RESOURCES_PATH}/images/blocks'
 
 from load_image import load_image
 from pygame import Surface
-from blocks_menus.workbench_menu import WorkbenchMenu
-from blocks_menus.furnace_menu import FurnaceMenu
-from blocks_menus.block_menu import BlockMenu
+from blocks_interfaces.interfaces import BlockInterface, WorkbenchInterface, FurnaceInterface
 
 block_size: int = 30
 
@@ -73,7 +71,7 @@ SWIMMABLE_BLOCKS = [
     LAVA
 ]
 
-INTERACTABLE_BLOCKS: dict[Block, BlockMenu] = {
-    WORKBENCH: WorkbenchMenu,
+BLOCKS_INTERFACES: dict[Block, type[BlockInterface]] = {
+    BLOCKS_DICT[WORKBENCH]: WorkbenchInterface,
     # FURNACE: FurnaceMenu
 }

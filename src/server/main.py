@@ -223,7 +223,7 @@ class Server:
                 for save_name in saves_names:
                     save_path = os.path.join(SAVES_PATH, save_name)
                     if os.path.isdir(save_path):
-                        delete_folder(save_path)
+                        SaveManager.delete_save(save_path)
             case value:
                 write_log(f"Bad request: invalid for data type for DELETE: '{value}'")
                 await self.send_invalid_request(writer)
@@ -331,17 +331,6 @@ class Server:
         self.players[addr] = (player_name, game)
         self.players_names[player_name] = addr
         await self.send_json(writer, {'status': self.VALID_REQUEST})
-
-
-def delete_folder(path: str) -> None:
-    for file in os.listdir(path):
-        file_path = os.path.join(path, file)
-        if os.path.isdir(file_path):
-            delete_folder(file_path)
-        else:
-            os.remove(file_path)
-    os.rmdir(path)
-
 
 try:
     server = Server('127.0.0.1', 12345)

@@ -1,12 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from entities.entity_interface import EntityInterface
-from inventory_interface import InventoryInterface
+from inventory import Inventory
 from typing import Any
 
 class PlayerInterface(EntityInterface, metaclass=ABCMeta):
     def __init__(self) -> None:
-        self.main_inventory: InventoryInterface = None
-        self.hot_bar_inventory: InventoryInterface = None
+        self.main_inventory: Inventory = None
+        self.hot_bar_inventory: Inventory = None
     
     @abstractmethod
     def update(self, delta_t: float) -> bool:
@@ -38,4 +38,8 @@ class PlayerInterface(EntityInterface, metaclass=ABCMeta):
 
     @abstractmethod
     def get_infos(self) -> dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def delete(self) -> None:
         pass

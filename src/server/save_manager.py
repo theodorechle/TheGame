@@ -109,3 +109,13 @@ class SaveManager(SaveManagerInterface):
         infos['version'] = CURRENT_VERSION
         with open(self.generation_infos_path, 'w') as f:
             json.dump(infos, f)
+
+    @staticmethod
+    def delete_save(cls, path: str) -> None:
+        for file in os.listdir(path):
+            file_path = os.path.join(path, file)
+            if os.path.isdir(file_path):
+                cls.delete_save(file_path)
+            else:
+                os.remove(file_path)
+        os.rmdir(path)

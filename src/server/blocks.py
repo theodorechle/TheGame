@@ -1,3 +1,5 @@
+from blocks_interfaces.interfaces import BlockInterface, WorkbenchInterface, FurnaceInterface
+
 Block = int
 
 NOTHING = -1
@@ -31,7 +33,7 @@ SWIMMABLE_BLOCKS = [
     LAVA
 ]
 
-INTERACTABLE_BLOCKS = {
-    WORKBENCH,
+BLOCKS_INTERFACES: dict[Block, BlockInterface] = {
+    WORKBENCH: WorkbenchInterface,
     # FURNACE: FurnaceMenu
 }

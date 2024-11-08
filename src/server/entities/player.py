@@ -6,6 +6,7 @@ import items
 from chunk_manager import ChunkManager
 from typing import Any
 from conversions_items_blocks import convert_block_to_items, convert_item_to_block
+from blocks_interfaces.block_interface import BlockInterface
 
 class Player(Entity, PlayerInterface):
     def __init__(self, name: str, x: int, y: int, speed_x: int, speed_y: int, direction: bool, chunk_manager: ChunkManager, main_inventory_cells: list[tuple[items.Item|None, int]]|None=None, hot_bar_inventory_cells: list[tuple[items.Item|None, int]]|None=None, images_name: str="") -> None:
@@ -14,16 +15,17 @@ class Player(Entity, PlayerInterface):
 
         Entity.__init__(self, name, x, y, speed_x, speed_y, direction, 1, 2, chunk_manager, 'persos', True, images_name=images_name)
         self.inventory_size: int = 50
-        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells, classes_names=['main-inventory'], anchor='center')
-        self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells, classes_names=['hot-bar-inventory'], anchor='bottom')
+        self.main_inventory: Inventory = Inventory(self.inventory_size - 10, main_inventory_cells)
+        self.hot_bar_inventory: Inventory = Inventory(10, hot_bar_inventory_cells)
         self.selected_item: tuple[items.Item, int] = (items.NOTHING, 0)
         self.selected_item_index: int = -1
         self.selected_item_inventory: Inventory|None = None
-        self.is_item_newly_selected = False
+        self.opened_block_interface: BlockInterface|None = None
+        self.additional_infos: dict[str, Any] = {}
         self.set_player_edges_pos()
 
     def update(self, delta_t: float) -> bool:
-        need_update = super().update(delta_t) or self.force_update or self.is_item_newly_selected
+        need_update = super().update(delta_t) or self.force_update or self.additional_infos
         self.force_update = False
         return need_update
 
@@ -105,16 +107,20 @@ class Player(Entity, PlayerInterface):
             self.force_update = True
             return (blocks.AIR, (block_x, block_y))
 
-    def interact_with_block(self, pos: tuple[int, int]):#  -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
-        if self.main_inventory.is_opened(): return None, None
-        x, y = self._get_relative_pos(*pos)
-        if not self._is_interactable(x, y): return None, None
-        x, y = self.x + x, self.y + y
-        block = self.chunk_manager.get_block(x, y)
-        menu = blocks.INTERACTABLE_BLOCKS.get(block, None)
-        if menu is not None:
-            return menu, (x, y)
-        return None, None
+    def interact_with_block(self, pos: tuple[int, int]) -> blocks.Block|None:
+        block_x, block_y = pos
+        if not self._is_interactable(block_x - self.x, block_y - self.y): return
+        block = self.chunk_manager.get_block(block_x, block_y)
+        if block in blocks.BLOCKS_INTERFACES:
+            self.opened_block_interface = blocks.BLOCKS_INTERFACES[block]({}, self)
+            self.additional_infos['open-interface'] = block
+            return block
+
+    def stop_interacting_with_block(self) -> None:
+        if self.opened_block_interface is None: return
+        self.opened_block_interface.close()
+        self.opened_block_interface = None
+        self.additional_infos['close-interface'] = True
 
     def place_back_item(self) -> None:
         if self.selected_item_index == -1: return
@@ -125,7 +131,7 @@ class Player(Entity, PlayerInterface):
         self.selected_item_index = -1
         self.selected_item_inventory = None
         self.force_update = True
-        self.is_item_newly_selected = True
+        self.additional_infos['set-dragged-item'] = self.selected_item
 
     def select_item(self, inventory_nb: int, cell_index: int) -> None:        
         inventory: Inventory
@@ -149,7 +155,7 @@ class Player(Entity, PlayerInterface):
             if self.selected_item[0] == items.NOTHING: return
             self.selected_item_index = cell_index
             self.selected_item_inventory = inventory
-        self.is_item_newly_selected = True
+        self.additional_infos['set-dragged-item'] = self.selected_item
         self.force_update = True
 
     def delete(self) -> None:
@@ -176,7 +182,8 @@ class Player(Entity, PlayerInterface):
         update_hot_bar_inventory = self.hot_bar_inventory.get_updated_items()
         if update_hot_bar_inventory:
             infos['hot_bar_inventory_updated'] = update_hot_bar_inventory
-        if self.is_item_newly_selected:
-            infos['set-dragged-item'] = self.selected_item
-        self.is_item_newly_selected = False
+        infos.update(self.additional_infos)
         return infos
+    
+    def clear_additional_infos(self):
+        self.additional_infos.clear()

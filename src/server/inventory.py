@@ -2,7 +2,7 @@ import items
 from inventory_interface import InventoryInterface
 
 class Inventory(InventoryInterface):
-    def __init__(self, nb_cells: int, cells: list[tuple[items.Item|None, int]]|None=None, classes_names: list[str]|None=None, anchor: str = 'top-left') -> None:
+    def __init__(self, nb_cells: int, cells: list[tuple[items.Item|None, int]]|None=None) -> None:
         super().__init__(nb_cells, cells)
         self.nb_cells_by_line = min(10, self._nb_cells)
         self.indexes_to_update: set[int] = set()

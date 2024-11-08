@@ -34,7 +34,9 @@ asyncio.exceptions.CancelledError
 
 Sometimes, it don't refresh when it needs
 
+Bug with inventory (items not despawning) ![image](BUG_TOOLBAR.png)
 
+Multiple labels for name when placing/breaking blocks
 
 ## OTHER
 

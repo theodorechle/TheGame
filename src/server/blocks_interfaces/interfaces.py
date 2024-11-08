@@ -1,0 +1,3 @@
+from blocks_interfaces.block_interface import BlockInterface
+from blocks_interfaces.furnace_interface import FurnaceInterface
+from blocks_interfaces.workbench_interface import WorkbenchInterface

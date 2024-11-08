@@ -55,10 +55,6 @@ class Game:
             self.removed_players.append(name)
             self.chunk_manager.remove_player(name)
 
-    def get_player_infos(self, name: str)  -> Player|None:
-        if name not in self.players: return
-        return self.players[name][0].get_infos()
-    
     async def run(self) -> None:
         try:
             await asyncio.gather(self.process_actions(), self.update())
@@ -70,6 +66,13 @@ class Game:
         while True:
             actions = await asyncio.get_running_loop().run_in_executor(None, self.actions_queue.get)
             self.player_updates(actions['name'], actions['actions'], actions['additional-data'])
+
+    def get_interacted_block_pos(self, data: dict[str, Any]) -> tuple[int, int]|None:
+        if 'interacted-block' not in data: return
+        if not isinstance(data['interacted-block'], list): return
+        block_pos = tuple(data['interacted-block'])
+        if not isinstance(block_pos[0], int) or not isinstance(block_pos[1], int): return
+        return block_pos
 
     def player_updates(self, player_name: str, actions: list[str], additional_data: dict[str, Any]|None) -> dict[str, Any]:
         if additional_data is None: additional_data = {}
@@ -83,11 +86,7 @@ class Game:
                 case 'mv-up':
                     player.speed_y = 1
                 case 'place-block':
-                    if 'interacted-block' in additional_data and 'selected' in additional_data:
-                        if not isinstance(additional_data['interacted-block'], list) or not isinstance(additional_data['selected'], int): return
-                        block_pos = tuple(additional_data['interacted-block'])
-                        if not isinstance(block_pos[0], int) or not isinstance(block_pos[1], int): return
-
+                    if 'selected' in additional_data and (block_pos := self.get_interacted_block_pos(additional_data)) is not None:
                         block = player.place_block(block_pos, additional_data['selected'])
                         if block is not None: self.updated_blocks[block[1]] = block[0]
                     else:
@@ -97,14 +96,17 @@ class Game:
                         if not isinstance(inventory_nb, int) or not isinstance(cell_index, int): return
                         player.select_item(inventory_nb, cell_index)
                 case 'remove-block':
-                    if 'interacted-block' not in additional_data: continue
-                    if not isinstance(additional_data['interacted-block'], list): return
-                    block_pos = tuple(additional_data['interacted-block'])
-                    if not isinstance(block_pos[0], int) or not isinstance(block_pos[1], int): return
-                    block = player.remove_block(block_pos)
-                    if block is not None: self.updated_blocks[block[1]] = block[0]
+                    if (block_pos := self.get_interacted_block_pos(additional_data)) is not None:
+                        block = player.remove_block(block_pos)
+                        if block is not None: self.updated_blocks[block[1]] = block[0]
                 case 'place-back-item':
                     player.place_back_item()
+                case 'interact':
+                    if (block_pos := self.get_interacted_block_pos(additional_data)) is not None:
+                        block = player.interact_with_block(block_pos)
+                        if block is None: continue
+                case 'stop-interact':
+                    player.stop_interacting_with_block()
                 case _:
                     write_log(f"Invalid player action '{action}'", True)
 
@@ -136,12 +138,14 @@ class Game:
                         blocks.append(block)
                     self.updates_queue.put((player_name, {'players': players, 'blocks': [blocks_pos, blocks]}))
             self.updated_blocks.clear()
+            for player in self.players.values():
+                player.clear_additional_infos()
             await asyncio.sleep(0.05)
 
     def delete(self) ->None:
         for player in self.players:
             player.delete()
-        self.chunk_manager
+        self.chunk_manager.save_all_chunks()
 
     def get_all_players_infos(self) -> dict[str, Any]:
         return {player.name: player.get_all_infos() for player in self.players.values()}

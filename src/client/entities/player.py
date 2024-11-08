@@ -4,7 +4,6 @@ from entities.entity import DrawableEntity
 from inventory import Inventory
 from entities.player_interface import PlayerInterface
 import items
-from blocks_menus.block_menu import BlockMenu
 from gui.ui_manager import UIManager
 from gui.ui_element import UIElement
 from gui.elements import Button, Label
@@ -96,7 +95,7 @@ class Player(DrawableEntity, PlayerInterface):
         self._ui_manager.unclick()
         return (inventory_nb, cell_index)
 
-    def set_dragged_item(self, item: tuple[items.Item|None, int]) -> None:
+    def set_dragged_item(self, item: tuple[int, int]) -> None:
         if item == [-1, 0]:
             self._dragged_item_element.delete()
             self._dragged_item_element = None
@@ -134,26 +133,21 @@ class Player(DrawableEntity, PlayerInterface):
         label._can_have_focus = False
         self.update_needed = True
 
+    def get_cursor_pos_in_blocks(self, cursor_pos: tuple[int, int]) -> tuple[int, int]:
+        x, y = self._get_relative_pos(*cursor_pos)
+        return self.x + x, self.y + y
+
     def place_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
         if self.main_inventory.is_opened(): return None
-        x, y = self._get_relative_pos(*pos)
-        return self.x + x, self.y + y
+        return self.get_cursor_pos_in_blocks(pos)
 
     def remove_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
         if self.main_inventory.is_opened(): return None
-        x, y = self._get_relative_pos(*pos)
-        return self.x + x, self.y + y
+        return self.get_cursor_pos_in_blocks(pos)
 
-    def interact_with_block(self, pos: tuple[int, int]) -> tuple[type[BlockMenu]|None, tuple[int, int]|None]:
+    def interact_with_block(self, pos: tuple[int, int]) -> tuple[int, int]|None:
         if self.main_inventory.is_opened(): return None, None
-        x, y = self._get_relative_pos(*pos)
-        if not self._is_interactable(x, y): return None, None
-        x, y = self.x + x, self.y + y
-        block = self.chunk_manager.get_block(x, y)
-        menu = blocks.INTERACTABLE_BLOCKS.get(block, None)
-        if menu is not None:
-            return menu, (x, y)
-        return None, None
+        return self.get_cursor_pos_in_blocks(pos)
 
     async def update(self, update_dict: dict[str, Any]) -> None:
         self.update_needed = False

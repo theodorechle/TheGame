@@ -9,7 +9,7 @@ from module_infos import RESOURCES_PATH
 
 BLOCKS_MENUS_THEMES_PATH = os.path.join(RESOURCES_PATH, 'gui_themes', 'blocks_menus')
 
-class BlockMenu():
+class BlockInterface():
     def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: pygame.Surface, *ui_manager_parameters: list[Any]) -> None:
         self.block_data = block_data
         self.player = player
@@ -34,6 +34,11 @@ class BlockMenu():
         self._ui_manager.process_event(event)
         return False
     
+    def process_events(self, exit_key: int) -> bool:
+        for event in pygame.event.get():
+            if self.process_event(event, exit_key): return True
+        return False
+
     def update(self) -> bool:
         need_update = self._ui_manager.update() or self.need_update
         self.need_update = False
@@ -41,3 +46,6 @@ class BlockMenu():
     
     def display(self, clear: bool=True) -> None:
         self._ui_manager.display(clear)
+    
+    def close(self) -> None:
+        pass

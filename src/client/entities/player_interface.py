@@ -1,12 +1,12 @@
 from abc import ABCMeta, abstractmethod
 from entities.entity_interface import EntityInterface
-from inventory_interface import InventoryInterface
+from inventory import Inventory
 from typing import Any
 
 class PlayerInterface(EntityInterface, metaclass=ABCMeta):
     def __init__(self) -> None:
-        self.main_inventory: InventoryInterface
-        self.hot_bar_inventory: InventoryInterface
+        self.main_inventory: Inventory
+        self.hot_bar_inventory: Inventory
     
     @abstractmethod
     def display_hud(self) -> None:

@@ -3,13 +3,13 @@ from gui import elements
 from gui.ui_element import UIElement
 from recipes import WORKBENCH_RECIPES, craft
 from entities.player_interface import PlayerInterface
-from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
+from blocks_interfaces.block_interface import BlockInterface, BLOCKS_MENUS_THEMES_PATH
 import os
 from typing import Any
 
-class WorkbenchMenu(BlockMenu):
-    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface) -> None:
-        super().__init__(block_data, player, window)
+class WorkbenchInterface(BlockInterface):
+    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface, *ui_manager_parameters: list[Any]) -> None:
+        super().__init__(block_data, player, window, ui_manager_parameters)
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'workbench_menu_theme.json'))
         self.crafts_list = elements.ItemList(self._ui_manager, x='5%', anchor='left', height='80%', width='30%', classes_names=['craft-list'], on_select_item_function=self.select_craft)
         self._elements.append(self.crafts_list)

@@ -20,9 +20,10 @@ from gui import elements
 from entities.player import Player
 from entities.entity import DrawableEntity
 import blocks
+from map_chunk import Chunk
+from blocks_interfaces import block_interface
 from typing import Any
 import asyncio
-from map_chunk import Chunk
 import traceback
 from logs import write_log
 
@@ -43,6 +44,7 @@ class Client:
         self.last_time_in_menu: float = 0
         self.min_time_before_toggling_menu: float = 0.3
 
+        self.opened_block_interface: block_interface.BlockInterface|None = None
         # UI
         self.window = window
         self._ui_manager = UIManager(self.window)
@@ -323,10 +325,23 @@ class Client:
             write_log(f'Detail: {traceback.format_exc()}', is_err=True)
 
     async def update(self) -> None:
-        if await self.process_events(): return
+        if self.opened_block_interface is not None:
+            if self.opened_block_interface.process_events(self.server_actions_keyboard_keys['interact']):
+                await self.server.send_json({
+                    'method': 'POST',
+                    'data': {
+                        'type': 'update',
+                        'actions': ['stop-interact']
+                    }
+                })
+            self.need_redraw = self.need_redraw or self.opened_block_interface.update()
+            return
+        elif await self.process_events(): return
 
         # sending random data to the server for DEBUG ONLY
 
+        # import random
+        
         # for key in self.server_actions_pressed_mouse_keys.keys():
         #     self.server_actions_pressed_mouse_keys[key] = random.randint(0, 1)
 
@@ -358,6 +373,10 @@ class Client:
             if (block_pos := self.player.remove_block(pygame.mouse.get_pos())) is not None:
                 additional_data['interacted-block'] = block_pos
 
+        if self.server_actions_pressed_keys["interact"]:
+            if (block_pos := self.player.interact_with_block(pygame.mouse.get_pos())) is not None:
+                additional_data['interacted-block'] = block_pos
+
         actions: list[str] = [action for action, is_done in self.server_actions_pressed_keys.items() if is_done]
         actions.extend(action for action, is_done in self.server_actions_pressed_mouse_keys.items() if is_done)
         if actions:
@@ -371,7 +390,9 @@ class Client:
                 'method': 'POST',
                 'data': data
             })
-        if self.player.need_update(): self.need_redraw = True
+        self.server_actions_pressed_keys['interact'] = False
+        if self.opened_block_interface is not None and self.opened_block_interface.update(): self.need_redraw = True
+        elif self.player.need_update(): self.need_redraw = True
 
     async def process_socket_messages(self) -> None:
         try:
@@ -409,6 +430,15 @@ class Client:
         for player_name, player_data in data['players'].items():
             if player_name == self.player_name:
                 await self.player.update(player_data)
+                if 'open-interface' in player_data and player_data['open-interface'] in blocks.BLOCKS_INTERFACES:
+                    write_log(f"Can't open interface of {player_data['open-interface']}", True)
+                    block_menu = blocks.BLOCKS_INTERFACES[player_data['open-interface']]
+                    block_data = {} # TODO: set a true block_data dict
+                    self.opened_block_interface = block_menu(block_data, self.player, self.window)
+                elif 'close-interface' in player_data:
+                    self.opened_block_interface.close()
+                    self.opened_block_interface = None
+                    self.need_redraw = True
             else:
                 if 'removed' in player_data:
                     self.others_players[player_name].delete()
@@ -422,13 +452,16 @@ class Client:
             self.player.chunk_manager.replace_block(pos[0], pos[1], blocks.REVERSED_BLOCKS_DICT[block])
 
     def display(self) -> None:
-        self.window.fill("#000000")
-        self.player.display()
-        for player in self.others_players.values():
-            player.display(self.player.x, self.player.y)
-            player.display_name(self.player.x, self.player.y)
-        self.player.display_hud()
-        self._ui_manager.display(False)
+        if self.opened_block_interface is not None:
+            self.opened_block_interface.display()
+        else:
+            self.window.fill("#000000")
+            self.player.display()
+            for player in self.others_players.values():
+                player.display(self.player.x, self.player.y)
+                player.display_name(self.player.x, self.player.y)
+            self.player.display_hud()
+            self._ui_manager.display(False)
         pygame.display.update()
 
 async def start() -> None:

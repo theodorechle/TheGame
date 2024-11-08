@@ -5,14 +5,14 @@ from recipes import FURNACE_RECIPES, smelt
 from entities.player_interface import PlayerInterface
 from furnace_inventory import FurnaceInventory
 from inventory import Inventory
-from blocks_menus.block_menu import BlockMenu, BLOCKS_MENUS_THEMES_PATH
+from blocks_interfaces.block_interface import BlockInterface, BLOCKS_MENUS_THEMES_PATH
 from module_infos import RESOURCES_PATH
 import os
 from typing import Any
 
-class FurnaceMenu(BlockMenu):
-    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface) -> None:
-        super().__init__(block_data, player, window)
+class FurnaceInterface(BlockInterface):
+    def __init__(self, block_data: dict[str, Any], player: PlayerInterface, window: Surface, *ui_manager_parameters: list[Any]) -> None:
+        super().__init__(block_data, player, window, ui_manager_parameters)
         self.temp_player_inventory = Inventory(player.main_inventory.get_nb_cells() + player.hot_bar_inventory.get_nb_cells(), self._ui_manager, player.main_inventory.cells + player.hot_bar_inventory.cells)
         self.temp_player_inventory.toggle_inventory()
         self._ui_manager.update_theme(os.path.join(BLOCKS_MENUS_THEMES_PATH, 'furnace_menu_theme.json'))
